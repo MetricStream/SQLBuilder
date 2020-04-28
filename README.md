@@ -6,7 +6,7 @@ sourcing this library is an attempt to give a tiny bit back to the community. Ho
 Feedback of and kind is definitely appreciated!
 
 Currently, to use SQLBuilder in your Java project you must download or clone this repository and then run `./gradlew
-jar` to create the `sqlbuilder-core-1.0.0.jar` and `sqlbuilder-mock-1.0.0.jar` libraries. In the near futurw we will
+jar` to create the `sqlbuilder-core-1.0.0.jar` and `sqlbuilder-mock-1.0.0.jar` libraries. In the near future we will
 publish them to [MavenCentral] for easier consumption and then update these instructions.Stya tuned!
 
 Read the [documentation](docs/Rationale.md) for details on why and how to use SQLBuilder.
