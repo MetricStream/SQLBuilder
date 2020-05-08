@@ -59,7 +59,7 @@ public class Check {
     /**
      * Checks if the provided parameter is null or empty
      *
-     * @param arg a voolean array
+     * @param arg a boolean array
      * @return true if the parameter is null or has length 0, false otherwise
      */
     public static boolean noContent(boolean[] arg) {
@@ -109,7 +109,7 @@ public class Check {
     /**
      * Checks if the provided parameter is null or empty
      *
-     * @param arg a stringbuilder
+     * @param arg a stringBuilder
      * @return true if the parameter is null or empty, false otherwise
      */
     public static boolean noContent(StringBuilder arg) {
@@ -119,7 +119,7 @@ public class Check {
     /**
      * Checks if the provided parameter is null or empty
      *
-     * @param arg a stringbuffer
+     * @param arg a stringBuffer
      * @return true if the parameter is null or empty, false otherwise
      */
     public static boolean noContent(StringBuffer arg) {
@@ -375,8 +375,8 @@ public class Check {
     /**
      * Checks if any provided parameters are null
      *
-     * @param arg an object
-     * @param arg another object
+     * @param arg1 an object
+     * @param arg2 another object
      * @return true if any of the objects is null, false otherwise
      */
     public static boolean anyNull(Object arg1, Object arg2)
@@ -387,8 +387,8 @@ public class Check {
     /**
      * Checks if any provided parameters are null
      *
-     * @param arg an object
-     * @param arg another object
+     * @param arg1 an object
+     * @param arg2 another object
      * @param args optionally more objects
      * @return true if any of the objects is null, false otherwise
      */
@@ -408,9 +408,9 @@ public class Check {
     /**
      * Returns the first non-null parameter
      *
-     * @param arg an object
-     * @param def another object of the same type
-     * @return <code>arg</code> if it is not null, <code>def</code> otherwise
+     * @param arg1 an object
+     * @param arg2 another object of the same type
+     * @return <code>arg</code> if it is not null, <code>arg2</code> otherwise
      */
     public static <T> T nvl(T arg1, T arg2)
     {
@@ -423,6 +423,7 @@ public class Check {
      * @param args one or more objects of the same type
      * @return the first object from <code>args</code> that is not null, or null otherwise
      */
+    @SafeVarargs
     public static <T> T nvl(T... args)
     {
         for (T t : args) {
@@ -440,8 +441,8 @@ public class Check {
      *            one or more objects of String type
      * @return the first object from <code>args</code> that has content, or null otherwise
      */
-    public static String firstContent(String... values) {
-        for (String val : values) {
+    public static String firstContent(String... args) {
+        for (String val : args) {
             if (hasContent(val)) {
                 return val;
             }
@@ -456,8 +457,8 @@ public class Check {
      *            one or more objects of int[] type
      * @return the first object from <code>args</code> that has content, or null otherwise
      */
-    public static int[] firstContent(int[]... values) {
-        for (int[] val : values) {
+    public static int[] firstContent(int[]... args) {
+        for (int[] val : args) {
             if (hasContent(val)) {
                 return val;
             }
@@ -472,8 +473,8 @@ public class Check {
      *            one or more objects of long[] type
      * @return the first object from <code>args</code> that has content, or null otherwise
      */
-    public static long[] firstContent(long[]... values) {
-        for (long[] val : values) {
+    public static long[] firstContent(long[]... args) {
+        for (long[] val : args) {
             if (hasContent(val)) {
                 return val;
             }
@@ -488,8 +489,8 @@ public class Check {
      *            one or more objects of char[] type
      * @return the first object from <code>args</code> that has content, or null otherwise
      */
-    public static char[] firstContent(char[]... values) {
-        for (char[] val : values) {
+    public static char[] firstContent(char[]... args) {
+        for (char[] val : args) {
             if (hasContent(val)) {
                 return val;
             }
@@ -504,8 +505,8 @@ public class Check {
      *            one or more objects of boolean[] type
      * @return the first object from <code>args</code> that has content, or null otherwise
      */
-    public static boolean[] firstContent(boolean[]... values) {
-        for (boolean[] val : values) {
+    public static boolean[] firstContent(boolean[]... args) {
+        for (boolean[] val : args) {
             if (hasContent(val)) {
                 return val;
             }
@@ -520,8 +521,8 @@ public class Check {
      *            one or more objects of byte[] type
      * @return the first object from <code>args</code> that has content, or null otherwise
      */
-    public static byte[] firstContent(byte[]... values) {
-        for (byte[] val : values) {
+    public static byte[] firstContent(byte[]... args) {
+        for (byte[] val : args) {
             if (hasContent(val)) {
                 return val;
             }
@@ -536,8 +537,8 @@ public class Check {
      *            one or more objects of Object[] type
      * @return the first object from <code>args</code> that has content, or null otherwise
      */
-    public static Object[] firstContent(Object[]... values) {
-        for (Object[] val : values) {
+    public static Object[] firstContent(Object[]... args) {
+        for (Object[] val : args) {
             if (hasContent(val)) {
                 return val;
             }
@@ -552,8 +553,8 @@ public class Check {
      *            one or more objects of Collection type
      * @return the first object from <code>args</code> that has content, or null otherwise
      */
-    public static Collection<?> firstContent(Collection<?>... values) {
-        for (Collection<?> val : values) {
+    public static Collection<?> firstContent(Collection<?>... args) {
+        for (Collection<?> val : args) {
             if (hasContent(val)) {
                 return val;
             }
@@ -568,8 +569,8 @@ public class Check {
      *            one or more objects of Map type
      * @return the first object from <code>args</code> that has content, or null otherwise
      */
-    public static Map<?,?> firstContent(Map<?, ?>... values) {
-        for (Map<?, ?> val : values) {
+    public static Map<?,?> firstContent(Map<?, ?>... args) {
+        for (Map<?, ?> val : args) {
             if (hasContent(val)) {
                 return val;
             }
@@ -584,8 +585,8 @@ public class Check {
      *            one or more objects of StringBuilder type
      * @return the first object from <code>args</code> that has content, or null otherwise
      */
-    public static StringBuilder firstContent(StringBuilder... values) {
-        for (StringBuilder val : values) {
+    public static StringBuilder firstContent(StringBuilder... args) {
+        for (StringBuilder val : args) {
             if (hasContent(val)) {
                 return val;
             }
@@ -600,8 +601,8 @@ public class Check {
      *            one or more objects of StringBuffer type
      * @return the first object from <code>args</code> that has content, or null otherwise
      */
-    public static StringBuffer firstContent(StringBuffer... values) {
-        for (StringBuffer val : values) {
+    public static StringBuffer firstContent(StringBuffer... args) {
+        for (StringBuffer val : args) {
             if (hasContent(val)) {
                 return val;
             }
