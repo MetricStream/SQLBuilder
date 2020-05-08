@@ -3,10 +3,6 @@ plugins {
     application
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation(project(":core"))
     implementation("org.postgresql:postgresql:42.2.12")
@@ -19,8 +15,4 @@ dependencies {
 
 application {
     mainClassName = "postgres.App"
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }

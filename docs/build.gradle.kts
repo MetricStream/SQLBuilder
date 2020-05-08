@@ -11,6 +11,6 @@ tasks.register("pandoc") {
     formats.forEach { fmt -> dependsOn(fmt) }
 }
 
-tasks.create<Delete>("clean") {
+tasks.named<Delete>("clean") {
     delete = formats.map { fmt -> "Rationale.$fmt" }.toSet()
 }
