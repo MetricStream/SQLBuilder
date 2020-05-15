@@ -9,8 +9,3 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
     testImplementation("org.hamcrest:hamcrest:2.2")
 }
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}

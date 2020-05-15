@@ -5,6 +5,11 @@ plugins {
     signing
 }
 
+// These are credentials required for the task `uploadArchives`. They are read either from gradle.properties or from the command
+// line using -PsonatypeUsername=abc
+val sonatypeUsername: String by project
+val sonatypePassword: String by project
+
 subprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "java-library")
@@ -20,11 +25,15 @@ subprojects {
     tasks.withType<AbstractArchiveTask> {
         setProperty("archiveBaseName", "sqlbuilder")
         setProperty("archiveAppendix", project.name)
-
     }
 
     tasks.withType<Test> {
         useJUnitPlatform()
+    }
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
     }
 
     publishing {
@@ -46,9 +55,10 @@ subprojects {
                     }
                     developers {
                         developer {
-                            id.set("nkiesel")
                             name.set("Norbert Kiesel")
                             email.set("nkiesel@metricstream.com")
+                            organization.set("MetricStream, Inc.")
+                            organizationUrl.set("https://metricstream.com")
                         }
                     }
                     scm {
@@ -56,6 +66,17 @@ subprojects {
                         developerConnection.set("scm:git:git@github.com:MetricStream/SQLBuilder.git")
                         url.set("https://github.com/MetricStream/SQLBuilder")
                     }
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                name = "staging"
+                url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
+                credentials {
+                    username = sonatypeUsername
+                    password = sonatypePassword
                 }
             }
         }
