@@ -500,51 +500,51 @@ public class SQLBuilder {
     /**
      * Returns a list of objects generated from the ResultSet
      * @param connection The Connection from which the PreparedStatement is created
-     * @param rm The Mapper lambda called per row to produce a matching list item. Null values returned from the mapper
+     * @param rowMapper The Mapper lambda called per row to produce a matching list item. Null values returned from the mapper
      *           lambda are ignored
      * @return The list of generated items
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
-    public <T> List<T> getList(Connection connection, RowMapper<T> rm) throws SQLException {
-        return getList(connection, rm, false);
+    public <T> List<T> getList(Connection connection, RowMapper<T> rowMapper) throws SQLException {
+        return getList(connection, rowMapper, false);
     }
 
     /**
      * Returns a list of objects generated from the ResultSet
      * @param connection The Connection from which the PreparedStatement is created
-     * @param rm The Mapper lambda called per row to produce a matching list item.
+     * @param rowMapper The Mapper lambda called per row to produce a matching list item.
      * @param withNull If false, null values returned from the mapper lambda are ignored.  Otherwise they
      *                 are added to the returned list
      * @return The list of generated items
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
-    public <T> List<T> getList(Connection connection, RowMapper<T> rm, boolean withNull) throws SQLException {
+    public <T> List<T> getList(Connection connection, RowMapper<T> rowMapper, boolean withNull) throws SQLException {
         logger.debug("{}", this);
-        return delegate.getList(this, connection, rm, withNull);
+        return delegate.getList(this, connection, rowMapper, withNull);
     }
 
     /**
      * Returns a list of objects generated from the ResultSet
      * @param connection The Connection from which the PreparedStatement is created
-     * @param rm The Mapper lambda called one the first row to produce a matching item.
+     * @param rowMapper The Mapper lambda called one the first row to produce a matching item.
      * @return the Optional containing the item returned from the mapping lambda, if any
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
-    public <T> Optional<T> getSingle(Connection connection, RowMapper<T> rm) throws SQLException {
+    public <T> Optional<T> getSingle(Connection connection, RowMapper<T> rowMapper) throws SQLException {
         logger.debug("{}", this);
-        return delegate.getSingle(this, connection, rm);
+        return delegate.getSingle(this, connection, rowMapper);
     }
 
     /**
      * Returns a list of objects generated from the ResultSet
      * @param connection The Connection from which the PreparedStatement is created
-     * @param rm The Mapper lambda called one the first row to produce a matching item.
+     * @param rowMapper The Mapper lambda called one the first row to produce a matching item.
      * @return the item returned from the mapping lambda, or the defaultValue if no row was returned
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
-    public <T> T getSingle(Connection connection, RowMapper<T> rm, T defaultValue) throws SQLException {
+    public <T> T getSingle(Connection connection, RowMapper<T> rowMapper, T defaultValue) throws SQLException {
         logger.debug("{}", this);
-        return delegate.getSingle(this, connection, rm, defaultValue);
+        return delegate.getSingle(this, connection, rowMapper, defaultValue);
     }
 
     /**

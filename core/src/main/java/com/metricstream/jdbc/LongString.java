@@ -1,17 +1,18 @@
 /*
- * Copyright © 2000-2020, MetricStream, Inc. All rights reserved.
+ * Copyright © 2020, MetricStream, Inc. All rights reserved.
  */
 package com.metricstream.jdbc;
 
 import java.io.Reader;
 import java.io.StringReader;
 
+
 public class LongString {
     
     private final String data;
     
-    public LongString(String _data) {
-        data = _data;
+    public LongString(String data) {
+        this.data = data;
     }
         
     public Reader getReader() {
@@ -23,9 +24,9 @@ public class LongString {
     }
     
     @Override
-    public boolean equals(Object _obj) {
-        if (_obj instanceof LongString) {
-            return data.equals(((LongString) _obj).getData());
+    public boolean equals(Object object) {
+        if (object instanceof LongString) {
+            return data.equals(((LongString) object).getData());
         }
         return false;
     }

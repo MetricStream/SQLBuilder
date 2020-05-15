@@ -690,14 +690,14 @@ class SQLBuilderTest {
                 .collect(Collectors.toList());
 
         @Override
-        public Object getParameterValue(String _name) {
-            return getParameterValue(_name, false );
+        public Object getParameterValue(String name) {
+            return getParameterValue(name, false );
         }
 
         @Override
-        public Object getParameterValue(String _name, boolean _isMulti) {
-            final String value = values[Integer.parseInt(_name) - 1];
-            if (_isMulti) {
+        public Object getParameterValue(String name, boolean isMulti) {
+            final String value = values[Integer.parseInt(name) - 1];
+            if (isMulti) {
                 String[] values = new String[4];
                 Arrays.fill(values, value);
                 return Arrays.asList(values);
@@ -706,8 +706,8 @@ class SQLBuilderTest {
         }
 
         @Override
-        public Object getParameterValue(String _name, boolean _isMulti, boolean _dateAsString) {
-            return getParameterValue(_name, _isMulti);
+        public Object getParameterValue(String name, boolean isMulti, boolean dateAsString) {
+            return getParameterValue(name, isMulti);
         }
 
         @Override
@@ -716,7 +716,7 @@ class SQLBuilderTest {
         }
 
         @Override
-        public boolean dateAsStringNeeded(String _subStr) {
+        public boolean dateAsStringNeeded(String subStr) {
             return false;
         }
 
