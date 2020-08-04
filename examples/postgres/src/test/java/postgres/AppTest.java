@@ -3,29 +3,37 @@
  */
 package postgres;
 
-import com.metricstream.jdbc.MockSQLBuilderProvider;
-import com.metricstream.jdbc.SQLBuilder;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
+import com.metricstream.jdbc.MockSQLBuilderProvider;
+import com.metricstream.jdbc.SQLBuilder;
+
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AppTest {
 
     @InjectMocks
     App classUnderTest;
 
+    // IDE shows this as unused but in reality this is required for mocking access to Postgres
     @Mock
     DBConnection dbConnection;
+
 
     @BeforeAll static void beforeAll() {
         SQLBuilder.setDelegate(new MockSQLBuilderProvider());
@@ -33,7 +41,6 @@ class AppTest {
 
     @BeforeEach void beforeEach() {
         MockSQLBuilderProvider.reset();
-        MockitoAnnotations.initMocks(this);
     }
 
     @Test void isAnneInvited() throws SQLException {

@@ -146,7 +146,7 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
      * @param columnName The name of the column from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
      * @return the value from the query
-     * @the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     public int getInt(SQLBuilder sqlBuilder, Connection connection, String columnName, int defaultValue) throws SQLException {
         if (intByColumnLabel != null) {
@@ -268,6 +268,16 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
 
     public static void reset() {
         mockResultSets.clear();
+        intByColumnIndex = null;
+        intByColumnLabel = null;
+        longByColumnIndex = null;
+        longByColumnLabel = null;
+        stringByColumnIndex = null;
+        stringByColumnLabel = null;
+        bigDecimalByColumnIndex = null;
+        bigDecimalByColumnLabel = null;
+        objectByColumnIndex = null;
+        objectByColumnLabel = null;
         setExecute(42);
     }
 
