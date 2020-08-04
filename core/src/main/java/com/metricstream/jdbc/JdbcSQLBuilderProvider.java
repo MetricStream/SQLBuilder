@@ -35,6 +35,7 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
                     break;
                 }
                 if (arg instanceof Collection) {
+                    @SuppressWarnings("unchecked")
                     final Collection<Object> col = (Collection<Object>) arg;
                     final int length = col.size();
                     if (length == 0) {
