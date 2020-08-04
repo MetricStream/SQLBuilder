@@ -4,8 +4,8 @@
 package com.metricstream.jdbc;
 
 import static com.metricstream.util.Check.noContent;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -95,7 +95,7 @@ public class MockResultSet {
 
         // mock rs.getString(columnName)
         doAnswer(invocation -> {
-            final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
+            final String columnName = invocation.getArgument(0, String.class).toUpperCase();
             final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
             if (generateData && (rowIndex >= data.length || columnIndex >= data[rowIndex].length)) {
                 return "42";
@@ -107,7 +107,7 @@ public class MockResultSet {
 
         // mock rs.getString(columnIndex)
         doAnswer(invocation -> {
-            final int columnIndex = invocation.getArgumentAt(0, Integer.class);
+            final int columnIndex = invocation.getArgument(0);
             if (generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
                 return "42";
             }
@@ -118,7 +118,7 @@ public class MockResultSet {
 
         // mock rs.getInt(columnName)
         doAnswer(invocation -> {
-            final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
+            final String columnName = invocation.getArgument(0, String.class).toUpperCase();
             final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
             if (generateData && (rowIndex >= data.length || columnIndex >= data[rowIndex].length)) {
                 return 42;
@@ -130,7 +130,7 @@ public class MockResultSet {
 
         // mock rs.getInt(columnIndex)
         doAnswer(invocation -> {
-            final int columnIndex = invocation.getArgumentAt(0, Integer.class);
+            final int columnIndex = invocation.getArgument(0);
             if (generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
                 return 42;
             }
@@ -141,7 +141,7 @@ public class MockResultSet {
 
         // mock rs.getLong(columnName)
         doAnswer(invocation -> {
-            final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
+            final String columnName = invocation.getArgument(0, String.class).toUpperCase();
             final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
             if (generateData && (rowIndex >= data.length || columnIndex >= data[rowIndex].length)) {
                 return 42L;
@@ -153,7 +153,7 @@ public class MockResultSet {
 
         // mock rs.getLong(columnIndex)
         doAnswer(invocation -> {
-            final int columnIndex = invocation.getArgumentAt(0, Integer.class);
+            final int columnIndex = invocation.getArgument(0);
             if (generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
                 return 42L;
             }
@@ -164,7 +164,7 @@ public class MockResultSet {
 
         // mock rs.getBigDecimal(columnName)
         doAnswer(invocation -> {
-            final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
+            final String columnName = invocation.getArgument(0, String.class).toUpperCase();
             final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
             if (generateData && (rowIndex >= data.length || columnIndex >= data[rowIndex].length)) {
                 return BigDecimal.valueOf(42);
@@ -176,7 +176,7 @@ public class MockResultSet {
 
         // mock rs.getBigDecimal(columnIndex)
         doAnswer(invocation -> {
-            final int columnIndex = invocation.getArgumentAt(0, Integer.class);
+            final int columnIndex = invocation.getArgument(0);
             if (generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
                 return BigDecimal.valueOf(42);
             }
@@ -187,7 +187,7 @@ public class MockResultSet {
 
         // mock rs.getObject(columnName)
         doAnswer(invocation -> {
-            final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
+            final String columnName = invocation.getArgument(0, String.class).toUpperCase();
             final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
             if (generateData && (rowIndex >= data.length || columnIndex >= data[rowIndex].length)) {
                 return "42";
@@ -199,7 +199,7 @@ public class MockResultSet {
 
         // mock rs.getObject(columnIndex)
         doAnswer(invocation -> {
-            final int columnIndex = invocation.getArgumentAt(0, Integer.class);
+            final int columnIndex = invocation.getArgument(0);
             if (generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
                 return "42";
             }
@@ -215,7 +215,7 @@ public class MockResultSet {
 
         // mock rsmd.getColumnName(int)
         doAnswer(invocation -> {
-            final int columnIndex = invocation.getArgumentAt(0, Integer.class);
+            final int columnIndex = invocation.getArgument(0);
             return columnIndices.keySet().stream().skip(columnIndex - 1).findFirst().orElse(null);
         }).when(rsmd).getColumnName(anyInt());
 

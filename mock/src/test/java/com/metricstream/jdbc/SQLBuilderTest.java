@@ -5,8 +5,14 @@ package com.metricstream.jdbc;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -309,7 +315,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 3 longs in column 1
         // then expect to get the first element
-        MockSQLBuilderProvider.addResultSet("", new Object[][] {{3}, {1}, {4}});
+        MockSQLBuilderProvider.addResultSet("", new Object[][] {{3L}, {1L}, {4L}});
         Optional<Long> l = sqlBuilder.getSingle(mockConnection, (rs) -> rs.getLong(1));
         assertThat(l.isPresent(), is(true));
         assertThat(l.get(), is(3L));
