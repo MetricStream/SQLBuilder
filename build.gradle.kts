@@ -16,7 +16,7 @@ subprojects {
     apply(plugin = "signing")
 
     group = "com.metricstream.jdbc"
-    version = "1.0.1"
+    version = "1.0.3-prerelease"
 
     repositories {
         mavenCentral()
@@ -29,6 +29,11 @@ subprojects {
 
     tasks.withType<Test> {
         useJUnitPlatform()
+    }
+
+    tasks.withType<JavaCompile> {
+        options.compilerArgs.add("-Xlint:deprecation")
+        options.compilerArgs.add("-Xlint:unchecked")
     }
 
     java {
