@@ -5,7 +5,9 @@ package com.metricstream.jdbc;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -244,6 +246,20 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
             }
         }
         return list;
+    }
+
+    @Override
+    public <K, V> Map<K, V> getMap(SQLBuilder sqlBuilder, Connection connection,
+            SQLBuilder.RowMapper<Map.Entry<K, V>> rowMapper, boolean withNull) throws SQLException {
+        final ResultSet rs = getRs();
+        final Map<K, V> map = new HashMap<>();
+        while (rs.next()) {
+            Map.Entry<K, V> entry = rowMapper.map(rs);
+            if (entry != null && entry.getKey() != null && (withNull || entry.getValue() != null)) {
+                map.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return map;
     }
 
     @Override

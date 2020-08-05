@@ -7,7 +7,9 @@ import static com.metricstream.util.Check.hasContent;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import java.math.BigDecimal;
@@ -268,6 +270,21 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
                 }
             }
             return list;
+        }
+    }
+
+    @Override
+    public <K, V> Map<K, V> getMap(SQLBuilder sqlBuilder, Connection connection,
+            SQLBuilder.RowMapper<Map.Entry<K, V>> rowMapper, boolean withNull) throws SQLException {
+        try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
+            final Map<K, V> map = new HashMap<>();
+            while (rs.next()) {
+                Map.Entry<K, V> entry = rowMapper.map(rs);
+                if (entry != null && entry.getKey() != null && (withNull || entry.getValue() != null)) {
+                    map.put(entry.getKey(), entry.getValue());
+                }
+            }
+            return map;
         }
     }
 

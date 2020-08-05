@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.mockito.Mockito;
 
 
@@ -308,6 +310,55 @@ class SQLBuilderTest {
                 .stream().map(i -> (Integer) i).collect(Collectors.toList());
         assertThat(l.size(), is(3));
         assertThat(l, is(Arrays.asList(1, null, 3)));
+    }
+
+    @Test
+    void getMap_test1() throws SQLException {
+        // when query returns 3 rows
+        // with 3 ints in column 2
+        // then expect to get a list with 3 elements in the correct order
+        MockSQLBuilderProvider.addResultSet("", "3,Three\n1,One\n4,Four");
+        Map<Integer, String> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getInt(1), rs.getString(2)));
+        assertThat(m.size(), is(3));
+        assertThat(m.keySet(), containsInAnyOrder(3, 1, 4));
+        assertTrue(m.containsValue("Three"));
+    }
+
+    @Test
+    void getMap_test2() throws SQLException {
+        // when query returns 3 rows
+        // with 3 ints in column 2
+        // then expect to get a list with 3 elements in the correct order
+        MockSQLBuilderProvider.addResultSet("", "3,Three\n1,One\n3,Four");
+        Map<Integer, String> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getInt(1), rs.getString(2)));
+        assertThat(m.size(), is(2));
+        assertThat(m.keySet(), containsInAnyOrder(1, 3));
+        assertFalse(m.containsValue("Three"));
+    }
+
+    @Test
+    void getMap_test3() throws SQLException {
+        // when query returns 3 rows
+        // with 3 ints in column 2
+        // then expect to get a list with 3 elements in the correct order
+        MockSQLBuilderProvider.addResultSet("", new Object[][] {{"1", 1}, {"2", null}, {"3", 3}});
+        Map<String, Integer> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)));
+        // size is 3 and not 2 although 2 is mapped to null because we use getInt which will automatically convert null to 0
+        assertThat(m.size(), is(3));
+        assertThat(m.keySet(), containsInAnyOrder("1", "2", "3"));
+        assertFalse(m.containsValue("Three"));
+    }
+
+    @Test
+    void getMap_test4() throws SQLException {
+        // when query returns 3 rows
+        // with 3 ints in column 2
+        // then expect to get a list with 3 elements in the correct order
+        MockSQLBuilderProvider.addResultSet("", new Object[][] {{"1", 1}, {"2", null}, {"3", 3}});
+        Map<String, Integer> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)), false);
+        assertThat(m.size(), is(3));
+        assertThat(m.keySet(), containsInAnyOrder("1", "2", "3"));
+        assertFalse(m.containsValue("Three"));
     }
 
     @Test

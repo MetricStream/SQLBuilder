@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Statement;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -497,6 +498,10 @@ public class SQLBuilder {
         T map(ResultSet rs) throws SQLException;
     }
 
+    public static <K, V> Map.Entry<K, V> entry(K key, V value) {
+        return new AbstractMap.SimpleImmutableEntry<>(key, value);
+    }
+
     /**
      * Returns a list of objects generated from the ResultSet
      * @param connection The Connection from which the PreparedStatement is created
@@ -521,6 +526,36 @@ public class SQLBuilder {
     public <T> List<T> getList(Connection connection, RowMapper<T> rowMapper, boolean withNull) throws SQLException {
         logger.debug("{}", this);
         return delegate.getList(this, connection, rowMapper, withNull);
+    }
+
+    /**
+     * Returns a list of objects generated from the ResultSet
+     * @param connection The Connection from which the PreparedStatement is created
+     * @param rowMapper The Mapper lambda called per row to produce a map entry. Null values returned from the mapper
+     *           lambda are ignored. Duplicate keys result in overwriting the previous value
+     * @param withNull If false, null values returned from the valueMapper lambda are ignored.  Otherwise they
+     *                 are added to the returned map
+     * @return The list of generated items
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     */
+    public <K, V> Map<K, V> getMap(Connection connection, RowMapper<Map.Entry<K, V>> rowMapper) throws SQLException {
+        logger.debug("{}", this);
+        return delegate.getMap(this, connection, rowMapper, false);
+    }
+
+    /**
+     * Returns a list of objects generated from the ResultSet
+     * @param connection The Connection from which the PreparedStatement is created
+     * @param rowMapper The Mapper lambda called per row to produce a map entry. Null values returned from the mapper
+     *           lambda are ignored. Duplicate keys result in overwriting the previous value
+     * @param withNull If false, null values returned from the valueMapper lambda are ignored.  Otherwise they
+     *                 are added to the returned map
+     * @return The list of generated items
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     */
+    public <K, V> Map<K, V> getMap(Connection connection, RowMapper<Map.Entry<K, V>> rowMapper, boolean withNull) throws SQLException {
+        logger.debug("{}", this);
+        return delegate.getMap(this, connection, rowMapper, withNull);
     }
 
     /**
