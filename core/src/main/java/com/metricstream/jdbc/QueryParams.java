@@ -15,16 +15,16 @@ public interface QueryParams {
      * @param name name of the parameter
      * @return parameter value by name
      */
-    public Object getParameterValue(String name);
+    Object getParameterValue(String name);
     
     /**
      * @param name name of the parameter
      * @param isMulti can have multiple values
      * @return parameter values collection if it is has multiple values by name
      */
-    public Object getParameterValue(String name, boolean isMulti);
+    Object getParameterValue(String name, boolean isMulti);
     
-    public Object getParameterValue(String name, boolean isMulti, boolean dateAsString);
+    Object getParameterValue(String name, boolean isMulti, boolean dateAsString);
     
     /**
      * To check if parameter expects date as string. TO_DATE function can be misused in queries.
@@ -32,18 +32,18 @@ public interface QueryParams {
      * VARCHAR type. However it can be configured as Date type to support upstream components render(reports filters, form elements etc) as Date field.
      * Actually it should not be used to_date in this context as query already expects date type object, why to_date is used again.
      * To support backward compatibility (previously parameters hard replacement works well in this case), if parameter is bound with TO_DATE,
-     * the value must be string. matching for TO_DATE (:1) or select TO_DATE (NVL(:1
-     * @param subStr
-     * @return
+     * the value must be string. matching for {@code TO_DATE(} or select {@code TO_DATE(NVL(}
+     * @param subStr The string that is searched
+     * @return true if {@code getDateParameterAsString} should be used for this parameter value
      */
-    public boolean dateAsStringNeeded(String subStr);
+    boolean dateAsStringNeeded(String subStr);
     
     /**
      * Date type parameter may be considered as VARCHAR.
      * @return DATE format to convert Date object
      */
-    public String getDateParameterAsString();
+    String getDateParameterAsString();
     
-    public List<String> getParamNames();
+    List<String> getParamNames();
     
 }
