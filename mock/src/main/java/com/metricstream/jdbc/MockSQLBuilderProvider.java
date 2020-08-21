@@ -4,6 +4,7 @@
 package com.metricstream.jdbc;
 
 import java.io.InputStream;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -223,6 +224,18 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
     }
 
     @Override
+    public OffsetDateTime getDateTime(SQLBuilder sqlBuilder, Connection connection, int columnNumber, OffsetDateTime defaultValue) throws SQLException {
+        final ResultSet rs = getRs();
+        return rs.next() ? rs.getObject(columnNumber, OffsetDateTime.class) : defaultValue;
+    }
+
+    @Override
+    public OffsetDateTime getDateTime(SQLBuilder sqlBuilder, Connection connection, String columnName, OffsetDateTime defaultValue) throws SQLException {
+        final ResultSet rs = getRs();
+        return rs.next() ? rs.getObject(columnName, OffsetDateTime.class) : defaultValue;
+    }
+
+    @Override
     public int execute(SQLBuilder sqlBuilder, Connection connection) {
         return executeSupplier.get();
     }
@@ -271,7 +284,7 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
         if (rs != null) {
             return rs;
         }
-        return generateSingleRowResultSet ? MockResultSet.create("", "42", false) : MockResultSet.empty("");
+        return generateSingleRowResultSet ? MockResultSet.create("", "42", false, true) : MockResultSet.empty("");
     }
 
     public static void reset() {

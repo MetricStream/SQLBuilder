@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Statement;
+import java.time.OffsetDateTime;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -481,6 +482,32 @@ public class SQLBuilder {
     public Object getObject(Connection connection, String columnName, Object defaultValue) throws SQLException {
         logger.debug("{}", this);
         return delegate.getObject(this, connection, columnName, defaultValue);
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    public OffsetDateTime getDateTime(Connection connection, int columnNumber, OffsetDateTime defaultValue) throws SQLException {
+        logger.debug("{}", this);
+        return delegate.getDateTime(this, connection, columnNumber, defaultValue);
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param connection The Connection object from which the PreparedStatement is created
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    public OffsetDateTime getDateTime(Connection connection, String columnName, OffsetDateTime defaultValue) throws SQLException {
+        logger.debug("{}", this);
+        return delegate.getDateTime(this, connection, columnName, defaultValue);
     }
 
     /**

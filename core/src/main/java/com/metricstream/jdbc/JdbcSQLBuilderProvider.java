@@ -5,6 +5,7 @@ package com.metricstream.jdbc;
 
 import static com.metricstream.util.Check.hasContent;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -243,6 +244,36 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
     public Object getObject(SQLBuilder sqlBuilder, Connection connection, String columnName, Object defaultValue) throws SQLException {
         try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
             return rs.next() ? rs.getObject(columnName) : defaultValue;
+        }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param connection The Connection from which the PreparedStatement is created
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     */
+    @Override
+    public OffsetDateTime getDateTime(SQLBuilder sqlBuilder, Connection connection, int columnNumber, OffsetDateTime defaultValue) throws SQLException {
+        try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getObject(columnNumber, OffsetDateTime.class) : defaultValue;
+        }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param connection The Connection from which the PreparedStatement is created
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     */
+    @Override
+    public OffsetDateTime getDateTime(SQLBuilder sqlBuilder, Connection connection, String columnName, OffsetDateTime defaultValue) throws SQLException {
+        try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getObject(columnName, OffsetDateTime.class) : defaultValue;
         }
     }
 

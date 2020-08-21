@@ -6,6 +6,7 @@ package com.metricstream.jdbc;
 import static com.metricstream.util.Check.noContent;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -18,6 +19,8 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -51,6 +54,7 @@ public class MockResultSet {
     private int rowIndex = -1;
     private boolean wasNull = false;
     private boolean generateData = true;
+    private boolean generated = false;
 
     private MockResultSet(final String tag, final String[] names, final Object[][] data) {
         if (noContent(tag)) {
@@ -208,6 +212,29 @@ public class MockResultSet {
             return value;
         }).when(rs).getObject(anyInt());
 
+        // mock rs.getObject(columnName, OffsetDateTime.class)
+        doAnswer(invocation -> {
+            final String columnName = invocation.getArgument(0, String.class).toUpperCase();
+            final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
+            if (generated || generateData && (rowIndex >= data.length || columnIndex >= data[rowIndex].length)) {
+                return OffsetDateTime.of(4242, 4, 2, 4, 2, 4, 2, ZoneOffset.UTC);
+            }
+            final OffsetDateTime value = (OffsetDateTime) data[rowIndex][columnIndex];
+            wasNull = value == null;
+            return value;
+        }).when(rs).getObject(anyString(), eq(OffsetDateTime.class));
+
+        // mock rs.getObject(columnIndex, OffsetDateTime.class)
+        doAnswer(invocation -> {
+            final int columnIndex = invocation.getArgument(0);
+            if (generated || generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
+                return OffsetDateTime.of(4242, 4, 2, 4, 2, 4, 2, ZoneOffset.UTC);
+            }
+            final OffsetDateTime value = (OffsetDateTime) data[rowIndex][columnIndex - 1];
+            wasNull = value == null;
+            return value;
+        }).when(rs).getObject(anyInt(), eq(OffsetDateTime.class));
+
         final ResultSetMetaData rsmd = mock(ResultSetMetaData.class);
 
         // mock rsmd.getColumnCount()
@@ -259,10 +286,23 @@ public class MockResultSet {
      * @throws SQLException if building the mocked ResultSet fails
      */
     public static ResultSet create(final String tag, final String csv, boolean withLabels) throws SQLException {
+        return create(tag, csv, withLabels, false);
+    }
+
+    /**
+     * Creates the mock ResultSet.
+     *
+     * @param csv the data to be returned from the mocked ResultSet
+     * @return a mocked ResultSet
+     * @throws SQLException if building the mocked ResultSet fails
+     */
+    public static ResultSet create(final String tag, final String csv, boolean withLabels, boolean generated) throws SQLException {
         try (CSVReader csvReader = new CSVReader(new StringReader(csv))) {
             List<String[]> data = csvReader.readAll();
             final String[] columnNames = withLabels ? data.remove(0) : null;
-            return new MockResultSet(tag, columnNames, data.toArray(new Object[0][0])).buildMock();
+            final MockResultSet mockResultSet = new MockResultSet(tag, columnNames, data.toArray(new Object[0][0]));
+            mockResultSet.generated = generated;
+            return mockResultSet.buildMock();
         } catch (IOException | CsvException ex) {
             logger.error("Cannot parse CSV {}", csv);
             throw new SQLException("Invalid data");

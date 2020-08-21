@@ -9,6 +9,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -175,6 +177,26 @@ class SQLBuilderTest {
         assertEquals(2, new SQLBuilder("update foo").execute(mockConnection));
         assertEquals(2, new SQLBuilder("update foo").execute(mockConnection));
 
+    }
+
+    @Test
+    void testDateTime() throws SQLException {
+        OffsetDateTime now = OffsetDateTime.now();
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("sb1", new Object[][] { { now } }));
+        SQLBuilder sb1 = new SQLBuilder("select created from lookup where key = ?", 42);
+        assertEquals(now, sb1.getDateTime(mockConnection, 1, null));
+
+        SQLBuilder sb2 = new SQLBuilder("select created from lookup where key = ?", 42);
+        final OffsetDateTime dt2 = sb2.getDateTime(mockConnection, 1, null);
+        assertNotNull(dt2);
+        // This will fail in about 3000 years.  Hopefully, mankind is still around by then but no longer uses JDBC...
+        assertTrue(dt2.isAfter(OffsetDateTime.now().plusYears(1000L)));
+
+        SQLBuilder sb3 = new SQLBuilder("select created from lookup where key = ?", 42);
+        final OffsetDateTime dt3 = sb3.getDateTime(mockConnection, "created", null);
+        assertNotNull(dt3);
+        // This will fail in about 3000 years.  Hopefully, mankind is still around by then but no longer uses JDBC...
+        assertTrue(dt3.isAfter(OffsetDateTime.now().plusYears(1000L)));
     }
 
     @Test
