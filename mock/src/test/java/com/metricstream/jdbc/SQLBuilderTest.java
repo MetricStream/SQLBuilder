@@ -49,16 +49,16 @@ class SQLBuilderTest {
 
     @Test
     void testMock() throws SQLException {
-        ResultSet mrs = MockResultSet.create("", new String[] { "name", "age" },
+        ResultSet mrs = MockResultSet.create("sb1", new String[] { "name", "age" },
                 new Object[][] {
                         { "Alice", 20 },
                         { "Bob", 35 },
                         { "Charles", 50 }
                 });
         MockSQLBuilderProvider.addResultSet(mrs);
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("", new String[] { "key", "value" }, new Object[][] {}));
-        MockSQLBuilderProvider.addResultSet(MockResultSet.empty(""));
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("", new Object[][] { { "a" }, { "b" }}));
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("sb2", new String[] { "key", "value" }, new Object[][] {}));
+        MockSQLBuilderProvider.addResultSet(MockResultSet.empty("sb3"));
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("sb4", new Object[][] { { "a" }, { "b" }}));
 
         SQLBuilder sb1 = new SQLBuilder("select name, age from friends where age > 18");
         try (ResultSet rs = sb1.getResultSet(mockConnection)) {
@@ -105,11 +105,11 @@ class SQLBuilderTest {
         SQLBuilder sb6 = new SQLBuilder("select count(*) from lookup");
         assertEquals(10, sb6.getInt(mockConnection, 1, 0));
 
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("", new Object[][] { { "a" }, { "b" }}));
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("sb7", new Object[][] { { "a" }, { "b" }}));
         SQLBuilder sb7 = new SQLBuilder("select value from lookup where key = ?", 42);
         assertEquals("a", sb7.getString(mockConnection, 1, "default"));
 
-        MockSQLBuilderProvider.addResultSet("", "Alice,20\nBob,35\nCharles,50");
+        MockSQLBuilderProvider.addResultSet("sb8", "Alice,20\nBob,35\nCharles,50");
         SQLBuilder sb8 = new SQLBuilder("select name, age from friends where age > 18");
         try (ResultSet rs = sb8.getResultSet(mockConnection)) {
             int total = 0;
@@ -119,7 +119,7 @@ class SQLBuilderTest {
             assertEquals(105, total);
         }
 
-        MockSQLBuilderProvider.addResultSet("", "name,age", "Alice,20\nBob,35\nCharles,50");
+        MockSQLBuilderProvider.addResultSet("sb9", "name,age", "Alice,20\nBob,35\nCharles,50");
         SQLBuilder sb9 = new SQLBuilder("select name, age from friends where age > 18");
         try (ResultSet rs = sb9.getResultSet(mockConnection)) {
             long total = 0;
@@ -129,7 +129,7 @@ class SQLBuilderTest {
             assertEquals(105L, total);
         }
 
-        MockSQLBuilderProvider.addResultSet("friends",
+        MockSQLBuilderProvider.addResultSet("sb10",
                 "name,age",
                 "Alice,20",
                 "Bob,35",
