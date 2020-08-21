@@ -133,7 +133,7 @@ public class SQLBuilder {
     }
 
     /**
-     * Checks if this SQLBuilder contains anything
+     * Checks if this SQLBuilder object contains anything
      * @return true if it has no statement and no arguments, false otherwise
      */
     public boolean isEmpty() {
@@ -141,7 +141,7 @@ public class SQLBuilder {
     }
 
     /**
-     * Checks if this SQLBuilder contains anything
+     * Checks if this SQLBuilder object contains anything
      * @return true if it has q statement or arguments, false otherwise
      */
     public boolean isNotEmpty() {
@@ -199,7 +199,7 @@ public class SQLBuilder {
      * fragment will be separated by a single space.
      * @param sql The SQL statement fragment
      * @param args The parameters for this fragment
-     * @return The modified object
+     * @return The SQLBuilder object
      */
     public SQLBuilder append(String sql, Object... args) {
         statement.append(delimiter).append(sql);
@@ -210,11 +210,11 @@ public class SQLBuilder {
     }
 
     /**
-     * Append another SQLBuilder.  This appends both the fragment and shallow
+     * Appends another SQLBuilder object.  This appends both the fragment and shallow
      * copies of all parameters.  The original fragment and the new fragment
-     * will be separated by a single space.
+     * will be separated from the copies by a single space.
      * @param sqlBuilder The SQLBuilder object
-     * @return The modified object
+     * @return The SQLBuilder object
      */
     public SQLBuilder append(SQLBuilder sqlBuilder) {
         addNames(sqlBuilder.names);
@@ -229,7 +229,7 @@ public class SQLBuilder {
      * Wraps the SQL statement fragment into () and prepends before.  A typical
      * use case is <pre></pre>sb.wrap("select count(*) from");</pre>
      * @param before The string which will be prepended
-     * @return the modified SQLBuilder
+     * @return the SQLBuilder object
      */
     public SQLBuilder wrap(String before) {
         return wrap(before + " (", ")");
@@ -241,7 +241,7 @@ public class SQLBuilder {
      * statement fragment and the arguments.
      * @param before The string which will be prepended
      * @param after The string which will be appended
-     * @return the modified SQLBuilder
+     * @return the SQLBuilder object
      */
     public SQLBuilder wrap(String before, String after) {
         statement.insert(0, before).append(after);
@@ -310,7 +310,7 @@ public class SQLBuilder {
 
     /**
      * This changes the ResultSet type from TYPE_FORWARD_ONLY to TYPE_SCROLL_INSENSITIVE
-     * @return The modified SQLBuilder object
+     * @return The SQLBuilder object
      */
     public SQLBuilder randomAccess() {
         resultSetType = ResultSet.TYPE_SCROLL_INSENSITIVE;
@@ -321,7 +321,7 @@ public class SQLBuilder {
      * This changes the fetch size used for ResultSets.
      * @param fetchSize The new fetchSize. A value of -1 means that no fetch size is applied to the statement and that
      *                 the JDBC driver will use some default value
-     * @return the modified SQLBuilder object
+     * @return the SQLBuilder object
      */
     public SQLBuilder withFetchSize(int fetchSize) {
         this.fetchSize = fetchSize;
@@ -329,24 +329,24 @@ public class SQLBuilder {
     }
 
     /**
-     * Returns a ResultSet object created from a PreparedStatement created using
+     * Returns a ResultSet object created from a PreparedStatement object created using
      * the SQL statement and the parameters.  The PreparedStatement
      * will be automatically closed when the ResultSet is closed.
-     * @param connection The Connection from which the PreparedStatement is created
-     * @return The ResultSet
-     * @throws SQLException the exception thrown when generating the ResultSet
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @return The ResultSet object
+     * @throws SQLException the exception thrown when generating the ResultSet object
      */
     public ResultSet getResultSet(Connection connection) throws SQLException {
         return getResultSet(connection, false);
     }
 
     /**
-     * Returns a ResultSet object created from a PreparedStatement created using
-     * the SQL statement and the parameters.  The PreparedStatement
-     * and the Connection will be automatically closed when the ResultSet is closed.
-     * @param connection The Connection from which the PreparedStatement is created
-     * @return The ResultSet
-     * @throws SQLException the exception thrown when generating the ResultSet
+     * Returns a ResultSet object created from a PreparedStatement object created using
+     * the SQL statement and the parameters.  The PreparedStatement object
+     * and the Connection object will be automatically closed when the ResultSet object is closed.
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @return The ResultSet object
+     * @throws SQLException the exception thrown when generating the ResultSet object
      */
     public ResultSet getResultSet(Connection connection, boolean wrapConnection) throws SQLException {
         logger.debug("{}", this);
@@ -355,11 +355,11 @@ public class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
-     * @param connection The Connection from which the PreparedStatement is created
+     * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
      * @return the value from the query
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public int getInt(Connection connection, int columnNumber, int defaultValue) throws SQLException {
         logger.debug("{}", this);
@@ -368,11 +368,11 @@ public class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
-     * @param connection The Connection from which the PreparedStatement is created
+     * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnName The name of the column from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
      * @return the value from the query
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public int getInt(Connection connection, String columnName, int defaultValue) throws SQLException {
         logger.debug("{}", this);
@@ -381,11 +381,11 @@ public class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
-     * @param connection The Connection from which the PreparedStatement is created
+     * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
      * @return the value from the query
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public long getLong(Connection connection, int columnNumber, long defaultValue) throws SQLException {
         logger.debug("{}", this);
@@ -394,11 +394,11 @@ public class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
-     * @param connection The Connection from which the PreparedStatement is created
+     * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnName The name of the column from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
      * @return the value from the query
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public long getLong(Connection connection, String columnName, long defaultValue) throws SQLException {
         logger.debug("{}", this);
@@ -407,11 +407,11 @@ public class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
-     * @param connection The Connection from which the PreparedStatement is created
+     * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
      * @return the value from the query
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public String getString(Connection connection, int columnNumber, String defaultValue) throws SQLException {
         logger.debug("{}", this);
@@ -420,11 +420,11 @@ public class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
-     * @param connection The Connection from which the PreparedStatement is created
+     * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnName The name of the column from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
      * @return the value from the query
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public BigDecimal getBigDecimal(Connection connection, String columnName, BigDecimal defaultValue) throws SQLException {
         logger.debug("{}", this);
@@ -433,11 +433,11 @@ public class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
-     * @param connection The Connection from which the PreparedStatement is created
+     * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
      * @return the value from the query
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public BigDecimal getBigDecimal(Connection connection, int columnNumber, BigDecimal defaultValue) throws SQLException {
         logger.debug("{}", this);
@@ -446,11 +446,11 @@ public class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
-     * @param connection The Connection from which the PreparedStatement is created
+     * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnName The name of the column from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
      * @return the value from the query
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public String getString(Connection connection, String columnName, String defaultValue) throws SQLException {
         logger.debug("{}", this);
@@ -459,11 +459,11 @@ public class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
-     * @param connection The Connection from which the PreparedStatement is created
+     * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
      * @return the value from the query
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public Object getObject(Connection connection, int columnNumber, Object defaultValue) throws SQLException {
         logger.debug("{}", this);
@@ -472,11 +472,11 @@ public class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
-     * @param connection The Connection from which the PreparedStatement is created
+     * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnName The name of the column from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
      * @return the value from the query
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public Object getObject(Connection connection, String columnName, Object defaultValue) throws SQLException {
         logger.debug("{}", this);
@@ -485,7 +485,7 @@ public class SQLBuilder {
 
     /**
      * Executes the SQL statement.
-     * @param connection The Connection from which the PreparedStatement is created
+     * @param connection The Connection object from which the PreparedStatement object is created
      * @return The result of executeUpdate of that statement
      * @throws SQLException the exception thrown when executing the query
      */
@@ -504,11 +504,11 @@ public class SQLBuilder {
 
     /**
      * Returns a list of objects generated from the ResultSet
-     * @param connection The Connection from which the PreparedStatement is created
-     * @param rowMapper The Mapper lambda called per row to produce a matching list item. Null values returned from the mapper
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @param rowMapper The lambda called per row to produce a matching list item. Null values returned from the
      *           lambda are ignored
      * @return The list of generated items
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public <T> List<T> getList(Connection connection, RowMapper<T> rowMapper) throws SQLException {
         return getList(connection, rowMapper, false);
@@ -516,12 +516,12 @@ public class SQLBuilder {
 
     /**
      * Returns a list of objects generated from the ResultSet
-     * @param connection The Connection from which the PreparedStatement is created
-     * @param rowMapper The Mapper lambda called per row to produce a matching list item.
-     * @param withNull If false, null values returned from the mapper lambda are ignored.  Otherwise they
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @param rowMapper The lambda called per row to produce a matching list item.
+     * @param withNull If false, null values returned from the lambda are ignored.  Otherwise they
      *                 are added to the returned list
      * @return The list of generated items
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public <T> List<T> getList(Connection connection, RowMapper<T> rowMapper, boolean withNull) throws SQLException {
         logger.debug("{}", this);
@@ -530,13 +530,11 @@ public class SQLBuilder {
 
     /**
      * Returns a list of objects generated from the ResultSet
-     * @param connection The Connection from which the PreparedStatement is created
-     * @param rowMapper The Mapper lambda called per row to produce a map entry. Null values returned from the mapper
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @param rowMapper The lambda called per row to produce a map entry. Null values returned from the mapper
      *           lambda are ignored. Duplicate keys result in overwriting the previous value
-     * @param withNull If false, null values returned from the valueMapper lambda are ignored.  Otherwise they
-     *                 are added to the returned map
      * @return The list of generated items
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public <K, V> Map<K, V> getMap(Connection connection, RowMapper<Map.Entry<K, V>> rowMapper) throws SQLException {
         logger.debug("{}", this);
@@ -545,13 +543,13 @@ public class SQLBuilder {
 
     /**
      * Returns a list of objects generated from the ResultSet
-     * @param connection The Connection from which the PreparedStatement is created
-     * @param rowMapper The Mapper lambda called per row to produce a map entry. Null values returned from the mapper
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @param rowMapper The lambda called per row to produce a map entry. Null values returned from the mapper
      *           lambda are ignored. Duplicate keys result in overwriting the previous value
-     * @param withNull If false, null values returned from the valueMapper lambda are ignored.  Otherwise they
+     * @param withNull If false, null values returned from the lambda are ignored.  Otherwise they
      *                 are added to the returned map
      * @return The list of generated items
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public <K, V> Map<K, V> getMap(Connection connection, RowMapper<Map.Entry<K, V>> rowMapper, boolean withNull) throws SQLException {
         logger.debug("{}", this);
@@ -560,10 +558,10 @@ public class SQLBuilder {
 
     /**
      * Returns a list of objects generated from the ResultSet
-     * @param connection The Connection from which the PreparedStatement is created
-     * @param rowMapper The Mapper lambda called one the first row to produce a matching item.
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @param rowMapper The lambda called one the first row to produce a matching item.
      * @return the Optional containing the item returned from the mapping lambda, if any
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public <T> Optional<T> getSingle(Connection connection, RowMapper<T> rowMapper) throws SQLException {
         logger.debug("{}", this);
@@ -572,10 +570,10 @@ public class SQLBuilder {
 
     /**
      * Returns a list of objects generated from the ResultSet
-     * @param connection The Connection from which the PreparedStatement is created
-     * @param rowMapper The Mapper lambda called one the first row to produce a matching item.
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @param rowMapper The lambda called one the first row to produce a matching item.
      * @return the item returned from the mapping lambda, or the defaultValue if no row was returned
-     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     public <T> T getSingle(Connection connection, RowMapper<T> rowMapper, T defaultValue) throws SQLException {
         logger.debug("{}", this);
@@ -769,7 +767,7 @@ public class SQLBuilder {
     }
 
     /**
-     * Returns a ResultSet that automatically closes the statement and the connection it was created from
+     * Returns a ResultSet that automatically closes the statement and The Connection object it was created from
      * @param rs The original ResultSet
      * @return The wrapped ResultSet
      */
