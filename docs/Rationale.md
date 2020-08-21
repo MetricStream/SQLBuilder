@@ -152,13 +152,20 @@ For single values, SQLBuilder offers methods like
 -  `int getInt(Connection connection, int columnIndex, int defaultValue)`
 -  `int getInt(Connection connection, String columnName, int defaultValue)`
 
-The same methods are available for `String`, `long`, `BigDecimal` and `Object`. They all return a value from the first
+The same methods are available for `String`, `Long`, `BigDecimal` and `Object`. They all return a value from the first
 returned row, or the default value if no row was returned. Examples for these methods are:
 
 ```java
 int count = new SQLBuilder("select count(*) from person where age > ?", age).getInt(connection, 1, 0);
 String name = new SQLBuilder("select last_name from person where id = ?", pid).getString(connection, "last_name", null);
 ```
+
+As an additional feature, `SQLBuilder` also offers `getDateTime` as a single
+value method.  This is implemented using `getObject(column,
+OffsetDateTime.class)` and thus returns an `OffsetDateTime` object.  `getDateTime` can be
+used for columns of type `TIMESTAMP WITH TIME ZONE`.  However, this is only
+guaranteed to work for JDBC drivers implementing JDBC 4.2 or above because that
+JDBC specification is the first revision which mandates support for `OffsetDateTime`.
 
 For mapping rows from a ResultSet, SQLBuilder offers `getList(Connection connection, SQLBuilder.RowMapper<T> rowMapper)`
 which allows to further simplify code from the [Motivation](#motivation) section:
@@ -443,20 +450,20 @@ following steps (all examples are given for [Junit5], adapt for your test framew
 1. Change `SQLBuilder` to use the mocking provider using
 
    ```java
-   	@BeforeAll
-	static void beforeAll() {
-		SQLBuilder.setDelegate(new MockSQLBuilderProvider());
-	}
+    @BeforeAll
+    static void beforeAll() {
+        SQLBuilder.setDelegate(new MockSQLBuilderProvider());
+    }
    ```
 
 2. Reset MockSQLBuilderProvider to clear the test data queue and ensure that "SQLBuilder#execute" returns 42 executing
    tests to prevent spill-over from previous tests:
 
    ```java
-   	@BeforeEach
-	void setUp() {
-		MockSQLBuilderProvider.reset();
-	}
+    @BeforeEach
+    void setUp() {
+        MockSQLBuilderProvider.reset();
+    }
    ```
 
 3. Remove all other mocking for `SQLBuilder`:
