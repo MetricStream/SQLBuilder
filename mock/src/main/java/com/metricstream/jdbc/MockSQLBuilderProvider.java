@@ -4,6 +4,7 @@
 package com.metricstream.jdbc;
 
 import java.io.InputStream;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -233,6 +234,18 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
     public OffsetDateTime getDateTime(SQLBuilder sqlBuilder, Connection connection, String columnName, OffsetDateTime defaultValue) throws SQLException {
         final ResultSet rs = getRs();
         return rs.next() ? rs.getObject(columnName, OffsetDateTime.class) : defaultValue;
+    }
+
+    @Override
+    public Instant getInstant(SQLBuilder sqlBuilder, Connection connection, int columnNumber, Instant defaultValue) throws SQLException {
+        final ResultSet rs = getRs();
+        return rs.next() ? rs.getObject(columnNumber, OffsetDateTime.class).toInstant() : defaultValue;
+    }
+
+    @Override
+    public Instant getInstant(SQLBuilder sqlBuilder, Connection connection, String columnName, Instant defaultValue) throws SQLException {
+        final ResultSet rs = getRs();
+        return rs.next() ? rs.getObject(columnName, OffsetDateTime.class).toInstant() : defaultValue;
     }
 
     @Override

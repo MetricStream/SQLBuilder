@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Statement;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -495,6 +496,16 @@ public class SQLBuilder {
     public OffsetDateTime getDateTime(Connection connection, int columnNumber, OffsetDateTime defaultValue) throws SQLException {
         logger.debug("{}", this);
         return delegate.getDateTime(this, connection, columnNumber, defaultValue);
+    }
+
+    public Instant getInstant(Connection connection, int columnNumber, Instant defaultValue) throws SQLException {
+        logger.debug("{}", this);
+        return delegate.getInstant(this, connection, columnNumber, defaultValue);
+    }
+
+    public Instant getInstant(Connection connection, String columnName, Instant defaultValue) throws SQLException {
+        logger.debug("{}", this);
+        return delegate.getInstant(this, connection, columnName, defaultValue);
     }
 
     /**

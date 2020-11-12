@@ -17,7 +17,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -190,13 +194,34 @@ class SQLBuilderTest {
         final OffsetDateTime dt2 = sb2.getDateTime(mockConnection, 1, null);
         assertNotNull(dt2);
         // This will fail in about 3000 years.  Hopefully, mankind is still around by then but no longer uses JDBC...
-        assertTrue(dt2.isAfter(OffsetDateTime.now().plusYears(1000L)));
+        assertTrue(dt2.isAfter(now.plusYears(1000L)));
 
         SQLBuilder sb3 = new SQLBuilder("select created from lookup where key = ?", 42);
         final OffsetDateTime dt3 = sb3.getDateTime(mockConnection, "created", null);
         assertNotNull(dt3);
         // This will fail in about 3000 years.  Hopefully, mankind is still around by then but no longer uses JDBC...
-        assertTrue(dt3.isAfter(OffsetDateTime.now().plusYears(1000L)));
+        assertTrue(dt3.isAfter(now.plusYears(1000L)));
+    }
+
+    @Test
+    void testInstant() throws SQLException {
+        Instant now = Clock.systemUTC().instant();
+        OffsetDateTime oNow = now.atOffset(ZoneOffset.UTC);
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testInstant", new Object[][] { { oNow } }));
+        SQLBuilder sb1 = new SQLBuilder("select created from lookup where key = ?", 42);
+        assertEquals(now, sb1.getInstant(mockConnection, 1, null));
+
+        SQLBuilder sb2 = new SQLBuilder("select created from lookup where key = ?", 42);
+        final Instant dt2 = sb2.getInstant(mockConnection, 1, null);
+        assertNotNull(dt2);
+        // This will fail in about 1150 years.  Hopefully, mankind is still around by then but no longer uses JDBC...
+        assertTrue(dt2.isAfter(now.plus(420_000L, ChronoUnit.DAYS)));
+
+        SQLBuilder sb3 = new SQLBuilder("select created from lookup where key = ?", 42);
+        final Instant dt3 = sb3.getInstant(mockConnection, "created", null);
+        assertNotNull(dt3);
+        // This will fail in about 1150 years.  Hopefully, mankind is still around by then but no longer uses JDBC...
+        assertTrue(dt3.isAfter(now.plus(420_000L, ChronoUnit.DAYS)));
     }
 
     @Test
