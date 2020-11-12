@@ -40,13 +40,20 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
     private static BiFunction<String, Object, Object> objectByColumnLabel;
     private static Supplier<Integer> executeSupplier;
     private final boolean generateSingleRowResultSet;
+    private boolean enforceTags;
 
     public MockSQLBuilderProvider() {
-        this(true);
+        this(true, false);
     }
 
     public MockSQLBuilderProvider(boolean generateSingleRowResultSet) {
+        this(generateSingleRowResultSet, false);
+        reset();
+    }
+
+    public MockSQLBuilderProvider(boolean generateSingleRowResultSet, boolean enforceTags) {
         this.generateSingleRowResultSet = generateSingleRowResultSet;
+        this.enforceTags = enforceTags;
         reset();
     }
 
@@ -295,6 +302,24 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
     private ResultSet getRs() throws SQLException {
         ResultSet rs = mockResultSets.poll();
         if (rs != null) {
+            if (enforceTags) {
+                final String tag = rs.toString();
+                if (!tag.isEmpty() && !tag.startsWith("MockResultSet#")) {
+                    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+                    for (StackTraceElement stackTraceElement : stackTrace) {
+                        final String declaringClass = stackTraceElement.getClassName();
+                        if (!declaringClass.equals("java.lang.Thread")
+                                && !declaringClass.equals("com.metricstream.jdbc.MockSQLBuilderProvider")
+                                && !declaringClass.equals("com.metricstream.jdbc.SQLBuilder")) {
+                            final String methodName = stackTraceElement.getMethodName();
+                            if (!methodName.equals(tag.split(":")[0])) {
+                                throw new IllegalArgumentException("Trying to use " + tag + " for method " + methodName);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
             return rs;
         }
         return generateSingleRowResultSet ? MockResultSet.create("", "42", false, true) : MockResultSet.empty("");

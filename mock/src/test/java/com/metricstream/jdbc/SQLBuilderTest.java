@@ -45,7 +45,7 @@ class SQLBuilderTest {
 
     @BeforeAll
     static void beforeAll() {
-        SQLBuilder.setDelegate(new MockSQLBuilderProvider());
+        SQLBuilder.setDelegate(new MockSQLBuilderProvider(true, true));
     }
 
     @BeforeEach
@@ -55,16 +55,16 @@ class SQLBuilderTest {
 
     @Test
     void testMock() throws SQLException {
-        ResultSet mrs = MockResultSet.create("sb1", new String[] { "name", "age" },
+        ResultSet mrs = MockResultSet.create("testMock:sb1", new String[] { "name", "age" },
                 new Object[][] {
                         { "Alice", 20 },
                         { "Bob", 35 },
                         { "Charles", 50 }
                 });
         MockSQLBuilderProvider.addResultSet(mrs);
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("sb2", new String[] { "key", "value" }, new Object[][] {}));
-        MockSQLBuilderProvider.addResultSet(MockResultSet.empty("sb3"));
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("sb4", new Object[][] { { "a" }, { "b" }}));
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb2", new String[] { "key", "value" }, new Object[][] {}));
+        MockSQLBuilderProvider.addResultSet(MockResultSet.empty("testMock:sb3"));
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb4", new Object[][] { { "a" }, { "b" }}));
 
         SQLBuilder sb1 = new SQLBuilder("select name, age from friends where age > 18");
         try (ResultSet rs = sb1.getResultSet(mockConnection)) {
@@ -111,11 +111,11 @@ class SQLBuilderTest {
         SQLBuilder sb6 = new SQLBuilder("select count(*) from lookup");
         assertEquals(10, sb6.getInt(mockConnection, 1, 0));
 
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("sb7", new Object[][] { { "a" }, { "b" }}));
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb7", new Object[][] { { "a" }, { "b" }}));
         SQLBuilder sb7 = new SQLBuilder("select value from lookup where key = ?", 42);
         assertEquals("a", sb7.getString(mockConnection, 1, "default"));
 
-        MockSQLBuilderProvider.addResultSet("sb8", "Alice,20\nBob,35\nCharles,50");
+        MockSQLBuilderProvider.addResultSet("testMock:sb8", "Alice,20\nBob,35\nCharles,50");
         SQLBuilder sb8 = new SQLBuilder("select name, age from friends where age > 18");
         try (ResultSet rs = sb8.getResultSet(mockConnection)) {
             int total = 0;
@@ -125,7 +125,7 @@ class SQLBuilderTest {
             assertEquals(105, total);
         }
 
-        MockSQLBuilderProvider.addResultSet("sb9", "name,age", "Alice,20\nBob,35\nCharles,50");
+        MockSQLBuilderProvider.addResultSet("testMock:sb9", "name,age", "Alice,20\nBob,35\nCharles,50");
         SQLBuilder sb9 = new SQLBuilder("select name, age from friends where age > 18");
         try (ResultSet rs = sb9.getResultSet(mockConnection)) {
             long total = 0;
@@ -135,7 +135,7 @@ class SQLBuilderTest {
             assertEquals(105L, total);
         }
 
-        MockSQLBuilderProvider.addResultSet("sb10",
+        MockSQLBuilderProvider.addResultSet("testMock:sb10",
                 "name,age",
                 "Alice,20",
                 "Bob,35",
@@ -150,12 +150,12 @@ class SQLBuilderTest {
             assertEquals(105L, total);
         }
 
-        MockSQLBuilderProvider.addResultSet("read from CSV file", getClass().getResourceAsStream("sb11.csv"));
+        MockSQLBuilderProvider.addResultSet("testMock:read from CSV file", getClass().getResourceAsStream("sb11.csv"));
         SQLBuilder sb11 = new SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t");
         assertEquals("[100000, 100001, 100002, 100003]", sb11.getList(mockConnection, rs -> rs.getLong("USER_ID")).toString());
 
         // SI_USERS_T.csv was produced via SQLDeveloper using "Export as csv" from right-click on the table
-        MockSQLBuilderProvider.addResultSet("read from sqldeveloper export file", getClass().getResourceAsStream("SI_USERS_T.csv"));
+        MockSQLBuilderProvider.addResultSet("testMock:read from sqldeveloper export file", getClass().getResourceAsStream("SI_USERS_T.csv"));
         SQLBuilder sb12 = new SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t");
         assertEquals("[100000, 100001, 100002, 100003]", sb12.getList(mockConnection, rs -> rs.getLong("USER_ID")).toString());
 
@@ -186,7 +186,7 @@ class SQLBuilderTest {
     @Test
     void testDateTime() throws SQLException {
         OffsetDateTime now = OffsetDateTime.now();
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("sb1", new Object[][] { { now } }));
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testDateTime", new Object[][] { { now } }));
         SQLBuilder sb1 = new SQLBuilder("select created from lookup where key = ?", 42);
         assertEquals(now, sb1.getDateTime(mockConnection, 1, null));
 
@@ -226,7 +226,7 @@ class SQLBuilderTest {
 
     @Test
     void yesForever() throws SQLException {
-        SQLBuilder.setDelegate(new MockSQLBuilderProvider(true));
+        SQLBuilder.setDelegate(new MockSQLBuilderProvider(true, true));
 
         SQLBuilder sb1 = new SQLBuilder("select count(*) from lookup");
 
@@ -243,16 +243,20 @@ class SQLBuilderTest {
 
     @Test
     void noForever() throws SQLException {
-        SQLBuilder.setDelegate(new MockSQLBuilderProvider(false));
+        try {
+            SQLBuilder.setDelegate(new MockSQLBuilderProvider(false, true));
 
-        SQLBuilder sb1 = new SQLBuilder("select count(*) from lookup");
+            SQLBuilder sb1 = new SQLBuilder("select count(*) from lookup");
 
-        try (ResultSet rs = sb1.getResultSet(mockConnection)) {
-            assertFalse(rs.next());
-        }
+            try (ResultSet rs = sb1.getResultSet(mockConnection)) {
+                assertFalse(rs.next());
+            }
 
-        try (ResultSet rs = sb1.getResultSet(mockConnection)) {
-            assertFalse(rs.next());
+            try (ResultSet rs = sb1.getResultSet(mockConnection)) {
+                assertFalse(rs.next());
+            }
+        } finally {
+            SQLBuilder.setDelegate(new MockSQLBuilderProvider(true, true));
         }
     }
 

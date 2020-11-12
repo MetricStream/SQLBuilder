@@ -48,7 +48,7 @@ public class MockResultSet {
     private static final Logger logger = LoggerFactory.getLogger(MockResultSet.class);
 
     private static final AtomicLong counter = new AtomicLong(0);
-    private final String tag;
+    public final String tag;
     private final Map<String, Integer> columnIndices;
     private final Object[][] data;
     private int rowIndex = -1;
