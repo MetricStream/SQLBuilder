@@ -180,7 +180,15 @@ class SQLBuilderTest {
         assertEquals(1, new SQLBuilder("update foo").execute(mockConnection));
         assertEquals(2, new SQLBuilder("update foo").execute(mockConnection));
         assertEquals(2, new SQLBuilder("update foo").execute(mockConnection));
+    }
 
+    @Test
+    void executeReturningTest() throws SQLException {
+        MockSQLBuilderProvider.addResultSet("executeReturningTest:id", "43");
+        SQLBuilder sb = new SQLBuilder("insert into foo(foo_s.nextval, ?", "fooValue");
+        ResultSet rs = sb.execute(mockConnection, "id");
+        assertTrue(rs.next());
+        assertEquals(43, rs.getInt(1));
     }
 
     @Test

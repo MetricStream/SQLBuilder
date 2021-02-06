@@ -261,6 +261,11 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
     }
 
     @Override
+    public ResultSet execute(SQLBuilder sqlBuilder, Connection connection, String... keyColumns) throws SQLException {
+        return getRs();
+    }
+
+    @Override
     public <T> List<T> getList(SQLBuilder sqlBuilder, Connection connection, SQLBuilder.RowMapper<T> rowMapper, boolean withNull) throws SQLException {
         final ResultSet rs = getRs();
         final List<T> list = new ArrayList<>();

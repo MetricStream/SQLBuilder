@@ -29,6 +29,7 @@ public interface SQLBuilderProvider {
     OffsetDateTime getDateTime(SQLBuilder sqlBuilder, Connection connection, int columnNumber, OffsetDateTime defaultValue) throws SQLException;
     OffsetDateTime getDateTime(SQLBuilder sqlBuilder, Connection connection, String columnName, OffsetDateTime defaultValue) throws SQLException;
     int execute(SQLBuilder sqlBuilder, Connection connection) throws SQLException;
+    ResultSet execute(SQLBuilder sqlBuilder, Connection connection, String... keyColumns) throws SQLException;
     <T> List<T> getList(SQLBuilder sqlBuilder, Connection connection, SQLBuilder.RowMapper<T> rowMapper, boolean withNull) throws SQLException;
     <K, V> Map<K, V> getMap(SQLBuilder sqlBuilder, Connection connection, SQLBuilder.RowMapper<Map.Entry<K, V>> rowMapper, boolean withNull) throws SQLException;
     <T> Optional<T> getSingle(SQLBuilder sqlBuilder, Connection connection, SQLBuilder.RowMapper<T> rowMapper) throws SQLException;

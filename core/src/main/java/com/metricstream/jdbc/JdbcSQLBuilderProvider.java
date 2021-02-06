@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020, MetricStream, Inc. All rights reserved.
+ * Copyright © 2020-2021, MetricStream, Inc. All rights reserved.
  */
 package com.metricstream.jdbc;
 
@@ -25,7 +25,10 @@ import java.sql.SQLException;
 final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
 
     private PreparedStatement build(SQLBuilder sqlBuilder, Connection connection) throws SQLException {
+        return build(sqlBuilder, connection, (String[]) null);
+    }
 
+    private PreparedStatement build(SQLBuilder sqlBuilder, Connection connection, String... columns) throws SQLException {
         ArrayList<Object> expanded = null;
         if (hasContent(sqlBuilder.arguments)) {
             expanded = new ArrayList<>(sqlBuilder.arguments.size());
@@ -59,7 +62,12 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
         }
 
         sqlBuilder.interpolate(true);
-        final PreparedStatement ps = connection.prepareStatement(sqlBuilder.statement.toString(), sqlBuilder.resultSetType, ResultSet.CONCUR_READ_ONLY);
+        final PreparedStatement ps;
+        if (columns == null || columns.length == 0) {
+            ps = connection.prepareStatement(sqlBuilder.statement.toString(), sqlBuilder.resultSetType, ResultSet.CONCUR_READ_ONLY);
+        } else {
+            ps = connection.prepareStatement(sqlBuilder.statement.toString(), columns);
+        }
         try {
             if (sqlBuilder.fetchSize > 0) {
                 ps.setFetchSize(sqlBuilder.fetchSize);
@@ -319,6 +327,21 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
         try (PreparedStatement ps = build(sqlBuilder, connection)) {
             return ps.executeUpdate();
         }
+    }
+
+    /**
+     * Executes the SQL statement.
+     * @param connection The Connection from which the PreparedStatement is created
+     * @param keyColumns column names from the underlying table for which the inserted values will be returned.  Note that these names
+     *               not necessarily have to be part of the keyColumns into which the builder explicitly inserts values.
+     * @return The result of getGeneratedKeys of that statement
+     * @throws SQLException the exception thrown when executing the query
+     */
+    @Override
+    public ResultSet execute(SQLBuilder sqlBuilder, Connection connection, String... keyColumns) throws SQLException {
+        PreparedStatement ps = build(sqlBuilder, connection, keyColumns);
+        ps.executeUpdate();
+        return ps.getGeneratedKeys();
     }
 
     @Override

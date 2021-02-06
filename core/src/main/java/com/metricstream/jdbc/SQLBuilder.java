@@ -532,6 +532,19 @@ public class SQLBuilder {
         return delegate.execute(this, connection);
     }
 
+    /**
+     * Executes the SQL statement.
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @param keyColumns column names from the underlying table for which the inserted values will be returned.  Note that these names
+     *               not necessarily have to be part of the columns into which the builder explicitly inserts values.
+     * @return The result of executeUpdate of that statement
+     * @throws SQLException the exception thrown when executing the query
+     */
+    public ResultSet execute(Connection connection, String... keyColumns) throws SQLException {
+        logger.debug("{}", this);
+        return delegate.execute(this, connection, keyColumns);
+    }
+
     public interface RowMapper<T> {
         T map(ResultSet rs) throws SQLException;
     }
