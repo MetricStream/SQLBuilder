@@ -69,6 +69,7 @@ public class SQLBuilder {
     private String delimiter = "";
     protected int resultSetType = ResultSet.TYPE_FORWARD_ONLY;
     protected int fetchSize = -1;
+    protected int maxRows = -1;
     private static SQLBuilderProvider delegate = new JdbcSQLBuilderProvider();
 
     public static void setDelegate(SQLBuilderProvider delegate) {
@@ -127,6 +128,7 @@ public class SQLBuilder {
     public SQLBuilder(SQLBuilder sqlBuilder) {
         resultSetType = sqlBuilder.resultSetType;
         fetchSize = sqlBuilder.fetchSize;
+        maxRows = sqlBuilder.maxRows;
         append(sqlBuilder);
         delimiter = " ";
     }
@@ -324,6 +326,17 @@ public class SQLBuilder {
      */
     public SQLBuilder withFetchSize(int fetchSize) {
         this.fetchSize = fetchSize;
+        return this;
+    }
+
+    /**
+     * This changes the fetch size used for ResultSets.
+     * @param maxRows The maximum number of rows to be returned. A value of -1 means that no maximum is applied to the statement and that
+     *                 the JDBC driver will return all rows.
+     * @return the SQLBuilder object
+     */
+    public SQLBuilder withMaxRows(int maxRows) {
+        this.maxRows = maxRows;
         return this;
     }
 

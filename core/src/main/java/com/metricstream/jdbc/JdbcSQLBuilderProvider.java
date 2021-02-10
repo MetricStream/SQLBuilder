@@ -70,6 +70,9 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
             if (sqlBuilder.fetchSize > 0) {
                 ps.setFetchSize(sqlBuilder.fetchSize);
             }
+            if (sqlBuilder.maxRows >= 0) {
+                ps.setMaxRows(sqlBuilder.maxRows);
+            }
 
             if (expanded != null && !expanded.isEmpty()) {
                 int idx = 0;
