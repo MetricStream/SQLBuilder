@@ -22,10 +22,14 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public final class MockSQLBuilderProvider implements SQLBuilderProvider {
-
+    private static final Logger logger = LoggerFactory.getLogger(MockSQLBuilderProvider.class);
     private static final Queue<ResultSet> mockResultSets = new ConcurrentLinkedQueue<>();
 
     private static BiFunction<Integer, Integer, Integer> intByColumnIndex;
@@ -40,7 +44,7 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
     private static BiFunction<String, Object, Object> objectByColumnLabel;
     private static Supplier<Integer> executeSupplier;
     private final boolean generateSingleRowResultSet;
-    private boolean enforceTags;
+    private final boolean enforceTags;
 
     public MockSQLBuilderProvider() {
         this(true, false);
@@ -325,13 +329,20 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
                     }
                 }
             }
-            return rs;
+        } else if (generateSingleRowResultSet) {
+           rs = MockResultSet.create("", "42", false, true);
+        } else {
+            rs = MockResultSet.empty("");
         }
-        return generateSingleRowResultSet ? MockResultSet.create("", "42", false, true) : MockResultSet.empty("");
+        logger.debug("Using mock resultset {}", rs);
+        return rs;
     }
 
     public static void reset() {
-        mockResultSets.clear();
+        if (!mockResultSets.isEmpty()) {
+            logger.warn("Unused mock resultsets {}", mockResultSets.stream().map(ResultSet::toString).collect(Collectors.toList()));
+            mockResultSets.clear();
+        }
         intByColumnIndex = null;
         intByColumnLabel = null;
         longByColumnIndex = null;

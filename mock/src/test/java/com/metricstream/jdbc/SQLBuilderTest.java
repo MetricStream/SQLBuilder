@@ -31,8 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.mockito.Mockito;
@@ -48,8 +48,8 @@ class SQLBuilderTest {
         SQLBuilder.setDelegate(new MockSQLBuilderProvider(true, true));
     }
 
-    @BeforeEach
-    void setUp() {
+    @AfterEach
+    void afterEach() {
         MockSQLBuilderProvider.reset();
     }
 
@@ -62,9 +62,10 @@ class SQLBuilderTest {
                         { "Charles", 50 }
                 });
         MockSQLBuilderProvider.addResultSet(mrs);
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb2", new String[] { "key", "value" }, new Object[][] {}));
+        MockSQLBuilderProvider
+                .addResultSet(MockResultSet.create("testMock:sb2", new String[] { "key", "value" }, new Object[][] {}));
         MockSQLBuilderProvider.addResultSet(MockResultSet.empty("testMock:sb3"));
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb4", new Object[][] { { "a" }, { "b" }}));
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb4", new Object[][] { { "a" }, { "b" } }));
 
         SQLBuilder sb1 = new SQLBuilder("select name, age from friends where age > 18");
         try (ResultSet rs = sb1.getResultSet(mockConnection)) {
@@ -111,7 +112,7 @@ class SQLBuilderTest {
         SQLBuilder sb6 = new SQLBuilder("select count(*) from lookup");
         assertEquals(10, sb6.getInt(mockConnection, 1, 0));
 
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb7", new Object[][] { { "a" }, { "b" }}));
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb7", new Object[][] { { "a" }, { "b" } }));
         SQLBuilder sb7 = new SQLBuilder("select value from lookup where key = ?", 42);
         assertEquals("a", sb7.getString(mockConnection, 1, "default"));
 
@@ -189,6 +190,14 @@ class SQLBuilderTest {
         ResultSet rs = sb.execute(mockConnection, "id");
         assertTrue(rs.next());
         assertEquals(43, rs.getInt(1));
+    }
+
+    @Test
+    void unusedMockResultSet() throws SQLException {
+        MockSQLBuilderProvider.addResultSet("unusedMockResultSet:first", "1");
+        MockSQLBuilderProvider.addResultSet("unusedMockResultSet:second", "2");
+        SQLBuilder sb1 = new SQLBuilder("select count(*) from foo");
+        assertEquals(1, sb1.getInt(mockConnection, 1, 0));
     }
 
     @Test
