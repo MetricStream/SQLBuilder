@@ -3,7 +3,6 @@
  */
 package com.metricstream.jdbc;
 
-import static com.metricstream.util.Check.noContent;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -57,14 +56,14 @@ public class MockResultSet {
     private boolean generated = false;
 
     private MockResultSet(final String tag, final String[] names, final Object[][] data) {
-        if (noContent(tag)) {
+        if (tag == null || tag.isEmpty()) {
             this.tag = "MockResultSet#" + counter.incrementAndGet();
         } else {
             this.tag = tag;
         }
         final String[] columnNames;
-        if (noContent(names)) {
-            columnNames = new String[noContent(data) || noContent(data[0]) ? 0 : data[0].length];
+        if (names == null || names.length == 0) {
+            columnNames = new String[data == null || data.length == 0 || data[0] == null || data[0].length == 0 ? 0 : data[0].length];
             Arrays.setAll(columnNames, i -> "COLUMN" + (i + 1));
         } else {
             columnNames = names;

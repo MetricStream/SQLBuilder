@@ -3,9 +3,6 @@
  */
 package com.metricstream.jdbc;
 
-import static com.metricstream.util.Check.hasContent;
-import static com.metricstream.util.Check.noContent;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -139,7 +136,7 @@ public class SQLBuilder {
      * @return true if it has no statement and no arguments, false otherwise
      */
     public boolean isEmpty() {
-        return noContent(statement) && noContent(arguments);
+        return statement.length() == 0 && arguments.isEmpty();
     }
 
     /**
@@ -147,7 +144,7 @@ public class SQLBuilder {
      * @return true if it has q statement or arguments, false otherwise
      */
     public boolean isNotEmpty() {
-        return hasContent(statement) || hasContent(arguments);
+        return statement.length() != 0 || !arguments.isEmpty();
     }
 
     /**
@@ -205,7 +202,7 @@ public class SQLBuilder {
      */
     public SQLBuilder append(String sql, Object... args) {
         statement.append(delimiter).append(sql);
-        if (hasContent(args)) {
+        if (args != null && args.length != 0) {
             arguments.addAll(Arrays.asList(args));
         }
         return this;
@@ -287,7 +284,7 @@ public class SQLBuilder {
         }
 
         final StringBuffer sb = new StringBuffer();
-        if (hasContent(quoted)) {
+        if (!quoted.isEmpty()) {
             final Pattern p = Pattern.compile(regexp.toString());
             final Matcher m = p.matcher(statement.toString());
             while (m.find()) {
@@ -647,7 +644,7 @@ public class SQLBuilder {
      */
     public static SQLBuilder fromNumberedParameters(String sql, QueryParams params) {
         final List<String> paramNames = params.getParamNames();
-        if (noContent(paramNames)) {
+        if (paramNames == null || paramNames.isEmpty()) {
             return new SQLBuilder(sql);
         }
 

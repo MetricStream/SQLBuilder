@@ -3,8 +3,6 @@
  */
 package com.metricstream.jdbc;
 
-import static com.metricstream.util.Check.hasContent;
-
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -30,7 +28,7 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
 
     private PreparedStatement build(SQLBuilder sqlBuilder, Connection connection, String... columns) throws SQLException {
         ArrayList<Object> expanded = null;
-        if (hasContent(sqlBuilder.arguments)) {
+        if (!sqlBuilder.arguments.isEmpty()) {
             expanded = new ArrayList<>(sqlBuilder.arguments.size());
             int sqlPos = 0;
             for (Object arg : sqlBuilder.arguments) {
@@ -73,7 +71,7 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
                 ps.setFetchSize(sqlBuilder.fetchSize);
             }
 
-            if (hasContent(expanded)) {
+            if (expanded != null && !expanded.isEmpty()) {
                 int idx = 0;
                 for (Object arg : expanded) {
                     if (arg instanceof LongString) {
