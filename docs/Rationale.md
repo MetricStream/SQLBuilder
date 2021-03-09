@@ -476,6 +476,28 @@ following steps (all examples are given for [Junit5], adapt for your test framew
    - remove all mocking for `ResultSet` methods like `when(rs.next()).thenReturn(true);` or
      `when(rs.getLong("ID")).thenReturn(1L);`
 
+# Release Notes #
+
+- Version 2.0.0, released 2021-03-18
+  - removed `com.metricstream.util.Check` class: this was only used internally in a few places but polluted the name
+    space. Thus, this version inlines the usages and removes the class. Although no existing user called this class,
+    removing it changes the public API in a backwards-incompatible way and thus mandates a major version increase.
+  - added method `withMaxRows(int)` to limit the number of returned rows
+  - added method `getMap` similar to `getList`, which -- together with the new `entry` method -- is a shortcut to create
+    maps from `ResultSet` objects
+  - added `execute` method variant which allows passing names of columns for which to return values from the inserted
+    row(s)
+  - added `getInstant` method which returns `Instant` for the provided column
+  - added `getDateTime` method which returns `OffsetDateTime` for the provided column
+  - upgraded external dependencies
+    - `commons-codec:commons-codec` from `1.14` to `1.15`
+    - `org.junit.jupiter:junit-jupiter-api` from `5.6.2` to `5.7.1`
+    - `org.junit.jupiter:junit-jupiter-engine` from `5.6.2` to `5.7.1`
+
+- Version 1.0.2, released 2020-05-17
+  - initial public release
+
+
 
 [JdbcTemplate]: https://spring.io/guides/gs/relational-data-access/
 [JDBI]: https://jdbi.org
