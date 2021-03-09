@@ -16,7 +16,7 @@ subprojects {
     apply(plugin = "signing")
 
     group = "com.metricstream.jdbc"
-    version = "1.0.3-prerelease"
+    version = "2.0.0"
 
     repositories {
         mavenCentral()

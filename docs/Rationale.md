@@ -478,7 +478,7 @@ following steps (all examples are given for [Junit5], adapt for your test framew
 
 # Release Notes #
 
-- Version 2.0.0, released 2021-03-18
+- Version 2.0.0, released 2021-03-08
   - removed `com.metricstream.util.Check` class: this was only used internally in a few places but polluted the name
     space. Thus, this version inlines the usages and removes the class. Although no existing user called this class,
     removing it changes the public API in a backwards-incompatible way and thus mandates a major version increase.
@@ -493,6 +493,7 @@ following steps (all examples are given for [Junit5], adapt for your test framew
     - `commons-codec:commons-codec` from `1.14` to `1.15`
     - `org.junit.jupiter:junit-jupiter-api` from `5.6.2` to `5.7.1`
     - `org.junit.jupiter:junit-jupiter-engine` from `5.6.2` to `5.7.1`
+    - `org.mockito:mockito-core` from `3.6.0` to `3.8.0`
 
 - Version 1.0.2, released 2020-05-17
   - initial public release
