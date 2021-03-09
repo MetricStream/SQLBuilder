@@ -3,12 +3,13 @@
 SQLBuilder is a Java library which aims to be a better PreparedStatement. It was developed internally at MetricStream
 and is in active use and maintained by MetricStream. We use lots of wonderful open source code in our projects and open
 sourcing this library is an attempt to give a tiny bit back to the community. Hopefully someone will find it useful.
-Feedback of and kind is definitely appreciated!
+Feedback of any kind is definitely appreciated!
 
-Currently, to use SQLBuilder in your Java project you must download or clone this repository and then run `./gradlew
-jar` to create the `sqlbuilder-core-1.0.1.jar` and `sqlbuilder-mock-1.0.1.jar` libraries.
-
-The MavenCental coordinates are 'com.metricstream.jdbc:sqlbuilder-core:1.0.1' and 'com.metricstream.jdbc:sqlbuilder-mock:1.0.1'.
+The [MavenCentral] coordinates are
+[com.metricstream.jdbc:sqlbuilder-core:2.0.0](https://search.maven.org/artifact/com.metricstream.jdbc/sqlbuilder-core/2.0.0/jar)
+for production usage and
+[com.metricstream.jdbc:sqlbuilder-mock:2.0.0](https://search.maven.org/artifact/com.metricstream.jdbc/sqlbuilder-mock/2.0.0/jar)
+for unit testing.
 
 Read the [documentation](docs/Rationale.md) for details on why and how to use SQLBuilder.
 
