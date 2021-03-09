@@ -597,7 +597,7 @@ public class SQLBuilder {
      * @return The list of generated items
      * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
-    public <K, V> Map<K, V> getMap(Connection connection, RowMapper<Map.Entry<K, V>> rowMapper) throws SQLException {
+    public <K, V> Map<K, V> getMap(Connection connection, RowMapper<Map.Entry<K, V>> rowMapper) throws SQLException, IllegalStateException {
         logger.debug("{}", this);
         return delegate.getMap(this, connection, rowMapper, false);
     }
@@ -612,7 +612,7 @@ public class SQLBuilder {
      * @return The list of generated items
      * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
-    public <K, V> Map<K, V> getMap(Connection connection, RowMapper<Map.Entry<K, V>> rowMapper, boolean withNull) throws SQLException {
+    public <K, V> Map<K, V> getMap(Connection connection, RowMapper<Map.Entry<K, V>> rowMapper, boolean withNull) throws SQLException, IllegalStateException {
         logger.debug("{}", this);
         return delegate.getMap(this, connection, rowMapper, withNull);
     }

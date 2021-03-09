@@ -8,6 +8,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -18,6 +19,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Set;
 
 
 final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
@@ -348,14 +350,7 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
     @Override
     public <T> List<T> getList(SQLBuilder sqlBuilder, Connection connection, SQLBuilder.RowMapper<T> rowMapper, boolean withNull) throws SQLException {
         try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
-            final List<T> list = new ArrayList<>();
-            while (rs.next()) {
-                T item = rowMapper.map(rs);
-                if (withNull || item != null) {
-                    list.add(item);
-                }
-            }
-            return list;
+            return getList(rs, rowMapper, withNull);
         }
     }
 
@@ -363,14 +358,7 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
     public <K, V> Map<K, V> getMap(SQLBuilder sqlBuilder, Connection connection,
             SQLBuilder.RowMapper<Map.Entry<K, V>> rowMapper, boolean withNull) throws SQLException {
         try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
-            final Map<K, V> map = new HashMap<>();
-            while (rs.next()) {
-                Map.Entry<K, V> entry = rowMapper.map(rs);
-                if (entry != null && entry.getKey() != null && (withNull || entry.getValue() != null)) {
-                    map.put(entry.getKey(), entry.getValue());
-                }
-            }
-            return map;
+            return getMap(rs, rowMapper, withNull);
         }
     }
 

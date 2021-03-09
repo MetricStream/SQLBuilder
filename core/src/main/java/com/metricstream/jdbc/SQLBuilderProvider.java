@@ -9,6 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,4 +39,35 @@ public interface SQLBuilderProvider {
 
     Instant getInstant(SQLBuilder sqlBuilder, Connection connection, int columnNumber, Instant defaultValue) throws SQLException;
     Instant getInstant(SQLBuilder sqlBuilder, Connection connection, String columnName, Instant defaultValue) throws SQLException;
+
+    default <T> List<T> getList(ResultSet rs, SQLBuilder.RowMapper<T> rowMapper, boolean withNull) throws SQLException {
+        final List<T> list = new ArrayList<>();
+        while (rs.next()) {
+            final T item = rowMapper.map(rs);
+            if (withNull || item != null) {
+                list.add(item);
+            }
+        }
+        return list;
+    }
+
+    default <K, V> Map<K, V> getMap(ResultSet rs, SQLBuilder.RowMapper<Map.Entry<K, V>> rowMapper, boolean withNull) throws SQLException, IllegalStateException {
+        final Map<K, V> map = new HashMap<>();
+        while (rs.next()) {
+            Map.Entry<K, V> entry = rowMapper.map(rs);
+            if (entry != null) {
+                final K key = entry.getKey();
+                if (key == null) {
+                    throw new IllegalStateException("null as key value is unsupported");
+                }
+                final V value = entry.getValue();
+                if (withNull || value != null) {
+                    if (map.put(key, value) != null) {
+                        throw new IllegalStateException("Duplicate keys are unsupported");
+                    }
+                }
+            }
+        }
+        return map;
+    }
 }

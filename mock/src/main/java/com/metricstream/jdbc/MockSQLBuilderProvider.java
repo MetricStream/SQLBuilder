@@ -271,29 +271,13 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
 
     @Override
     public <T> List<T> getList(SQLBuilder sqlBuilder, Connection connection, SQLBuilder.RowMapper<T> rowMapper, boolean withNull) throws SQLException {
-        final ResultSet rs = getRs();
-        final List<T> list = new ArrayList<>();
-        while (rs.next()) {
-            final T item = rowMapper.map(rs);
-            if (withNull || item != null) {
-                list.add(item);
-            }
-        }
-        return list;
+        return getList(getRs(), rowMapper, withNull);
     }
 
     @Override
     public <K, V> Map<K, V> getMap(SQLBuilder sqlBuilder, Connection connection,
             SQLBuilder.RowMapper<Map.Entry<K, V>> rowMapper, boolean withNull) throws SQLException {
-        final ResultSet rs = getRs();
-        final Map<K, V> map = new HashMap<>();
-        while (rs.next()) {
-            Map.Entry<K, V> entry = rowMapper.map(rs);
-            if (entry != null && entry.getKey() != null && (withNull || entry.getValue() != null)) {
-                map.put(entry.getKey(), entry.getValue());
-            }
-        }
-        return map;
+        return getMap(getRs(), rowMapper, withNull);
     }
 
     @Override

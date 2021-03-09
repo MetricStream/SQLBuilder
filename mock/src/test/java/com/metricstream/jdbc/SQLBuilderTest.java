@@ -393,15 +393,20 @@ class SQLBuilderTest {
     }
 
     @Test
-    void getMap_test2() throws SQLException {
-        // when query returns 3 rows
-        // with 3 ints in column 2
-        // then expect to get a list with 3 elements in the correct order
+    void getMap_testDuplicateKeys() throws SQLException {
+        // when query returns 3 rows with duplicate keys
+        // then expect to get an IllegalStateException
         MockSQLBuilderProvider.addResultSet("", "3,Three\n1,One\n3,Four");
-        Map<Integer, String> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getInt(1), rs.getString(2)));
-        assertThat(m.size(), is(2));
-        assertThat(m.keySet(), containsInAnyOrder(1, 3));
-        assertFalse(m.containsValue("Three"));
+        assertThrows(IllegalStateException.class, () -> sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getInt(1), rs.getString(2))));
+    }
+
+    @Test
+    void getMap_testNullKey() throws SQLException {
+        // when query returns 3 rows with duplicate keys
+        // then expect to get an IllegalStateException
+        MockSQLBuilderProvider.addResultSet("", new Object[][]{ { 3, "Three" }, { null, "Zero" } });
+        // Note: we cannot use `getInt` for the key here because that would automatically convert `null` to `0` and thus not throw the expected exception
+        assertThrows(IllegalStateException.class, () -> sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getObject(1), rs.getString(2))));
     }
 
     @Test
@@ -804,6 +809,15 @@ class SQLBuilderTest {
         SQLBuilder sb = new SQLBuilder("select count(*) from foo");
         MockSQLBuilderProvider.setIntByColumnIndex((c, d) -> { switch (c) {case 1: return 3; default: return d;}});
         assertEquals(3, sb.getInt(null, 1, 4));
+    }
+
+    @Test
+    void maxRows() throws SQLException {
+        MockSQLBuilderProvider.addResultSet("", "_,3\n_,1\n_,4");
+        // TODO: this just tests that `withMaxRows` is accepted, but not the actual implementation.
+        List<Integer> l = sqlBuilder.withMaxRows(1).getList(mockConnection, (rs) -> rs.getInt(2));
+        assertThat(l.size(), is(3));
+        assertThat(l, is(Arrays.asList(3, 1, 4)));
     }
 
     static class QueryParamsImpl implements QueryParams {
