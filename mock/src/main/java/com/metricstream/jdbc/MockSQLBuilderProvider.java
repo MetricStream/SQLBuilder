@@ -6,8 +6,6 @@ package com.metricstream.jdbc;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -306,7 +304,7 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
                                 && !declaringClass.equals("com.metricstream.jdbc.SQLBuilder")) {
                             final String methodName = stackTraceElement.getMethodName();
                             if (!methodName.equals(tag.split(":")[0])) {
-                                throw new IllegalArgumentException("Trying to use " + tag + " for method " + methodName);
+                                throw new IllegalStateException("Trying to use " + tag + " for method " + methodName);
                             }
                             break;
                         }
@@ -318,13 +316,13 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
         } else {
             rs = MockResultSet.empty("");
         }
-        logger.debug("Using mock resultset {}", rs);
+        logger.debug("Using mock ResultSet {}", rs);
         return rs;
     }
 
     public static void reset() {
         if (!mockResultSets.isEmpty()) {
-            logger.warn("Unused mock resultsets {}", mockResultSets.stream().map(ResultSet::toString).collect(Collectors.toList()));
+            logger.warn("Unused mock ResultSet objects: {}", mockResultSets.stream().map(ResultSet::toString).collect(Collectors.toList()));
             mockResultSets.clear();
         }
         intByColumnIndex = null;
