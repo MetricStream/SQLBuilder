@@ -1,5 +1,6 @@
-# Preface #
 [![MetricStream](MetricStream.png)][MetricStream]
+
+# Preface #
 
 SQLBuilder is a JDBC-based Java library created by [MetricStream] for using SQL databases from within you Java
 application.
@@ -478,6 +479,14 @@ following steps (all examples are given for [Junit5], adapt for your test framew
 
 # Release Notes #
 
+- Version 2.0.1, released 2021-03-18
+  - switched to new MetricStream logo
+  - use `wkhtmltopdf` to generate PDF version of the documentation
+  - upgraded external dependencies
+    - `gradle` from `6.4` to `6.8.3`
+    - `com.opencsv:opencsv` from `5.3` to `5.4`
+    - `org.postgresql:postgresql` from `42.2.18` to `42.2.19`
+
 - Version 2.0.0, released 2021-03-08
   - removed `com.metricstream.util.Check` class: this was only used internally in a few places but polluted the name
     space. Thus, this version inlines the usages and removes the class. Although no existing user called this class,
@@ -489,6 +498,8 @@ following steps (all examples are given for [Junit5], adapt for your test framew
     row(s)
   - added `getInstant` method which returns `Instant` for the provided column
   - added `getDateTime` method which returns `OffsetDateTime` for the provided column
+  - added `enforceTags` option to `mock` which requires that the tag names of `MockResultSet` objects match the method names
+    in which the objects are consumed
   - upgraded external dependencies
     - `commons-codec:commons-codec` from `1.14` to `1.15`
     - `org.junit.jupiter:junit-jupiter-api` from `5.6.2` to `5.7.1`

@@ -5,13 +5,13 @@ plugins {
 
 dependencies {
     implementation(project(":core"))
-    implementation("org.postgresql:postgresql:42.2.18")
+    implementation("org.postgresql:postgresql:42.2.19")
 
     testImplementation(project(":mock"))
-    testImplementation("org.mockito:mockito-core:3.6.0")
-    testImplementation("org.mockito:mockito-junit-jupiter:3.6.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
+    testImplementation("org.mockito:mockito-core:3.8.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:3.8.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.1")
 }
 
 application {

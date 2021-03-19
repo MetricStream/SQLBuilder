@@ -1,5 +1,6 @@
 fun pandoc(format: String) = "pandoc --from=markdown+yaml_metadata_block Rationale.md metadata.yaml" +
-        " --number-sections --highlight-style=pygments --standalone --output Rationale.$format"
+        " --number-sections --highlight-style=pygments --standalone --output Rationale.$format" +
+        " --pdf-engine=wkhtmltopdf --pdf-engine-opt=--enable-local-file-access"
 
 val formats = listOf("pdf", "html", "docx")
 
