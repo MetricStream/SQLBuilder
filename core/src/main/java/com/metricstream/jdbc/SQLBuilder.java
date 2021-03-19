@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018-2020, MetricStream, Inc. All rights reserved.
+ * Copyright © 2018-2021, MetricStream, Inc. All rights reserved.
  */
 package com.metricstream.jdbc;
 
