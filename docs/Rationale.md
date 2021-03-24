@@ -2,7 +2,7 @@
 
 # Preface #
 
-SQLBuilder is a JDBC-based Java library created by [MetricStream] for using SQL databases from within you Java
+SQLBuilder is a JDBC-based Java library created by [MetricStream] for using SQL databases from within your Java
 application.
 
 # Introduction #
@@ -15,8 +15,9 @@ requires much less refactoring and is thus often the better alternative (especia
 not possible and thus the only other option is to do nothing).
 
 SQLBuilder is a small library which is an alternative to [JDBI]. The one standout feature of [SQLBuilder] compared to
-[JDBI] is that it allows to compose partial queries, pass them between methods, and then automatically combine them to
-the final query. This makes it easier to convert legacy code which e.g. adds filters to queries using separate methods.
+[JDBI] is that it allows composing partial queries, passing them between methods, and then automatically combining them
+to the final query. This makes it easier to convert legacy code which e.g. adds filters to queries using separate
+methods.
 
 SQLBuilder is database agnostic and its only dependencies are [JDBC], [SLF4J], and [Commons Codec]. SQLBuilder also has
 an optional test driver which in addition requires [Mockito] and [OpenCSV].
@@ -49,11 +50,10 @@ List<String> friends(int age) {
 ```
 
 What stands out here is that the SQL fragments and the query parameters are disconnected:
+ - The place where the SQL is constructed and the place where the parameter values are provided are lines apart
+-  Conditions like the `age > 0` have to be repeated
 
--  The place where the SQL is constructed and the place where the parameter values are provided are lines apart
--  conditions like the `age > 0` have to be repeated
-
-Compare that code now with the same code using SQLBuilder:
+Compare that code with the equivalent SQLBuilder-based code:
 
 ```java
 SQLBuilder filter(int age) {
@@ -103,11 +103,11 @@ core1.append("and name not null");
 core2.append("and name not null").append("and id in (?)", ids);
 ```
 
-The last example highlights another advantage of SQLBuilder over PreparedStatement: passing a list as a parameter value
-automatically replaces the matching `?` with the correct number of `?`. Thus, if `ids` from above is a list containing 3
-`Long` values, the resulting SQL query for `core2` would be `"select name, age from person where age > ? and age < ? and
-name not null and id in (?,?,?)"` (and yes: SQLBuilder is smart enough to add a space before appending further
-fragments).
+The last example highlights another advantage of `SQLBuilder` over `PreparedStatement`: passing a list as a parameter
+value automatically replaces the matching `?` with the correct number of `?`. Thus, if `ids` from above is a list
+containing 3 `Long` values, the resulting SQL query for `core2` would be `"select name, age from person where age > ?
+and age < ? and name not null and id in (?,?,?)"` (and yes: SQLBuilder is smart enough to add a space before appending
+further fragments).
 
 Both the constructor and `append` also accept a `SQLBuilder` object. This is useful if we create partial queries in
 other methods or need 2 queries with an identical core part: first create the core, and then create the 2 variants:
@@ -120,7 +120,7 @@ SQLBuilder variant1 = new SQLBuilder(core).append(filter1);
 SQLBuilder variant2 = new SQLBuilder(core).append(filter2);
 ```
 
-In addition, SQLBuilder offers some constructor function like `wrap` which modifies a `SQLBuilder` by wrapping the SQL
+In addition, `SQLBuilder` offers some constructor function like `wrap` which modifies a `SQLBuilder` by wrapping the SQL
 fragment in the provided values:
 
 ```java
@@ -138,15 +138,15 @@ SQLBuilder count = new SQLBuilder(core).wrap("select count(*) from (", ")");
 
 ## Using SQLBuilder Objects ##
 
-There are 2 basic operations by which SQLBuilder objects can be used:
+There are 2 basic operations by which `SQLBuilder` objects can be used:
 
  1. create a ResultSet object using `getResultSet(Connection)`
  2. execute the query and return the result of that using `execute(Connection)`
 
-In addition, SQLBuilder offers a set of convenience methods to optimize 2 common cases:
+In addition, `SQLBuilder` offers a set of convenience methods to optimize 2 common cases:
 
  1. return a single value from a query
- 2. map the returned ResultSet objects into a list of application-level objects
+ 2. map the returned ResultSet objects into a list or a map of application-level objects
 
 For single values, SQLBuilder offers methods like
 
@@ -168,16 +168,18 @@ used for columns of type `TIMESTAMP WITH TIME ZONE`.  However, this is only
 guaranteed to work for JDBC drivers implementing JDBC 4.2 or above because that
 JDBC specification is the first revision which mandates support for `OffsetDateTime`.
 
-For mapping rows from a ResultSet, SQLBuilder offers `getList(Connection connection, SQLBuilder.RowMapper<T> rowMapper)`
-which allows to further simplify code from the [Motivation](#motivation) section:
+For mapping rows from a `ResultSet`, `SQLBuilder` offers `getList(Connection connection, SQLBuilder.RowMapper<T>
+rowMapper)` which allows to further simplify code from the [Motivation](#motivation) section:
 
 ```java
 SQLBuilder filter(int age) {
     return age > 0 ? new SQLBuilder("and age > ?", age) : new SQLBuilder("");
 }
 
-SQLBuilder query = new SQLBuilder("select first_name from person where last_name = ?", name).append(filter(age));
-return query.getList(connection, rs -> rs.getString(1));
+SQLBuilder query = new SQLBuilder("select first_name, age from person where last_name = ?", name)
+    .append(filter(age));
+List<String> firstNames = query.getList(connection, rs -> rs.getString(1));
+Map<String, Integer> ages = query.getMap(connection, rs -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)));
 ```
 
 ## Name Binding ##
@@ -385,13 +387,8 @@ MockSQLBuilderProvider.addResultSet(children);
 assertEquals(3, countChildren(con, 18));
 ```
 
-The first parameter for creating such `MockResultSet` objects is always a "tag". This tag is currently not used
-operationally. However, it is included in the `MockResultSet#toString` return value. If you choose your tags carefully
-(e.g. by using the name of the method in which you expect this `MockResultSet` object to be consumed), then you can
-visually compare the tag with the method names in the stack trace in a debugger. The best way to accomplish this is to
-set a breakpoint inside `MockSQLBuilderProvider#getRs`. This is of tremendous value while writing unit tests or adopting
-them to changed code because it allows to easily spot these "off-by-one" errors where a test data set is consumed by the
-wrong method.
+The first parameter for creating such `MockResultSet` objects is always a "tag". We will describe the reasons for these
+tags later. For now, just assume it provides a means to identify a specific mocked object.
 
 There are numerous variants to create test data sets, see the `SQLBuilder` Javadoc and it's unit test code for the
 complete list. Here we just highlight a few important ones:
@@ -433,6 +430,51 @@ provided, followed by the default `42`. The most flexible approach is to call `M
 final AtomicInteger count = new AtomicInteger();
 MockSQLBuilderProvider.setExecute(() -> count.getAndIncrement() < 3 ? 1 : 2);
 ```
+
+## Tags and Tag Matching Enforcement ##
+
+By default, tags of `MockResultSet` objects are not used operationally. However, they are included in the
+`MockResultSet#toString` return value which can be observed in a debugger. The best way to accomplish this is to set a
+breakpoint inside `MockSQLBuilderProvider#getRs`.
+
+However, creating `MockSQLBuilderProvider` using `SQLBuilder.setDelegate(new MockSQLBuilderProvider(true, true))` will
+turn on the `enforceTags` option (using the 2nd `true`; the first one is used to control whether to synthesize ResultSet
+objects if none were explicitly added and is `true` by default). In this mode, the tag values of `MockResultSet` objects
+are checked against the names of the methods in which they are consumed. More precisely: the method name must be equal
+to the part of the tag name before the first `:` in the tag name. If this fails, an `IllegalStateException` is thrown.
+The `:` rule allows adding more information about the tagged `MockResultSet` object and is especially useful if a method
+contains multiple SQL queries.
+
+As a concrete example, consider the following code:
+```java
+int getCount(Connection con) throws SQLException {
+    int count = new SQLBuilder("select count(*) from persons").getInt(con, 1, -1);
+    if (count <= 0) {
+        count = new SQLBuilder("select count(*) from aliens").getInt(con, 1, -1);
+    }
+    return count;
+}
+```
+
+This method can be tested using:
+```java
+MockSQLBuilderProvider.addResultSet("getCount:persons", "10");
+assertEquals(10, getCount(connection));
+MockSQLBuilderProvider.addResultSet("getCount:persons", "0");
+MockSQLBuilderProvider.addResultSet("getCount:aliens", "5");
+assertEquals(5, getCount(connection));
+```
+
+Enforcing matching tag names helps to detect a very common problem with "classical" `ResultSet` mocking: if the tested
+code was changed to add or remove a query somewhere, the mocked data gets out of sync. Such errors often manifest
+themselves not where they occur but in a later step and are notoriously hard to trace. Enforcing matching tag names
+instead directly stops the execution with a useful error message (containing the method name and the mismatched tag
+name).
+
+In summary, enforcing tag name matching is highly recommended. If it were not for backwards compatibility, this would be
+enabled by default by now.
+
+
 ## Other Ways To Provide Test Data ##
 
 The final alternative for providing test data is to register supplier functions for `SQLBuilder#getInt` and related
@@ -448,12 +490,12 @@ methods. Similar to the supplier approach for `SQLBuilder#execute`, you can forc
 First of all: you must correctly prepare your unit test code to use the mocking provider. This is done using the
 following steps (all examples are given for [Junit5], adapt for your test framework as required):
 
-1. Change `SQLBuilder` to use the mocking provider using
+1. Change `SQLBuilder` to use the mocking provider with "autogenerate resultsets" and "enforce tags" enabled using
 
    ```java
     @BeforeAll
     static void beforeAll() {
-        SQLBuilder.setDelegate(new MockSQLBuilderProvider());
+        SQLBuilder.setDelegate(new MockSQLBuilderProvider(true, true));
     }
    ```
 
@@ -478,6 +520,10 @@ following steps (all examples are given for [Junit5], adapt for your test framew
      `when(rs.getLong("ID")).thenReturn(1L);`
 
 # Release Notes #
+
+- Version 2.0.2, released 2021-03-24
+  - improved the documentation
+  - updated copyright to include 2021
 
 - Version 2.0.1, released 2021-03-18
   - switched to new MetricStream logo
