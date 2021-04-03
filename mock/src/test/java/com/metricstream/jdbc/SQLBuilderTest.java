@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -46,6 +47,11 @@ class SQLBuilderTest {
     @BeforeAll
     static void beforeAll() {
         SQLBuilder.setDelegate(new MockSQLBuilderProvider(true, true));
+    }
+
+    @AfterAll
+    static void afterAll() {
+        SQLBuilder.resetDelegate();
     }
 
     @AfterEach

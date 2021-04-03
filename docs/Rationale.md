@@ -499,7 +499,16 @@ following steps (all examples are given for [Junit5], adapt for your test framew
     }
    ```
 
-2. Reset MockSQLBuilderProvider to clear the test data queue and ensure that "SQLBuilder#execute" returns 42 executing
+2. Make sure to restore the original `SQLBuilder` behavior once your test class is done
+
+   ```java
+    @AfterAll
+    static void afterAll() {
+        SQLBuilder.resetDelegate();
+    }
+   ```
+
+3. Reset MockSQLBuilderProvider to clear the test data queue and ensure that "SQLBuilder#execute" returns 42 executing
    tests to prevent spill-over from previous tests:
 
    ```java

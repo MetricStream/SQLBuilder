@@ -70,10 +70,15 @@ public class SQLBuilder {
     protected int resultSetType = ResultSet.TYPE_FORWARD_ONLY;
     protected int fetchSize = -1;
     protected int maxRows = -1;
-    private static SQLBuilderProvider delegate = new JdbcSQLBuilderProvider();
+    private static final SQLBuilderProvider jdbcProvider = new JdbcSQLBuilderProvider();
+    private static SQLBuilderProvider delegate = jdbcProvider;
 
     public static void setDelegate(SQLBuilderProvider delegate) {
         SQLBuilder.delegate = delegate;
+    }
+
+    public static void resetDelegate() {
+        SQLBuilder.delegate = jdbcProvider;
     }
 
     /**
