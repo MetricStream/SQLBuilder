@@ -12,20 +12,15 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
+import org.mockito.MockitoAnnotations;
 
 import com.metricstream.jdbc.MockSQLBuilderProvider;
 import com.metricstream.jdbc.SQLBuilder;
 
 
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class AppTest {
 
     @InjectMocks
@@ -47,6 +42,7 @@ class AppTest {
 
     @BeforeEach void beforeEach() {
         MockSQLBuilderProvider.reset();
+        MockitoAnnotations.initMocks(this);
     }
 
     @Test void isAnneInvited() throws SQLException {
