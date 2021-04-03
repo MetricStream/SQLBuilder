@@ -6,9 +6,9 @@ sourcing this library is an attempt to give a tiny bit back to the community. Ho
 Feedback of any kind is definitely appreciated!
 
 The [MavenCentral] coordinates are
-[com.metricstream.jdbc:sqlbuilder-core:2.0.2](https://search.maven.org/artifact/com.metricstream.jdbc/sqlbuilder-core/2.0.2/jar)
+[com.metricstream.jdbc:sqlbuilder-core:2.1.1](https://search.maven.org/artifact/com.metricstream.jdbc/sqlbuilder-core/2.1.1/jar)
 for production usage and
-[com.metricstream.jdbc:sqlbuilder-mock:2.0.2](https://search.maven.org/artifact/com.metricstream.jdbc/sqlbuilder-mock/2.0.2/jar)
+[com.metricstream.jdbc:sqlbuilder-mock:2.1.1](https://search.maven.org/artifact/com.metricstream.jdbc/sqlbuilder-mock/2.1.1/jar)
 for unit testing.
 
 Read the [documentation](docs/Rationale.md) for details on why and how to use SQLBuilder and the changes between releases.

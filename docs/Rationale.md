@@ -530,6 +530,10 @@ following steps (all examples are given for [Junit5], adapt for your test framew
 
 # Release Notes #
 
+- Version 2.1.1, released 2021-04-02
+  - reverted Mockito back to version `1.10.19` because of problems while upgrading client apps
+  - added `SQLBuilder.resetDelegate`
+
 - Version 2.0.2, released 2021-03-24
   - improved the documentation
   - updated copyright to include 2021
