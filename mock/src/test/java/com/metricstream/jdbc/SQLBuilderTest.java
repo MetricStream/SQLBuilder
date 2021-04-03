@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -165,6 +166,31 @@ class SQLBuilderTest {
         MockSQLBuilderProvider.addResultSet("testMock:read from sqldeveloper export file", getClass().getResourceAsStream("SI_USERS_T.csv"));
         SQLBuilder sb12 = new SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t");
         assertEquals("[100000, 100001, 100002, 100003]", sb12.getList(mockConnection, rs -> rs.getLong("USER_ID")).toString());
+
+        Timestamp ts = Timestamp.from(Instant.now());
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb13", new Object[][] { { ts } }));
+        SQLBuilder sb13 = new SQLBuilder("select value from lookup where key = ?", 42);
+        assertEquals(ts, sb13.getTimestamp(mockConnection, 1, null));
+
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb14", new Object[][] { { ts } }));
+        SQLBuilder sb14 = new SQLBuilder("select value from lookup where key = ?", 42);
+        try (ResultSet rs14 = sb14.getResultSet(mockConnection)) {
+            Timestamp ts14 = null;
+            if (rs14.next()) {
+                ts14 = rs14.getTimestamp(1);
+            }
+            assertEquals(ts, ts14);
+        }
+
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb15", new String[] { "value" }, new Object[][] { { ts } }));
+        SQLBuilder sb15 = new SQLBuilder("select value from lookup where key = ?", 42);
+        try (ResultSet rs15 = sb15.getResultSet(mockConnection)) {
+            Timestamp ts15 = null;
+            if (rs15.next()) {
+                ts15 = rs15.getTimestamp("value");
+            }
+            assertEquals(ts, ts15);
+        }
 
         final SQLBuilder updateFoo = new SQLBuilder("update foo");
         assertEquals(42, updateFoo.execute(mockConnection));

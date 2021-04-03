@@ -530,6 +530,9 @@ following steps (all examples are given for [Junit5], adapt for your test framew
 
 # Release Notes #
 
+- Version 2.2.0, released 2021-04-03
+  - added `SQLBuilder.getTimestamp` and mocking support for `ResultSet.getTimestamp`
+
 - Version 2.1.1, released 2021-04-02
   - reverted Mockito back to version `1.10.19` because of problems while upgrading client apps
   - added `SQLBuilder.resetDelegate`

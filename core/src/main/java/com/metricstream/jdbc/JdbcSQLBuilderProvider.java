@@ -3,6 +3,7 @@
  */
 package com.metricstream.jdbc;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -313,6 +314,36 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
     public Instant getInstant(SQLBuilder sqlBuilder, Connection connection, String columnName, Instant defaultValue) throws SQLException {
         try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
             return rs.next() ? rs.getObject(columnName, OffsetDateTime.class).toInstant() : defaultValue;
+        }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param connection The Connection from which the PreparedStatement is created
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     */
+    @Override
+    public Timestamp getTimestamp(SQLBuilder sqlBuilder, Connection connection, String columnName, Timestamp defaultValue) throws SQLException {
+        try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getTimestamp(columnName) : defaultValue;
+        }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param connection The Connection from which the PreparedStatement is created
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     */
+    @Override
+    public Timestamp getTimestamp(SQLBuilder sqlBuilder, Connection connection, int columnNumber, Timestamp defaultValue) throws SQLException {
+        try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getTimestamp(columnNumber) : defaultValue;
         }
     }
 

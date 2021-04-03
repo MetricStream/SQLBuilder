@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -30,6 +31,8 @@ public interface SQLBuilderProvider {
     Object getObject(SQLBuilder sqlBuilder, Connection connection, String columnName, Object defaultValue) throws SQLException;
     OffsetDateTime getDateTime(SQLBuilder sqlBuilder, Connection connection, int columnNumber, OffsetDateTime defaultValue) throws SQLException;
     OffsetDateTime getDateTime(SQLBuilder sqlBuilder, Connection connection, String columnName, OffsetDateTime defaultValue) throws SQLException;
+    Timestamp getTimestamp(SQLBuilder sqlBuilder, Connection connection, int columnNumber, Timestamp defaultValue) throws SQLException;
+    Timestamp getTimestamp(SQLBuilder sqlBuilder, Connection connection, String columnName, Timestamp defaultValue) throws SQLException;
     int execute(SQLBuilder sqlBuilder, Connection connection) throws SQLException;
     ResultSet execute(SQLBuilder sqlBuilder, Connection connection, String... keyColumns) throws SQLException;
     <T> List<T> getList(SQLBuilder sqlBuilder, Connection connection, SQLBuilder.RowMapper<T> rowMapper, boolean withNull) throws SQLException;

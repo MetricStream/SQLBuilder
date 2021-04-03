@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -187,6 +188,35 @@ public class MockResultSet {
             wasNull = value == null;
             return value instanceof String ? new BigDecimal((String) value) : value;
         }).when(rs).getBigDecimal(anyInt());
+
+        // mock rs.getTimestamp(columnIndex)
+        doAnswer(invocation -> {
+            final int columnIndex = invocation.getArgumentAt(0, Integer.class);
+            if (generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
+                return new Timestamp(42);
+            }
+            final Object value = data[rowIndex][columnIndex - 1];
+            wasNull = value == null;
+            if (value instanceof Timestamp) return value;
+            if (value instanceof String) return Timestamp.valueOf((String) value);
+            if (value instanceof Long) return new Timestamp((long) value);
+            return value;
+        }).when(rs).getTimestamp(anyInt());
+
+        // mock rs.getTimestamp(columnName)
+        doAnswer(invocation -> {
+            final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
+            final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
+            if (generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
+                return new Timestamp(42);
+            }
+            final Object value = data[rowIndex][columnIndex];
+            wasNull = value == null;
+            if (value instanceof Timestamp) return value;
+            if (value instanceof String) return Timestamp.valueOf((String) value);
+            if (value instanceof Long) return new Timestamp((long) value);
+            return value;
+        }).when(rs).getTimestamp(anyString());
 
         // mock rs.getObject(columnName)
         doAnswer(invocation -> {

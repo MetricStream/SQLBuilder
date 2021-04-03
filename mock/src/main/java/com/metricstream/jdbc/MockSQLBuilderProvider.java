@@ -4,6 +4,7 @@
 package com.metricstream.jdbc;
 
 import java.io.InputStream;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -255,6 +256,18 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
     public Instant getInstant(SQLBuilder sqlBuilder, Connection connection, String columnName, Instant defaultValue) throws SQLException {
         final ResultSet rs = getRs();
         return rs.next() ? rs.getObject(columnName, OffsetDateTime.class).toInstant() : defaultValue;
+    }
+
+    @Override
+    public Timestamp getTimestamp(SQLBuilder sqlBuilder, Connection connection, int columnNumber, Timestamp defaultValue) throws SQLException {
+        final ResultSet rs = getRs();
+        return rs.next() ? rs.getTimestamp(columnNumber) : defaultValue;
+    }
+
+    @Override
+    public Timestamp getTimestamp(SQLBuilder sqlBuilder, Connection connection, String columnName, Timestamp defaultValue) throws SQLException {
+        final ResultSet rs = getRs();
+        return rs.next() ? rs.getTimestamp(columnName) : defaultValue;
     }
 
     @Override
