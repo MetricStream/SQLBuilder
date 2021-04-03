@@ -166,27 +166,56 @@ class SQLBuilderTest {
         SQLBuilder sb12 = new SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t");
         assertEquals("[100000, 100001, 100002, 100003]", sb12.getList(mockConnection, rs -> rs.getLong("USER_ID")).toString());
 
-        assertEquals(42, new SQLBuilder("update foo").execute(mockConnection));
+        final SQLBuilder updateFoo = new SQLBuilder("update foo");
+        assertEquals(42, updateFoo.execute(mockConnection));
 
         MockSQLBuilderProvider.setExecute(1);
-        assertEquals(1, new SQLBuilder("update foo").execute(mockConnection));
-        assertEquals(1, new SQLBuilder("update foo").execute(mockConnection));
-        assertEquals(1, new SQLBuilder("update foo").execute(mockConnection));
-        assertEquals(1, new SQLBuilder("update foo").execute(mockConnection));
+        assertEquals(1, updateFoo.execute(mockConnection));
+        assertEquals(1, updateFoo.execute(mockConnection));
+        assertEquals(1, updateFoo.execute(mockConnection));
+        assertEquals(1, updateFoo.execute(mockConnection));
 
         MockSQLBuilderProvider.setExecute(1, 0, 1);
-        assertEquals(1, new SQLBuilder("update foo").execute(mockConnection));
-        assertEquals(0, new SQLBuilder("update foo").execute(mockConnection));
-        assertEquals(1, new SQLBuilder("update foo").execute(mockConnection));
-        assertEquals(42, new SQLBuilder("update foo").execute(mockConnection));
+        assertEquals(1, updateFoo.execute(mockConnection));
+        assertEquals(0, updateFoo.execute(mockConnection));
+        assertEquals(1, updateFoo.execute(mockConnection));
+        assertEquals(42, updateFoo.execute(mockConnection));
 
         final AtomicInteger count = new AtomicInteger();
         MockSQLBuilderProvider.setExecute(() -> count.getAndIncrement() < 3 ? 1 : 2);
-        assertEquals(1, new SQLBuilder("update foo").execute(mockConnection));
-        assertEquals(1, new SQLBuilder("update foo").execute(mockConnection));
-        assertEquals(1, new SQLBuilder("update foo").execute(mockConnection));
-        assertEquals(2, new SQLBuilder("update foo").execute(mockConnection));
-        assertEquals(2, new SQLBuilder("update foo").execute(mockConnection));
+        assertEquals(1, updateFoo.execute(mockConnection));
+        assertEquals(1, updateFoo.execute(mockConnection));
+        assertEquals(1, updateFoo.execute(mockConnection));
+        assertEquals(2, updateFoo.execute(mockConnection));
+        assertEquals(2, updateFoo.execute(mockConnection));
+    }
+
+    @Test
+    void copyTest1() throws SQLException {
+        // A resultset is consumed by a SQLBuilder `getResultSet` (or higher level callers like `getInt`). Therefore,
+        // adding it once but trying to use it twice will not work.  Instead, the next usage will create a new
+        // default mocked resultset
+        ResultSet rs = MockResultSet.create("copyTest1", "A", "3");
+        MockSQLBuilderProvider.addResultSet(rs);
+        assertEquals(3, sqlBuilder.getInt(mockConnection, 1, -1));
+        assertEquals(42, sqlBuilder.getInt(mockConnection, 1, -1));
+    }
+
+    @Test
+    void copyTest2() throws SQLException {
+        // A resultset has an internal state which keeps track of the consumed rows.  Therefore, adding the same
+        // resultset twice will not produce the same result.
+        ResultSet rs = MockResultSet.create("copyTest2", "A", "3");
+        MockSQLBuilderProvider.addResultSet(rs);
+        assertEquals(3, sqlBuilder.getInt(mockConnection, 1, -1));
+        MockSQLBuilderProvider.addResultSet(rs);
+        assertEquals(-1, sqlBuilder.getInt(mockConnection, 1, -1));
+    }
+
+    @Test
+    void brokenTest() throws SQLException {
+        MockSQLBuilderProvider.addResultSet(MockResultSet.broken("brokenTest"));
+        assertThrows(SQLException.class, () -> new SQLBuilder("select A from T").getInt(mockConnection, 1, -1));
     }
 
     @Test
@@ -322,7 +351,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 2 ints and a null in column 2
         // then expect to get a list with 3 elements in the correct order
-        MockSQLBuilderProvider.addResultSet("", new Object[][] {{"", 3}, {"", null}, {"", 4}});
+        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 3 }, { "", null }, { "", 4 } });
         List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getInt(2));
         assertThat(l.size(), is(3));
         assertThat(l, is(Arrays.asList(3, 0, 4)));
@@ -333,7 +362,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 2 Strings and a null in column 2
         // then expect to get a list with 2 elements in the correct order
-        MockSQLBuilderProvider.addResultSet("", new Object[][] {{"", "first"}, {"", null}, {"", "third"}});
+        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", "first" }, { "", null }, { "", "third" } });
         List<String> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getString(2));
         assertThat(l.size(), is(2));
         assertThat(l, is(Arrays.asList("first", "third")));
@@ -344,7 +373,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 2 Strings and a null in column 2
         // then expect to get a list with 3 elements in the correct order
-        MockSQLBuilderProvider.addResultSet("", new Object[][] {{"", "first"}, {"", null}, {"", "third"}});
+        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", "first" }, { "", null }, { "", "third" } });
         List<String> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getString(2), true);
         assertThat(l.size(), is(3));
         assertThat(l, is(Arrays.asList("first", null, "third")));
@@ -355,7 +384,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 2 ints and a null (converted to 0 by getInt()) in column 2
         // then expect to get a list with 3 elements in the correct order
-        MockSQLBuilderProvider.addResultSet("", new Object[][] {{"", 1}, {"", null}, {"", 3}});
+        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
         List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> { int i = rs.getInt(2); return rs.wasNull() ? -1 : i;});
         assertThat(l.size(), is(3));
         assertThat(l, is(Arrays.asList(1, -1, 3)));
@@ -367,7 +396,7 @@ class SQLBuilderTest {
         // with 2 ints and a null (converted to 0 by getInt()) in column 2
         // then expect to get a list with 2 elements in the correct order.  We must avoid
         // calling `getInt` here because that automatically converts null to 0.
-        MockSQLBuilderProvider.addResultSet("", new Object[][] {{"", 1}, {"", null}, {"", 3}});
+        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
         List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getObject(2))
                 .stream().map(i -> (Integer) i).collect(Collectors.toList());
         assertThat(l.size(), is(2));
@@ -379,7 +408,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 2 ints and a null in column 2
         // then expect to get 3 elements with null mapped to null
-        MockSQLBuilderProvider.addResultSet("", new Object[][] {{"", 1}, {"", null}, {"", 3}});
+        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
         List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getObject(2), true)
                 .stream().map(i -> (Integer) i).collect(Collectors.toList());
         assertThat(l.size(), is(3));
@@ -410,7 +439,7 @@ class SQLBuilderTest {
     void getMap_testNullKey() throws SQLException {
         // when query returns 3 rows with duplicate keys
         // then expect to get an IllegalStateException
-        MockSQLBuilderProvider.addResultSet("", new Object[][]{ { 3, "Three" }, { null, "Zero" } });
+        MockSQLBuilderProvider.addResultSet("", new Object[][] { { 3, "Three" }, { null, "Zero" } });
         // Note: we cannot use `getInt` for the key here because that would automatically convert `null` to `0` and thus not throw the expected exception
         assertThrows(IllegalStateException.class, () -> sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getObject(1), rs.getString(2))));
     }
@@ -420,7 +449,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 3 ints in column 2
         // then expect to get a list with 3 elements in the correct order
-        MockSQLBuilderProvider.addResultSet("", new Object[][] {{"1", 1}, {"2", null}, {"3", 3}});
+        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "1", 1 }, { "2", null }, { "3", 3 } });
         Map<String, Integer> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)));
         // size is 3 and not 2 although 2 is mapped to null because we use getInt which will automatically convert null to 0
         assertThat(m.size(), is(3));
@@ -433,7 +462,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 3 ints in column 2
         // then expect to get a list with 3 elements in the correct order
-        MockSQLBuilderProvider.addResultSet("", new Object[][] {{"1", 1}, {"2", null}, {"3", 3}});
+        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "1", 1 }, { "2", null }, { "3", 3 } });
         Map<String, Integer> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)), false);
         assertThat(m.size(), is(3));
         assertThat(m.keySet(), containsInAnyOrder("1", "2", "3"));
@@ -445,7 +474,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 3 longs in column 1
         // then expect to get the first element
-        MockSQLBuilderProvider.addResultSet("", new Object[][] {{3L}, {1L}, {4L}});
+        MockSQLBuilderProvider.addResultSet("", new Object[][] { { 3L }, { 1L }, { 4L } });
         Optional<Long> l = sqlBuilder.getSingle(mockConnection, (rs) -> rs.getLong(1));
         assertThat(l.isPresent(), is(true));
         assertThat(l.get(), is(3L));
@@ -516,10 +545,10 @@ class SQLBuilderTest {
         // then expect to get a resultset that returns 3 rows in correct order
         MockSQLBuilderProvider.addResultSet("", "_,3\n_,1\n_,4");
         ResultSet rs = sqlBuilder.getResultSet(mockConnection);
-            List<Integer> l = new ArrayList<>();
-            while (rs.next()) {
-                l.add(rs.getInt(2));
-            }
+        List<Integer> l = new ArrayList<>();
+        while (rs.next()) {
+            l.add(rs.getInt(2));
+        }
         assertThat(l.size(), is(3));
         assertThat(l, is(Arrays.asList(3, 1, 4)));
     }
@@ -529,7 +558,7 @@ class SQLBuilderTest {
         // when query returns 1 row
         // with 1 long in column 3
         // then expect to get a resultset that returns 1 row
-        MockSQLBuilderProvider.addResultSet("", new Object[][] {{"", "", 3L}});
+        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", "", 3L } });
         ResultSet rs = sqlBuilder.getResultSet(mockConnection);
         List<Long> l = new ArrayList<>();
         while (rs.next()) {
@@ -705,68 +734,12 @@ class SQLBuilderTest {
     @Test
     void testFromNumberedParams() {
         QueryParams params = new QueryParamsImpl();
-        String query = "select BLUEPRINT_NAME, UPDATED_BY, UPDATION_DATE, METRIC_ID, BLUEPRINT_CODE,DEPLOYMENT_READY as dummy_code from table(ms_apps_utilities.GET_BLUEPRINT_LIST(:1))";
-        SQLBuilder sb = SQLBuilder.fromNumberedParameters(query, params);
-        assertEquals("select BLUEPRINT_NAME, UPDATED_BY, UPDATION_DATE, METRIC_ID, BLUEPRINT_CODE,DEPLOYMENT_READY as dummy_code from table(ms_apps_utilities.GET_BLUEPRINT_LIST(?)); args=[a]", sb.toString());
-
-        query = "select DISPLAY_NAME, MODULE, UPDATED_BY, UPDATION_DATE, METRIC_ID, DB_TABLE_NAME from table(ms_apps_utilities.GET_DATA_OBJECT_LIST(:1, :2))";
-        sb = SQLBuilder.fromNumberedParameters(query, params);
-        assertEquals("select DISPLAY_NAME, MODULE, UPDATED_BY, UPDATION_DATE, METRIC_ID, DB_TABLE_NAME from table(ms_apps_utilities.GET_DATA_OBJECT_LIST(?, ?)); args=[a, b]", sb.toString());
-
-        query = "select DISPLAY_NAME, MODULE, UPDATED_BY, UPDATION_DATE, METRIC_ID, DB_TABLE_NAME from table(ms_apps_utilities.GET_DATA_OBJECT_LIST(:2, :1, :2))";
-        sb = SQLBuilder.fromNumberedParameters(query, params);
-        assertEquals("select DISPLAY_NAME, MODULE, UPDATED_BY, UPDATION_DATE, METRIC_ID, DB_TABLE_NAME from table(ms_apps_utilities.GET_DATA_OBJECT_LIST(?, ?, ?)); args=[b, a, b]", sb.toString());
-
-        query = "SELECT VE_TITLE, VE_MODULE, UPDATED_BY, UPDATION_DATE, METRIC_ID,VE_PUSHFORM_NAME, VE_DEPLOYED FROM TABLE(MS_APPS_UTILITIES.GET_FORM_LIST(:1, :2))";
-        sb = SQLBuilder.fromNumberedParameters(query, params);
-        assertEquals("SELECT VE_TITLE, VE_MODULE, UPDATED_BY, UPDATION_DATE, METRIC_ID,VE_PUSHFORM_NAME, VE_DEPLOYED FROM TABLE(MS_APPS_UTILITIES.GET_FORM_LIST(?, ?)); args=[a, b]", sb.toString());
-
-        query = "select count(1) from MS_APPS_MAM_SETUP where upper(profile_name) = upper(:1)";
-        sb = SQLBuilder.fromNumberedParameters(query, params);
-        assertEquals("select count(1) from MS_APPS_MAM_SETUP where upper(profile_name) = upper(?); args=[a]", sb.toString());
-
-        query = "select count(1), 'sdsd :3 ds' as dummy from MS_APPS_MAM_SETUP where upper(profile_name) = upper(:1) and dummy is not like 'jsjs :2 '";
-        sb = SQLBuilder.fromNumberedParameters(query, params);
-        assertEquals("select count(1), 'sdsd :3 ds' as dummy from MS_APPS_MAM_SETUP where upper(profile_name) = upper(?) and dummy is not like 'jsjs :2 '; args=[a]", sb.toString());
-
-        query = "select result_column_name||' ('||user_column_name||')' as display_column, column_name,result_column_name,user_column_name from si_metric_columns where metric_id = (select metric_id from si_metrics_t where metric_name = :1) and column_type = 1 order by result_column_name";
-        sb = SQLBuilder.fromNumberedParameters(query, params);
-        assertEquals("select result_column_name||' ('||user_column_name||')' as display_column, column_name,result_column_name,user_column_name from si_metric_columns where metric_id = (select metric_id from si_metrics_t where metric_name = ?) and column_type = 1 order by result_column_name; args=[a]", sb.toString());
-
-        query = "select (select ms_apps_utilities.GET_USER_FULL_NAME(column_value) from dual) as user_fullname, (select ms_apps_utilities.GET_USER_ID(column_value) from dual) as user_id, column_value as user_name from table(ms_apps_mam_engine_pkg.GET_new_USERS(:1,:2, :3)) t1";
-        sb = SQLBuilder.fromNumberedParameters(query, params);
-        assertEquals("select (select ms_apps_utilities.GET_USER_FULL_NAME(column_value) from dual) as user_fullname, (select ms_apps_utilities.GET_USER_ID(column_value) from dual) as user_id, column_value as user_name from table(ms_apps_mam_engine_pkg.GET_new_USERS(?,?, ?)) t1; args=[a, b, c]", sb.toString());
-
-        query = "SELECT a.installation_end_date as installedOn, decode(module_name, 'EGRCP', 'Platform', 'AppStudio','Platform', 'SMC', 'Platform', decode(a.parent_artifact, '0', 'App', 'Module')) as package_type, decode(a.ARTIFACT_TITLE,NULL, a.ARTIFACT_NAME,'null', a.ARTIFACT_NAME,a.ARTIFACT_TITLE) package_TITLE, a.VERSION, decode(a.EDITION, '', 'NA', a.EDITION) as edition, SMC_CONCAT(a.parent_artifact) as installedAsPartOf, a.type as installationType FROM SI_VERSION_INFO a where MODULE_NAME NOT IN (:1) AND (SHOW_ON_ABOUT_PAGE IS NULL OR SHOW_ON_ABOUT_PAGE != 'False' ) AND trunc(a.installation_end_date) >= trunc(:2) and trunc(a.installation_end_date) <= trunc(:3) order by a.installation_end_date desc";
-        sb = SQLBuilder.fromNumberedParameters(query, params);
-        assertEquals("SELECT a.installation_end_date as installedOn, decode(module_name, 'EGRCP', 'Platform', 'AppStudio','Platform', 'SMC', 'Platform', decode(a.parent_artifact, '0', 'App', 'Module')) as package_type, decode(a.ARTIFACT_TITLE,NULL, a.ARTIFACT_NAME,'null', a.ARTIFACT_NAME,a.ARTIFACT_TITLE) package_TITLE, a.VERSION, decode(a.EDITION, '', 'NA', a.EDITION) as edition, SMC_CONCAT(a.parent_artifact) as installedAsPartOf, a.type as installationType FROM SI_VERSION_INFO a where MODULE_NAME NOT IN (?) AND (SHOW_ON_ABOUT_PAGE IS NULL OR SHOW_ON_ABOUT_PAGE != 'False' ) AND trunc(a.installation_end_date) >= trunc(?) and trunc(a.installation_end_date) <= trunc(?) order by a.installation_end_date desc; args=[[a, a, a, a], b, c]", sb.toString());
-
-        query = "SELECT DISTINCT m.metric_title, M.METRIC_NAME, lookupmode.meaning run_mode,pack.package_title,m.package_id, M.METRIC_ID, Round((MAX(TO_CHAR(RS.RESULT_STORED, 'SSSSS.FF') - TO_CHAR(RS.REQUEST_TO_RUN, 'SSSSS.FF'))),2) MAX_RUN_TIME, Round((AVG(TO_CHAR(RS.RESULT_STORED, 'SSSSS.FF') - TO_CHAR(RS.REQUEST_TO_RUN, 'SSSSS.FF'))),2) AVG_RUN_TIME, COUNT(RS.INFOLET_ID) NO_OF_RUNS, MAX(RS.NUM_RECORDS) MAX_NUM_REC_FETCHED,Round((AVG(RS.NUM_RECORDS)),2) AVG_NUM_REC_FETCHED, INF_STAT.REQUEST_TO_RUN, DECODE(INF_STAT.SUCCESS_CODE, 0, 'Successful Run', -1,'Error Run', -2,'In Progress', -3, 'Skipped - No Data Change') RUN_STATUS, INF_STAT.NUM_RECORDS,RS.NODE_ID, :1 as numpastdays FROM SI_INFOLET_RUN_STATISTICS RS, SI_METRICS_T M, (SELECT MAX(INFOLET_RUN_ID) OVER (PARTITION BY INFOLET_ID ORDER BY REQUEST_TO_RUN DESC) AS MX_INFO_RUN_ID, INFOLET_ID,REQUEST_TO_RUN,RESULT_STORED, NUM_RECORDS, SUCCESS_CODE, INFOLET_RUN_ID AS INFO_RUN_ID FROM SI_INFOLET_RUN_STATISTICS) INF_STAT, si_register_application pack, si_lookups_t lookupmode WHERE INF_STAT.INFO_RUN_ID=INF_STAT.MX_INFO_RUN_ID AND RS.REQUEST_TO_RUN > sysdate - :1 and RS.INFOLET_ID = M.METRIC_ID AND RS.INFOLET_ID = INF_STAT.INFOLET_ID and M.METRIC_RUN_MODE in( :2) AND m.package_id = pack.module_id AND m.metric_run_mode = lookupmode.lookup_code AND lookupmode.lookup_type ='METRIC_RUN_MODE' GROUP BY RS.INFOLET_ID, M.METRIC_NAME, M.METRIC_ID, INF_STAT.REQUEST_TO_RUN, INF_STAT.SUCCESS_CODE,INF_STAT.NUM_RECORDS, RS.NODE_ID,m.metric_title,pack.package_title,m.package_id,lookupmode.meaning ORDER BY INF_STAT.REQUEST_TO_RUN DESC";
-        sb = SQLBuilder.fromNumberedParameters(query, params);
-        assertEquals("SELECT DISTINCT m.metric_title, M.METRIC_NAME, lookupmode.meaning run_mode,pack.package_title,m.package_id, M.METRIC_ID, Round((MAX(TO_CHAR(RS.RESULT_STORED, 'SSSSS.FF') - TO_CHAR(RS.REQUEST_TO_RUN, 'SSSSS.FF'))),2) MAX_RUN_TIME, Round((AVG(TO_CHAR(RS.RESULT_STORED, 'SSSSS.FF') - TO_CHAR(RS.REQUEST_TO_RUN, 'SSSSS.FF'))),2) AVG_RUN_TIME, COUNT(RS.INFOLET_ID) NO_OF_RUNS, MAX(RS.NUM_RECORDS) MAX_NUM_REC_FETCHED,Round((AVG(RS.NUM_RECORDS)),2) AVG_NUM_REC_FETCHED, INF_STAT.REQUEST_TO_RUN, DECODE(INF_STAT.SUCCESS_CODE, 0, 'Successful Run', -1,'Error Run', -2,'In Progress', -3, 'Skipped - No Data Change') RUN_STATUS, INF_STAT.NUM_RECORDS,RS.NODE_ID, ? as numpastdays FROM SI_INFOLET_RUN_STATISTICS RS, SI_METRICS_T M, (SELECT MAX(INFOLET_RUN_ID) OVER (PARTITION BY INFOLET_ID ORDER BY REQUEST_TO_RUN DESC) AS MX_INFO_RUN_ID, INFOLET_ID,REQUEST_TO_RUN,RESULT_STORED, NUM_RECORDS, SUCCESS_CODE, INFOLET_RUN_ID AS INFO_RUN_ID FROM SI_INFOLET_RUN_STATISTICS) INF_STAT, si_register_application pack, si_lookups_t lookupmode WHERE INF_STAT.INFO_RUN_ID=INF_STAT.MX_INFO_RUN_ID AND RS.REQUEST_TO_RUN > sysdate - ? and RS.INFOLET_ID = M.METRIC_ID AND RS.INFOLET_ID = INF_STAT.INFOLET_ID and M.METRIC_RUN_MODE in( ?) AND m.package_id = pack.module_id AND m.metric_run_mode = lookupmode.lookup_code AND lookupmode.lookup_type ='METRIC_RUN_MODE' GROUP BY RS.INFOLET_ID, M.METRIC_NAME, M.METRIC_ID, INF_STAT.REQUEST_TO_RUN, INF_STAT.SUCCESS_CODE,INF_STAT.NUM_RECORDS, RS.NODE_ID,m.metric_title,pack.package_title,m.package_id,lookupmode.meaning ORDER BY INF_STAT.REQUEST_TO_RUN DESC; args=[a, a, [b, b, b, b]]", sb.toString());
-
-        query = "SELECT col1, col2 from tab1 where col3 in (:1, :2)";
-        sb = SQLBuilder.fromNumberedParameters(query, params);
-        assertEquals("SELECT col1, col2 from tab1 where col3 in (?, ?); args=[[a, a, a, a], b]", sb.toString());
-
-        query = "SELECT col1, col2 from tab1 where col3 in (1, :2)";
-        sb = SQLBuilder.fromNumberedParameters(query, params);
-        assertEquals("SELECT col1, col2 from tab1 where col3 in (1, ?); args=[b]", sb.toString());
-
-        query = "SELECT col1, col2 from tab1 where col3 is not null";
-        sb = SQLBuilder.fromNumberedParameters(query, params);
-        assertEquals("SELECT col1, col2 from tab1 where col3 is not null; args=[]", sb.toString());
-
-        query = "select A.CONTACT_NAME AS CONTACT_NAME, A.CONTACT_ID AS CONTACT_ID, A.REGULATOR AS REGULATOR from MS_REN_REGULATORY_CONTACT_DAT a, SI_LOCALES B, SI_USERS_T C\r\n"
-                + "where a.LOCALE_ID = B.LOCALE_ID\r\n" + "and B.LOCALE_STRING = C.LOCALE\r\n"
-                + "and C.USER_NAME =:1\r\n" + "and contact_id<>1\r\n" + "and a.regulator_id in (:2)";
-        sb = SQLBuilder.fromNumberedParameters(query, params);
-        assertEquals(
-                "select A.CONTACT_NAME AS CONTACT_NAME, A.CONTACT_ID AS CONTACT_ID, A.REGULATOR AS REGULATOR from MS_REN_REGULATORY_CONTACT_DAT a, SI_LOCALES B, SI_USERS_T C\r\n"
-                        + "where a.LOCALE_ID = B.LOCALE_ID\r\n" + "and B.LOCALE_STRING = C.LOCALE\r\n"
-                        + "and C.USER_NAME =?\r\n" + "and contact_id<>1\r\n"
-                        + "and a.regulator_id in (?); args=[a, [b, b, b, b]]",
-                sb.toString());
+        assertEquals("select n from t where i=?); args=[a]", SQLBuilder.fromNumberedParameters("select n from t where i=:1)", params).toString());
+        assertEquals("select n from t where i=? or i=?); args=[a, b]", SQLBuilder.fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString());
+        assertEquals("select n from t where i=? or i=?); args=[b, a]", SQLBuilder.fromNumberedParameters("select n from t where i=:2 or i=:1)", params).toString());
+        assertEquals("select n from t where i=? or k=?); args=[b, b]", SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString());
+        assertEquals("select n from t where i=? or k=':4'); args=[b]", SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString());
+        assertEquals("select n from t where i=? or k=':2'); args=[b]", SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString());
     }
 
     @Test
@@ -829,14 +802,14 @@ class SQLBuilderTest {
     static class QueryParamsImpl implements QueryParams {
 
         // some arbitrary param values for testing
-        final String[] values = {"a", "b", "c"};
+        final String[] values = { "a", "b", "c" };
         final List<String> names = IntStream.rangeClosed(1, values.length)
                 .mapToObj(String::valueOf)
                 .collect(Collectors.toList());
 
         @Override
         public Object getParameterValue(String name) {
-            return getParameterValue(name, false );
+            return getParameterValue(name, false);
         }
 
         @Override
