@@ -1,4 +1,4 @@
-[![MetricStream](MetricStream.png)][MetricStream]
+[![MetricStream](MetricStream_Logo.png)][MetricStream]
 
 # Preface #
 

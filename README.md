@@ -1,4 +1,4 @@
-[![MetricStream](docs/MetricStream.png)][MetricStream]
+[![MetricStream](docs/MetricStream_Logo.png)][MetricStream]
 
 SQLBuilder is a Java library which aims to be a better PreparedStatement. It was developed internally at MetricStream
 and is in active use and maintained by MetricStream. We use lots of wonderful open source code in our projects and open
