@@ -299,10 +299,12 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
                     StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                     for (StackTraceElement stackTraceElement : stackTrace) {
                         final String declaringClass = stackTraceElement.getClassName();
+                        final String methodName = stackTraceElement.getMethodName();
                         if (!declaringClass.equals("java.lang.Thread")
                                 && !declaringClass.equals("com.metricstream.jdbc.MockSQLBuilderProvider")
-                                && !declaringClass.equals("com.metricstream.jdbc.SQLBuilder")) {
-                            final String methodName = stackTraceElement.getMethodName();
+                                && !declaringClass.equals("com.metricstream.jdbc.SQLBuilder")
+                                && !declaringClass.startsWith("org.junit.")
+                                && !methodName.startsWith("lambda$")) {
                             if (!methodName.equals(tag.split(":")[0])) {
                                 throw new IllegalStateException("Trying to use " + tag + " for method " + methodName);
                             }
@@ -312,7 +314,7 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
                 }
             }
         } else if (generateSingleRowResultSet) {
-           rs = MockResultSet.create("", "42", false, true);
+            rs = MockResultSet.create("", "42", false, true);
         } else {
             rs = MockResultSet.empty("");
         }
