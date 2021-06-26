@@ -530,6 +530,8 @@ following steps (all examples are given for [Junit5], adapt for your test framew
 
 # Release Notes #
 
+- Version 3.0.1, released 2021-06-26
+  - switched to Gradle 7.1
 - Version 3.0.0, released 2021-06-26
   - switched to Mockito 3
   - upgraded external dependencies

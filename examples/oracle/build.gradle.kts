@@ -16,5 +16,5 @@ dependencies {
 }
 
 application {
-    mainClassName = "oracle.App"
+    mainClass.set("oracle.App")
 }

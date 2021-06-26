@@ -6,9 +6,9 @@ sourcing this library is an attempt to give a tiny bit back to the community. Ho
 Feedback of any kind is definitely appreciated!
 
 The [MavenCentral] coordinates are
-[com.metricstream.jdbc:sqlbuilder-core:3.0.0](https://search.maven.org/artifact/com.metricstream.jdbc/sqlbuilder-core/2.2.0/jar)
+[com.metricstream.jdbc:sqlbuilder-core:3.0.1](https://search.maven.org/artifact/com.metricstream.jdbc/sqlbuilder-core/2.2.0/jar)
 for production usage and
-[com.metricstream.jdbc:sqlbuilder-mock:3.0.0](https://search.maven.org/artifact/com.metricstream.jdbc/sqlbuilder-mock/2.2.0/jar)
+[com.metricstream.jdbc:sqlbuilder-mock:3.0.1](https://search.maven.org/artifact/com.metricstream.jdbc/sqlbuilder-mock/2.2.0/jar)
 for unit testing.
 
 Note: sqlbuilder-mock depends on Mockito 3. If your project is still using Mockito 1.x, use version `2.2.0` of

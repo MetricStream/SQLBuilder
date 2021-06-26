@@ -15,5 +15,5 @@ dependencies {
 }
 
 application {
-    mainClassName = "postgres.App"
+    mainClass.set("postgres.App")
 }
