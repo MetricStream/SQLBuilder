@@ -5,6 +5,7 @@ package com.metricstream.jdbc;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -33,6 +34,8 @@ public interface SQLBuilderProvider {
     OffsetDateTime getDateTime(SQLBuilder sqlBuilder, Connection connection, String columnName, OffsetDateTime defaultValue) throws SQLException;
     Timestamp getTimestamp(SQLBuilder sqlBuilder, Connection connection, int columnNumber, Timestamp defaultValue) throws SQLException;
     Timestamp getTimestamp(SQLBuilder sqlBuilder, Connection connection, String columnName, Timestamp defaultValue) throws SQLException;
+    Date getDate(SQLBuilder sqlBuilder, Connection connection, int columnNumber, Date defaultValue) throws SQLException;
+    Date getDate(SQLBuilder sqlBuilder, Connection connection, String columnName, Date defaultValue) throws SQLException;
     int execute(SQLBuilder sqlBuilder, Connection connection) throws SQLException;
     ResultSet execute(SQLBuilder sqlBuilder, Connection connection, String... keyColumns) throws SQLException;
     <T> List<T> getList(SQLBuilder sqlBuilder, Connection connection, SQLBuilder.RowMapper<T> rowMapper, boolean withNull) throws SQLException;

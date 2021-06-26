@@ -13,14 +13,15 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.metricstream.jdbc.MockSQLBuilderProvider;
-import com.metricstream.jdbc.SQLBuilder;
 
 
+@ExtendWith(MockitoExtension.class)
 class AppTest {
 
     @InjectMocks
@@ -32,21 +33,20 @@ class AppTest {
 
 
     @BeforeAll static void beforeAll() {
-        SQLBuilder.setDelegate(new MockSQLBuilderProvider());
+        MockSQLBuilderProvider.enable();
     }
 
     @AfterAll
     static void afterAll() {
-        SQLBuilder.resetDelegate();
+        MockSQLBuilderProvider.disable();
     }
 
     @BeforeEach void beforeEach() {
         MockSQLBuilderProvider.reset();
-        MockitoAnnotations.initMocks(this);
     }
 
     @Test void isAnneInvited() throws SQLException {
-        MockSQLBuilderProvider.addResultSet("person", "firstname,age,sex", "Anne,33,F");
+        MockSQLBuilderProvider.addResultSet("invite", "firstname,age,sex", "Anne,33,F");
         List<String> actual = classUnderTest.invite(30, true);
         assertTrue(actual.contains("Anne"));
     }

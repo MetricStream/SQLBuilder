@@ -18,6 +18,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Date;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -47,12 +48,12 @@ class SQLBuilderTest {
 
     @BeforeAll
     static void beforeAll() {
-        SQLBuilder.setDelegate(new MockSQLBuilderProvider(true, true));
+        MockSQLBuilderProvider.enable();
     }
 
     @AfterAll
     static void afterAll() {
-        SQLBuilder.resetDelegate();
+        MockSQLBuilderProvider.disable();
     }
 
     @AfterEach
@@ -191,6 +192,11 @@ class SQLBuilderTest {
             }
             assertEquals(ts, ts15);
         }
+
+        Date date = new Date(Instant.now().toEpochMilli());
+        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb16", new Object[][] { { date } }));
+        SQLBuilder sb16 = new SQLBuilder("select value from lookup where key = ?", 42);
+        assertEquals(date, sb16.getDate(mockConnection, 1, null));
 
         final SQLBuilder updateFoo = new SQLBuilder("update foo");
         assertEquals(42, updateFoo.execute(mockConnection));

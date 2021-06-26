@@ -495,7 +495,7 @@ following steps (all examples are given for [Junit5], adapt for your test framew
    ```java
     @BeforeAll
     static void beforeAll() {
-        SQLBuilder.setDelegate(new MockSQLBuilderProvider(true, true));
+        MockSQLBuilderProvider.enable();
     }
    ```
 
@@ -504,7 +504,7 @@ following steps (all examples are given for [Junit5], adapt for your test framew
    ```java
     @AfterAll
     static void afterAll() {
-        SQLBuilder.resetDelegate();
+        MockSQLBuilderProvider.disable();
     }
    ```
 
@@ -529,6 +529,16 @@ following steps (all examples are given for [Junit5], adapt for your test framew
      `when(rs.getLong("ID")).thenReturn(1L);`
 
 # Release Notes #
+
+- Version 3.0.0, released 2021-06-26
+  - switched to Mockito 3
+  - upgraded external dependencies
+    - `org.junit.jupiter:junit-jupiter-api` from `5.7.1` to `5.7.2`
+    - `org.junit.jupiter:junit-jupiter-engine` from `5.7.1` to `5.7.2`
+    - `org.mockito:mockito-core` from `1.10.19` to `3.11.2`
+    - `org.slf4j:slf4j-api` from `1.7.30` to `1.7.31`
+  - added `SQLBuilder.getDate` and mocking support for `ResultSet.getDate`
+  - added `MockSQLBuilderProvider.enable` and `MockSQLBuilderProvider.disable`
 
 - Version 2.2.0, released 2021-04-03
   - added `SQLBuilder.getTimestamp` and mocking support for `ResultSet.getTimestamp`

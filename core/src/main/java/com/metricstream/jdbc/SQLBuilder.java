@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.sql.Date;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -197,7 +198,7 @@ public class SQLBuilder {
      * @return the SQLBuilder object
      */
     public SQLBuilder applyBindings() {
-        interpolate(true);
+        interpolate(true, true);
         return this;
     }
 
@@ -270,7 +271,7 @@ public class SQLBuilder {
         }
     }
 
-    protected String interpolate(boolean apply) {
+    protected String interpolate(boolean apply, boolean withArgs) {
         final Map<String, String> quoted = new HashMap<>(names.size());
         final StringJoiner regexp = new StringJoiner("|", "[:$]\\{(", ")\\}");
 
@@ -304,7 +305,10 @@ public class SQLBuilder {
         }
 
         if (!apply) {
-            return sb.append("; args=").append(arguments).toString();
+            if (withArgs) {
+                sb.append("; args=").append(arguments);
+            }
+            return sb.toString();
         }
 
         names.clear();
@@ -564,6 +568,32 @@ public class SQLBuilder {
     public Timestamp getTimestamp(Connection connection, int columnNumber, Timestamp defaultValue) throws SQLException {
         logger.debug("{}", this);
         return delegate.getTimestamp(this, connection, columnNumber, defaultValue);
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    public Date getDate(Connection connection, String columnName, Date defaultValue) throws SQLException {
+        logger.debug("{}", this);
+        return delegate.getDate(this, connection, columnName, defaultValue);
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    public Date getDate(Connection connection, int columnNumber, Date defaultValue) throws SQLException {
+        logger.debug("{}", this);
+        return delegate.getDate(this, connection, columnNumber, defaultValue);
     }
 
     /**
@@ -892,6 +922,15 @@ public class SQLBuilder {
      */
     @Override
     public String toString() {
-        return interpolate(false);
+        return interpolate(false, true);
+    }
+
+    /**
+     * Returns a String representation. This will contain
+     * only the SQL statement fragment and not the parameters.
+     * @return A String representation
+     */
+    public String toSQL() {
+        return interpolate(false, false);
     }
 }

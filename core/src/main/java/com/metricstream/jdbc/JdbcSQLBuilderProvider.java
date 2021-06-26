@@ -3,6 +3,7 @@
  */
 package com.metricstream.jdbc;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -59,7 +60,7 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
             }
         }
 
-        sqlBuilder.interpolate(true);
+        sqlBuilder.interpolate(true, true);
         final PreparedStatement ps;
         if (columns == null || columns.length == 0) {
             ps = connection.prepareStatement(sqlBuilder.statement.toString(), sqlBuilder.resultSetType, ResultSet.CONCUR_READ_ONLY);
@@ -344,6 +345,36 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
     public Timestamp getTimestamp(SQLBuilder sqlBuilder, Connection connection, int columnNumber, Timestamp defaultValue) throws SQLException {
         try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
             return rs.next() ? rs.getTimestamp(columnNumber) : defaultValue;
+        }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param connection The Connection from which the PreparedStatement is created
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     */
+    @Override
+    public Date getDate(SQLBuilder sqlBuilder, Connection connection, String columnName, Date defaultValue) throws SQLException {
+        try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getDate(columnName) : defaultValue;
+        }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param connection The Connection from which the PreparedStatement is created
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     */
+    @Override
+    public Date getDate(SQLBuilder sqlBuilder, Connection connection, int columnNumber, Date defaultValue) throws SQLException {
+        try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getDate(columnNumber) : defaultValue;
         }
     }
 

@@ -4,6 +4,11 @@
 package com.metricstream.jdbc;
 
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -15,12 +20,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
-
-import java.math.BigDecimal;
-
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -58,6 +57,14 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
         this.generateSingleRowResultSet = generateSingleRowResultSet;
         this.enforceTags = enforceTags;
         reset();
+    }
+
+    public static void enable() {
+        SQLBuilder.setDelegate(new MockSQLBuilderProvider(true, true));
+    }
+
+    public static void disable() {
+        SQLBuilder.resetDelegate();
     }
 
     public static void addResultSet(ResultSet rs) {
@@ -139,6 +146,25 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
     public static void setExecute(int... values) {
         final AtomicInteger count = new AtomicInteger();
         executeSupplier = () -> count.get() < values.length ? values[count.getAndIncrement()] : 42;
+    }
+
+    public static void reset() {
+        if (!mockResultSets.isEmpty()) {
+            logger.warn("Unused mock ResultSet objects: {}", mockResultSets.stream().map(ResultSet::toString)
+                    .collect(Collectors.toList()));
+            mockResultSets.clear();
+        }
+        intByColumnIndex = null;
+        intByColumnLabel = null;
+        longByColumnIndex = null;
+        longByColumnLabel = null;
+        stringByColumnIndex = null;
+        stringByColumnLabel = null;
+        bigDecimalByColumnIndex = null;
+        bigDecimalByColumnLabel = null;
+        objectByColumnIndex = null;
+        objectByColumnLabel = null;
+        setExecute(42);
     }
 
     public ResultSet getResultSet(SQLBuilder sqlBuilder, Connection connection, boolean wrapConnection) throws SQLException {
@@ -271,6 +297,18 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
     }
 
     @Override
+    public Date getDate(SQLBuilder sqlBuilder, Connection connection, int columnNumber, Date defaultValue) throws SQLException {
+        final ResultSet rs = getRs();
+        return rs.next() ? rs.getDate(columnNumber) : defaultValue;
+    }
+
+    @Override
+    public Date getDate(SQLBuilder sqlBuilder, Connection connection, String columnName, Date defaultValue) throws SQLException {
+        final ResultSet rs = getRs();
+        return rs.next() ? rs.getDate(columnName) : defaultValue;
+    }
+
+    @Override
     public int execute(SQLBuilder sqlBuilder, Connection connection) {
         return executeSupplier.get();
     }
@@ -286,8 +324,10 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
     }
 
     @Override
-    public <K, V> Map<K, V> getMap(SQLBuilder sqlBuilder, Connection connection,
-            SQLBuilder.RowMapper<Map.Entry<K, V>> rowMapper, boolean withNull) throws SQLException {
+    public <K, V> Map<K, V> getMap(
+            SQLBuilder sqlBuilder, Connection connection,
+            SQLBuilder.RowMapper<Map.Entry<K, V>> rowMapper, boolean withNull
+    ) throws SQLException {
         return getMap(getRs(), rowMapper, withNull);
     }
 
@@ -333,24 +373,6 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
         }
         logger.debug("Using mock ResultSet {}", rs);
         return rs;
-    }
-
-    public static void reset() {
-        if (!mockResultSets.isEmpty()) {
-            logger.warn("Unused mock ResultSet objects: {}", mockResultSets.stream().map(ResultSet::toString).collect(Collectors.toList()));
-            mockResultSets.clear();
-        }
-        intByColumnIndex = null;
-        intByColumnLabel = null;
-        longByColumnIndex = null;
-        longByColumnLabel = null;
-        stringByColumnIndex = null;
-        stringByColumnLabel = null;
-        bigDecimalByColumnIndex = null;
-        bigDecimalByColumnLabel = null;
-        objectByColumnIndex = null;
-        objectByColumnLabel = null;
-        setExecute(42);
     }
 
 }

@@ -1,7 +1,7 @@
 package oracle;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
 
 import java.sql.Connection;
@@ -14,14 +14,18 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.metricstream.jdbc.MockResultSet;
 import com.metricstream.jdbc.MockSQLBuilderProvider;
 import com.metricstream.jdbc.SQLBuilder;
 
-
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TestTimestampTest {
 
     @Mock
@@ -33,19 +37,18 @@ class TestTimestampTest {
 
     @BeforeAll
     public static void beforeAll() {
-        SQLBuilder.setDelegate(new MockSQLBuilderProvider(true, true));
+        MockSQLBuilderProvider.enable();
     }
 
     @AfterAll
 
     static void afterAll() {
-        SQLBuilder.resetDelegate();
+        MockSQLBuilderProvider.disable();
     }
 
     @BeforeEach
     public void beforeEach() throws SQLException {
         MockSQLBuilderProvider.reset();
-        MockitoAnnotations.initMocks(this);
         rs = MockResultSet.create("getTimestamp", data);
     }
 
