@@ -1,14 +1,21 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     base
     `java-library`
     `maven-publish`
     signing
+    kotlin("jvm") version "1.5.21"
 }
 
 // These are credentials required for the task `uploadArchives`. They are read either from gradle.properties or from the command
 // line using -PsonatypeUsername=abc
 val sonatypeUsername: String by project
 val sonatypePassword: String by project
+
+repositories {
+    mavenCentral()
+}
 
 subprojects {
     apply(plugin = "maven-publish")
@@ -20,6 +27,10 @@ subprojects {
 
     repositories {
         mavenCentral()
+    }
+
+    tasks.withType<KotlinCompile> {
+        kotlinOptions.jvmTarget = "1.8"
     }
 
     tasks.withType<AbstractArchiveTask> {
