@@ -54,3 +54,32 @@ MockResultSetBuilder.add(MockResultSet.create("stats:count", "3"));
 MockResultSetBuilder.add(MockExecute.create("stats:update", 1));
 MockResultSetBuilder.add(MockResultSet.create("stats:total", "6"));
 ```
+
+# Batch Execution
+
+Batch execution is one of the last hold-outs of PreparedStatement, because SQLBuilder right now does not handle this efficiently.  While we could convert a batch update into a loop recreating SQLBuilder in every iteration, that would clearly defeat the purpose.
+
+One idea to solve this is to mark some values as "batchable". Perhaps something like
+
+```kotlin
+data class BatchItem(val id: String, var value: Any?)
+
+val sb = SQLBuilder("insert into foo (a, b, c) values (?,?,?)", va, BatchItem("b", vb[0]), BatchItem("c", vc)).addBatch()
+// sb.addBatch() The first one would be done implicitly?!?
+for (i in 1..num) {
+	sb.set("b", vb[i]).set("c", vc + 1).addBatch()
+}
+sb.executeBatch()
+
+```
+
+# SQL Validators
+
+One big downside of mocking database operations is that this normally will not detect errors in the SQL statements:
+
+- mis-spelled keywords or missing whitespace: "SELET a FROM foo" or "SELECT a FROMfoo" or "SELECT a FROM foo WHERE b - ?"
+- mis-spelled table or column names
+- wrong column types
+- ...
+
+We could use existing validators (e.g. ANTR-build Oracle SQL parser) to cover some of these areas.

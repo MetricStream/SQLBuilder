@@ -529,7 +529,10 @@ following steps (all examples are given for [Junit5], adapt for your test framew
      `when(rs.getLong("ID")).thenReturn(1L);`
 
 # Release Notes #
-
+- Version 3.0.2, released 2021-08-18
+  - switched implementation language from Java to Kotlin
+  - uses Kotest assertions for Kotlin tests
+  - uses AssertJ assertions for Java tests
 - Version 3.0.1, released 2021-06-26
   - switched to Gradle 7.1
 - Version 3.0.0, released 2021-06-26
