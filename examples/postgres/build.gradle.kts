@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     implementation(project(":core"))
-    implementation("org.postgresql:postgresql:42.2.19")
+    implementation("org.postgresql:postgresql:42.2.23")
 
     testImplementation(project(":mock"))
     testImplementation("org.mockito:mockito-core:3.11.2")
