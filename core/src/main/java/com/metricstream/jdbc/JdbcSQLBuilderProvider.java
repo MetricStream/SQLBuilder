@@ -372,7 +372,7 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
     public ResultSet execute(SQLBuilder sqlBuilder, Connection connection, String... keyColumns) throws SQLException {
         PreparedStatement ps = build(sqlBuilder, connection, keyColumns);
         ps.executeUpdate();
-        return ps.getGeneratedKeys();
+        return SQLBuilder.wrapStatement(ps.getGeneratedKeys());
     }
 
     @Override
