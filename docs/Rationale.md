@@ -530,6 +530,17 @@ following steps (all examples are given for [Junit5], adapt for your test framew
 
 # Release Notes #
 
+- Version 2.3.0, released 2021-08-06
+  - added missing ResultSet wrapping in `JdbcSQLBuilderProvider#execute(SQLBuilder, Connection, String...)`
+  - upgraded external dependencies
+    - `gradle` from `6.8.3` to `7.1.1`
+    - `com.opencsv:opencsv` from `5.4` to `5.5.1`
+    - `org.postgresql:postgresql` from `42.2.19` to `42.2.23`
+    - `org.slf4j:slf4j-api` from `1.7.30` to `1.7.32`
+    - `ch.qos.logback:logback-classic` from `1.2.3` to `1.2.5`
+    - `org.junit.jupiter:junit-jupiter-api` from `5.7.1` to `5.7.2`
+    - `org.junit.jupiter:junit-jupiter-engine` from  `5.7.1` to `5.7.2`
+
 - Version 2.2.0, released 2021-04-03
   - added `SQLBuilder.getTimestamp` and mocking support for `ResultSet.getTimestamp`
 
