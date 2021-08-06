@@ -26,21 +26,22 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.lang.IllegalArgumentException
-import org.hamcrest.MatcherAssert
-import org.hamcrest.CoreMatchers
-import java.util.stream.Collectors
 import java.lang.IllegalStateException
 import java.sql.Connection
 import java.sql.Date
 import java.sql.Timestamp
 import java.time.Clock
 import java.util.Arrays
-import java.util.stream.IntStream
-import org.hamcrest.Matchers
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.optional.shouldBePresent
+import io.kotest.matchers.optional.shouldNotBePresent
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import org.mockito.Mockito
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.TestInstance
 
 @ExperimentalStdlibApi
@@ -70,8 +71,7 @@ internal class SQLBuilderTest {
     fun testMock() {
         val mrs: ResultSet = create("testMock:sb1", arrayOf("name", "age"), arrayOf(arrayOf("Alice", 20), arrayOf("Bob", 35), arrayOf("Charles", 50)))
         MockSQLBuilderProvider.addResultSet(mrs)
-        MockSQLBuilderProvider
-            .addResultSet(create("testMock:sb2", arrayOf("key", "value"), arrayOf()))
+        MockSQLBuilderProvider.addResultSet(create("testMock:sb2", arrayOf("key", "value"), arrayOf()))
         MockSQLBuilderProvider.addResultSet(empty("testMock:sb3"))
         MockSQLBuilderProvider.addResultSet(create("testMock:sb4", arrayOf(arrayOf("a"), arrayOf("b"))))
         val sb1 = SQLBuilder("select name, age from friends where age > 18")
@@ -80,7 +80,7 @@ internal class SQLBuilderTest {
             while (rs.next()) {
                 total += rs.getInt(2)
             }
-            assertEquals(105, total)
+            total shouldBe 105
         }
         val sb2 = SQLBuilder("select value from lookup where key=?", "first")
         sb2.getResultSet(mockConnection).use { rs ->
@@ -88,7 +88,7 @@ internal class SQLBuilderTest {
             if (rs.next()) {
                 value = rs.getString("value")
             }
-            assertNull(value)
+            value shouldBe null
         }
         val sb3 = SQLBuilder("select value from lookup where key=?", "second")
         sb3.getResultSet(mockConnection).use { rs ->
@@ -96,26 +96,26 @@ internal class SQLBuilderTest {
             if (rs.next()) {
                 value = rs.getString("value")
             }
-            assertNull(value)
+            value shouldBe null
         }
         val sb4 = SQLBuilder("select value from \${table}").bind("table", "VN")
         sb4.getResultSet(mockConnection).use { rs ->
             if (rs.next()) {
-                assertEquals("a", rs.getString(1))
+                rs.getString(1) shouldBe "a"
             }
             if (rs.next()) {
-                assertEquals("b", rs.getString("COLUMN1"))
+                rs.getString("COLUMN1") shouldBe "b"
             }
-            assertFalse(rs.next())
+            rs.next() shouldBe false
         }
         val sb5 = SQLBuilder("select count(*) from lookup")
         setIntByColumnIndex { idx: Int?, def: Int? -> 10 }
-        assertEquals(10, sb5.getInt(mockConnection, 1, 0))
+        sb5.getInt(mockConnection, 1, 0) shouldBe 10
         val sb6 = SQLBuilder("select count(*) from lookup")
-        assertEquals(10, sb6.getInt(mockConnection, 1, 0))
+        sb6.getInt(mockConnection, 1, 0) shouldBe 10
         MockSQLBuilderProvider.addResultSet(create("testMock:sb7", arrayOf(arrayOf("a"), arrayOf("b"))))
         val sb7 = SQLBuilder("select value from lookup where key = ?", 42)
-        assertEquals("a", sb7.getString(mockConnection, 1, "default"))
+        sb7.getString(mockConnection, 1, "default") shouldBe "a"
         MockSQLBuilderProvider.addResultSet("testMock:sb8", "Alice,20\nBob,35\nCharles,50")
         val sb8 = SQLBuilder("select name, age from friends where age > 18")
         sb8.getResultSet(mockConnection).use { rs ->
@@ -123,7 +123,7 @@ internal class SQLBuilderTest {
             while (rs.next()) {
                 total += rs.getInt(2)
             }
-            assertEquals(105, total)
+            total shouldBe 105
         }
         MockSQLBuilderProvider.addResultSet("testMock:sb9", "name,age", "Alice,20\nBob,35\nCharles,50")
         val sb9 = SQLBuilder("select name, age from friends where age > 18")
@@ -132,7 +132,7 @@ internal class SQLBuilderTest {
             while (rs.next()) {
                 total += rs.getLong("age")
             }
-            assertEquals(105L, total)
+            total shouldBe 105L
         }
         MockSQLBuilderProvider.addResultSet(
             "testMock:sb10",
@@ -147,20 +147,20 @@ internal class SQLBuilderTest {
             while (rs.next()) {
                 total += rs.getLong("AGE")
             }
-            assertEquals(105L, total)
+            total shouldBe 105L
         }
         MockSQLBuilderProvider.addResultSet("testMock:read from CSV file", javaClass.getResourceAsStream("sb11.csv")!!)
         val sb11 = SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t")
-        assertEquals("[100000, 100001, 100002, 100003]", sb11.getList(mockConnection, { rs -> rs.getLong("USER_ID") }).toString())
+        sb11.getList(mockConnection, { rs -> rs.getLong("USER_ID") }).toString() shouldBe "[100000, 100001, 100002, 100003]"
 
         // SI_USERS_T.csv was produced via SQLDeveloper using "Export as csv" from right-click on the table
         MockSQLBuilderProvider.addResultSet("testMock:read from sqldeveloper export file", javaClass.getResourceAsStream("SI_USERS_T.csv")!!)
         val sb12 = SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t")
-        assertEquals("[100000, 100001, 100002, 100003]", sb12.getList(mockConnection, { it.getLong("USER_ID") }).toString())
+        sb12.getList(mockConnection, { it.getLong("USER_ID") }).toString() shouldBe "[100000, 100001, 100002, 100003]"
         val ts = Timestamp.from(Instant.now())
         MockSQLBuilderProvider.addResultSet(create("testMock:sb13", arrayOf(arrayOf(ts))))
         val sb13 = SQLBuilder("select value from lookup where key = ?", 42)
-        assertEquals(ts, sb13.getTimestamp(mockConnection, 1, null))
+        sb13.getTimestamp(mockConnection, 1, null) shouldBe ts
         MockSQLBuilderProvider.addResultSet(create("testMock:sb14", arrayOf(arrayOf(ts))))
         val sb14 = SQLBuilder("select value from lookup where key = ?", 42)
         sb14.getResultSet(mockConnection).use { rs14 ->
@@ -168,7 +168,7 @@ internal class SQLBuilderTest {
             if (rs14.next()) {
                 ts14 = rs14.getTimestamp(1)
             }
-            assertEquals(ts, ts14)
+            ts14 shouldBe ts
         }
         MockSQLBuilderProvider.addResultSet(create("testMock:sb15", arrayOf("value"), arrayOf(arrayOf(ts))))
         val sb15 = SQLBuilder("select value from lookup where key = ?", 42)
@@ -177,31 +177,31 @@ internal class SQLBuilderTest {
             if (rs15.next()) {
                 ts15 = rs15.getTimestamp("value")
             }
-            assertEquals(ts, ts15)
+            ts15 shouldBe ts
         }
         val date = Date(Instant.now().toEpochMilli())
         MockSQLBuilderProvider.addResultSet(create("testMock:sb16", arrayOf(arrayOf(date))))
         val sb16 = SQLBuilder("select value from lookup where key = ?", 42)
-        assertEquals(date, sb16.getDate(mockConnection, 1, null))
+        sb16.getDate(mockConnection, 1, null) shouldBe date
         val updateFoo = SQLBuilder("update foo")
-        assertEquals(42, updateFoo.execute(mockConnection))
+        updateFoo.execute(mockConnection) shouldBe 42
         setExecute(1)
-        assertEquals(1, updateFoo.execute(mockConnection))
-        assertEquals(1, updateFoo.execute(mockConnection))
-        assertEquals(1, updateFoo.execute(mockConnection))
-        assertEquals(1, updateFoo.execute(mockConnection))
+        updateFoo.execute(mockConnection) shouldBe 1
+        updateFoo.execute(mockConnection) shouldBe 1
+        updateFoo.execute(mockConnection) shouldBe 1
+        updateFoo.execute(mockConnection) shouldBe 1
         setExecute(1, 0, 1)
-        assertEquals(1, updateFoo.execute(mockConnection))
-        assertEquals(0, updateFoo.execute(mockConnection))
-        assertEquals(1, updateFoo.execute(mockConnection))
-        assertEquals(42, updateFoo.execute(mockConnection))
+        updateFoo.execute(mockConnection) shouldBe 1
+        updateFoo.execute(mockConnection) shouldBe 0
+        updateFoo.execute(mockConnection) shouldBe 1
+        updateFoo.execute(mockConnection) shouldBe 42
         val count = AtomicInteger()
         setExecute { if (count.getAndIncrement() < 3) 1 else 2 }
-        assertEquals(1, updateFoo.execute(mockConnection))
-        assertEquals(1, updateFoo.execute(mockConnection))
-        assertEquals(1, updateFoo.execute(mockConnection))
-        assertEquals(2, updateFoo.execute(mockConnection))
-        assertEquals(2, updateFoo.execute(mockConnection))
+        updateFoo.execute(mockConnection) shouldBe 1
+        updateFoo.execute(mockConnection) shouldBe 1
+        updateFoo.execute(mockConnection) shouldBe 1
+        updateFoo.execute(mockConnection) shouldBe 2
+        updateFoo.execute(mockConnection) shouldBe 2
     }
 
     @Test
@@ -212,8 +212,8 @@ internal class SQLBuilderTest {
         // default mocked resultset
         val rs = create("copyTest1", "A", "3")
         MockSQLBuilderProvider.addResultSet(rs)
-        assertEquals(3, sqlBuilder.getInt(mockConnection, 1, -1))
-        assertEquals(42, sqlBuilder.getInt(mockConnection, 1, -1))
+        sqlBuilder.getInt(mockConnection, 1, -1) shouldBe 3
+        sqlBuilder.getInt(mockConnection, 1, -1) shouldBe 42
     }
 
     @Test
@@ -223,16 +223,16 @@ internal class SQLBuilderTest {
         // resultset twice will not produce the same result.
         val rs = create("copyTest2", "A", "3")
         MockSQLBuilderProvider.addResultSet(rs)
-        assertEquals(3, sqlBuilder.getInt(mockConnection, 1, -1))
+        sqlBuilder.getInt(mockConnection, 1, -1) shouldBe 3
         MockSQLBuilderProvider.addResultSet(rs)
-        assertEquals(-1, sqlBuilder.getInt(mockConnection, 1, -1))
+        sqlBuilder.getInt(mockConnection, 1, -1) shouldBe -1
     }
 
     @Test
     @Throws(SQLException::class)
     fun brokenTest() {
         MockSQLBuilderProvider.addResultSet(broken("brokenTest"))
-        assertThrows(SQLException::class.java) { SQLBuilder("select A from T").getInt(mockConnection, 1, -1) }
+        shouldThrow<SQLException> { SQLBuilder("select A from T").getInt(mockConnection, 1, -1) }
     }
 
     @Test
@@ -241,8 +241,8 @@ internal class SQLBuilderTest {
         MockSQLBuilderProvider.addResultSet("executeReturningTest:id", "43")
         val sb = SQLBuilder("insert into foo(foo_s.nextval, ?", "fooValue")
         val rs = sb.execute(mockConnection, "id")
-        assertTrue(rs.next())
-        assertEquals(43, rs.getInt(1))
+        rs.next() shouldBe true
+        rs.getInt(1) shouldBe 43
     }
 
     @Test
@@ -251,7 +251,7 @@ internal class SQLBuilderTest {
         MockSQLBuilderProvider.addResultSet("unusedMockResultSet:first", "1")
         MockSQLBuilderProvider.addResultSet("unusedMockResultSet:second", "2")
         val sb1 = SQLBuilder("select count(*) from foo")
-        assertEquals(1, sb1.getInt(mockConnection, 1, 0))
+        sb1.getInt(mockConnection, 1, 0) shouldBe 1
     }
 
     @Test
@@ -260,17 +260,17 @@ internal class SQLBuilderTest {
         val now = OffsetDateTime.now()
         MockSQLBuilderProvider.addResultSet(create("testDateTime", arrayOf(arrayOf(now))))
         val sb1 = SQLBuilder("select created from lookup where key = ?", 42)
-        assertEquals(now, sb1.getDateTime(mockConnection, 1, null))
+        sb1.getDateTime(mockConnection, 1, null) shouldBe now
         val sb2 = SQLBuilder("select created from lookup where key = ?", 42)
         val dt2 = sb2.getDateTime(mockConnection, 1, null)
-        assertNotNull(dt2)
+        dt2 shouldNotBe null
         // This will fail in about 3000 years.  Hopefully, mankind is still around by then but no longer uses JDBC...
-        assertTrue(dt2!!.isAfter(now.plusYears(1000L)))
+        dt2!!.isAfter(now.plusYears(1000L)) shouldBe true
         val sb3 = SQLBuilder("select created from lookup where key = ?", 42)
         val dt3 = sb3.getDateTime(mockConnection, "created", null)
-        assertNotNull(dt3)
+        dt3 shouldNotBe null
         // This will fail in about 3000 years.  Hopefully, mankind is still around by then but no longer uses JDBC...
-        assertTrue(dt3!!.isAfter(now.plusYears(1000L)))
+        dt3!!.isAfter(now.plusYears(1000L)) shouldBe true
     }
 
     @Test
@@ -280,17 +280,17 @@ internal class SQLBuilderTest {
         val oNow = now.atOffset(ZoneOffset.UTC)
         MockSQLBuilderProvider.addResultSet(create("testInstant", arrayOf(arrayOf(oNow))))
         val sb1 = SQLBuilder("select created from lookup where key = ?", 42)
-        assertEquals(now, sb1.getInstant(mockConnection, 1, null))
+        sb1.getInstant(mockConnection, 1, null) shouldBe now
         val sb2 = SQLBuilder("select created from lookup where key = ?", 42)
         val dt2 = sb2.getInstant(mockConnection, 1, null)
-        assertNotNull(dt2)
+        dt2 shouldNotBe null
         // This will fail in about 1150 years.  Hopefully, mankind is still around by then but no longer uses JDBC...
-        assertTrue(dt2!!.isAfter(now.plus(420000L, ChronoUnit.DAYS)))
+        dt2!!.isAfter(now.plus(420000L, ChronoUnit.DAYS)) shouldBe true
         val sb3 = SQLBuilder("select created from lookup where key = ?", 42)
         val dt3 = sb3.getInstant(mockConnection, "created", null)
-        assertNotNull(dt3)
+        dt3 shouldNotBe null
         // This will fail in about 1150 years.  Hopefully, mankind is still around by then but no longer uses JDBC...
-        assertTrue(dt3!!.isAfter(now.plus(420000L, ChronoUnit.DAYS)))
+        dt3!!.isAfter(now.plus(420000L, ChronoUnit.DAYS)) shouldBe true
     }
 
     @Test
@@ -299,12 +299,12 @@ internal class SQLBuilderTest {
         setDelegate(MockSQLBuilderProvider(true, true))
         val sb1 = SQLBuilder("select count(*) from lookup")
         sb1.getResultSet(mockConnection).use { rs ->
-            assertTrue(rs.next())
-            assertFalse(rs.next())
+            rs.next() shouldBe true
+            rs.next() shouldBe false
         }
         sb1.getResultSet(mockConnection).use { rs ->
-            assertTrue(rs.next())
-            assertFalse(rs.next())
+            rs.next() shouldBe true
+            rs.next() shouldBe false
         }
     }
 
@@ -314,8 +314,8 @@ internal class SQLBuilderTest {
         try {
             setDelegate(MockSQLBuilderProvider(false, true))
             val sb1 = SQLBuilder("select count(*) from lookup")
-            sb1.getResultSet(mockConnection).use { rs -> assertFalse(rs.next()) }
-            sb1.getResultSet(mockConnection).use { rs -> assertFalse(rs.next()) }
+            sb1.getResultSet(mockConnection).use { rs -> rs.next() shouldBe false }
+            sb1.getResultSet(mockConnection).use { rs -> rs.next() shouldBe false }
         } finally {
             setDelegate(MockSQLBuilderProvider(true, true))
         }
@@ -327,10 +327,10 @@ internal class SQLBuilderTest {
         setDelegate(MockSQLBuilderProvider())
         MockSQLBuilderProvider.addResultSet(empty(""))
         val sb = SQLBuilder("select count(*) from lookup")
-        sb.getResultSet(mockConnection).use { rs -> assertFalse(rs.next()) }
+        sb.getResultSet(mockConnection).use { rs -> rs.next() shouldBe false }
         sb.getResultSet(mockConnection).use { rs ->
-            assertTrue(rs.next())
-            assertFalse(rs.next())
+            rs.next() shouldBe true
+            rs.next() shouldBe false
         }
     }
 
@@ -347,8 +347,7 @@ internal class SQLBuilderTest {
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", "_,3\n_,1\n_,4")
         val l = sqlBuilder.getList(mockConnection, { rs -> rs.getInt(2) })
-        MatcherAssert.assertThat(l.size, CoreMatchers.`is`(3))
-        MatcherAssert.assertThat(l, CoreMatchers.`is`(listOf(3, 1, 4)))
+        l shouldBe listOf(3, 1, 4)
     }
 
     @Test
@@ -358,8 +357,7 @@ internal class SQLBuilderTest {
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", arrayOf(arrayOf("", 3), arrayOf("", null), arrayOf("", 4)))
         val l = sqlBuilder.getList(mockConnection, { rs: ResultSet -> rs.getInt(2) })
-        MatcherAssert.assertThat(l.size, CoreMatchers.`is`(3))
-        MatcherAssert.assertThat(l, CoreMatchers.`is`(listOf(3, 0, 4)))
+        l shouldBe listOf(3, 0, 4)
     }
 
     @Test
@@ -369,8 +367,7 @@ internal class SQLBuilderTest {
         // then expect to get a list with 2 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", arrayOf(arrayOf("", "first"), arrayOf("", null), arrayOf("", "third")))
         val l = sqlBuilder.getList(mockConnection, { rs: ResultSet -> rs.getString(2) })
-        MatcherAssert.assertThat(l.size, CoreMatchers.`is`(2))
-        MatcherAssert.assertThat(l, CoreMatchers.`is`(listOf("first", "third")))
+        l shouldBe listOf("first", "third")
     }
 
     @Test
@@ -380,8 +377,7 @@ internal class SQLBuilderTest {
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", arrayOf(arrayOf("", "first"), arrayOf("", null), arrayOf("", "third")))
         val l = sqlBuilder.getList(mockConnection, { rs: ResultSet -> rs.getString(2) }, true)
-        MatcherAssert.assertThat(l.size, CoreMatchers.`is`(3))
-        MatcherAssert.assertThat(l, CoreMatchers.`is`(listOf("first", null, "third")))
+        l shouldBe listOf("first", null, "third")
     }
 
     @Test
@@ -394,8 +390,7 @@ internal class SQLBuilderTest {
             val i = rs.getInt(2)
             if (rs.wasNull()) -1 else i
         })
-        MatcherAssert.assertThat(l.size, CoreMatchers.`is`(3))
-        MatcherAssert.assertThat(l, CoreMatchers.`is`(listOf(1, -1, 3)))
+        l shouldBe listOf(1, -1, 3)
     }
 
     @Test
@@ -406,8 +401,7 @@ internal class SQLBuilderTest {
         // calling `getInt` here because that automatically converts null to 0.
         MockSQLBuilderProvider.addResultSet("", arrayOf(arrayOf("", 1), arrayOf("", null), arrayOf("", 3)))
         val l = sqlBuilder.getList<Any?>(mockConnection, { rs -> rs.getObject(2) }).map { it as Int }
-        MatcherAssert.assertThat(l.size, CoreMatchers.`is`(2))
-        MatcherAssert.assertThat(l, CoreMatchers.`is`(listOf(1, 3)))
+        l shouldBe listOf(1, 3)
     }
 
     @Test
@@ -417,8 +411,7 @@ internal class SQLBuilderTest {
         // then expect to get 3 elements with null mapped to null
         MockSQLBuilderProvider.addResultSet("", arrayOf(arrayOf("", 1), arrayOf("", null), arrayOf("", 3)))
         val l = sqlBuilder.getList<Any?>(mockConnection, { rs -> rs.getObject(2) }, true).map { it as Int? }
-        MatcherAssert.assertThat(l.size, CoreMatchers.`is`(3))
-        MatcherAssert.assertThat(l, CoreMatchers.`is`(listOf(1, null, 3)))
+        l shouldBe listOf(1, null, 3)
     }
 
     @Test
@@ -428,9 +421,8 @@ internal class SQLBuilderTest {
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", "3,Three\n1,One\n4,Four")
         val m = sqlBuilder.getMap(mockConnection, { rs: ResultSet -> entry(rs.getInt(1), rs.getString(2)) })
-        MatcherAssert.assertThat(m.size, CoreMatchers.`is`(3))
-        MatcherAssert.assertThat(m.keys, Matchers.containsInAnyOrder(3, 1, 4))
-        assertTrue(m.containsValue("Three"))
+        m.keys.shouldContainExactlyInAnyOrder(3, 1, 4)
+        m.containsValue("Three") shouldBe true
     }
 
     @Test
@@ -438,7 +430,7 @@ internal class SQLBuilderTest {
         // when query returns 3 rows with duplicate keys
         // then expect to get an IllegalStateException
         MockSQLBuilderProvider.addResultSet("", "3,Three\n1,One\n3,Four")
-        assertThrows(IllegalStateException::class.java) {
+        shouldThrow<IllegalStateException> {
             sqlBuilder.getMap(mockConnection, { rs: ResultSet -> entry(rs.getInt(1), rs.getString(2)) })
         }
     }
@@ -449,10 +441,10 @@ internal class SQLBuilderTest {
         // then expect to get an IllegalStateException
         MockSQLBuilderProvider.addResultSet("", arrayOf(arrayOf(3, "Three"), arrayOf(null, "Zero")))
         // Note: we cannot use `getInt` for the key here because that would automatically convert `null` to `0` and thus not throw the expected exception
-        val exp = assertThrows(IllegalStateException::class.java) {
+        val exp = shouldThrow<IllegalStateException> {
             sqlBuilder.getMap(mockConnection, { rs: ResultSet -> entry(rs.getObject(1), rs.getString(2)) })
         }
-        assertTrue(exp.message!!.contains("unsupported"))
+        exp.message shouldContain "unsupported"
     }
 
     @Test
@@ -463,8 +455,7 @@ internal class SQLBuilderTest {
         MockSQLBuilderProvider.addResultSet("", arrayOf(arrayOf("1", 1), arrayOf("2", null), arrayOf("3", 3)))
         val m: Map<String, Int?> = sqlBuilder.getMap(mockConnection, { rs: ResultSet -> entry(rs.getString(1), rs.getInt(2)) })
         // size is 3 and not 2 although 2 is mapped to null because we use getInt which will automatically convert null to 0
-        MatcherAssert.assertThat(m.size, CoreMatchers.`is`(3))
-        MatcherAssert.assertThat(m.keys, Matchers.containsInAnyOrder("1", "2", "3"))
+        m.keys.shouldContainExactlyInAnyOrder("1", "2", "3")
     }
 
     @Test
@@ -474,8 +465,7 @@ internal class SQLBuilderTest {
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", arrayOf(arrayOf("1", 1), arrayOf("2", null), arrayOf("3", 3)))
         val m = sqlBuilder.getMap(mockConnection, { rs: ResultSet -> entry(rs.getString(1), rs.getInt(2)) }, false)
-        MatcherAssert.assertThat(m.size, CoreMatchers.`is`(3))
-        MatcherAssert.assertThat(m.keys, Matchers.containsInAnyOrder("1", "2", "3"))
+        m.keys.shouldContainExactlyInAnyOrder("1", "2", "3")
     }
 
     @Test
@@ -484,9 +474,8 @@ internal class SQLBuilderTest {
         // with 3 longs in column 1
         // then expect to get the first element
         MockSQLBuilderProvider.addResultSet("", arrayOf(arrayOf(3L), arrayOf(1L), arrayOf(4L)))
-        val l = sqlBuilder.getSingle(mockConnection, { rs: ResultSet -> rs.getLong(1) })
-        MatcherAssert.assertThat(l.isPresent, CoreMatchers.`is`(true))
-        MatcherAssert.assertThat(l.get(), CoreMatchers.`is`(3L))
+        val l = sqlBuilder.getSingle(mockConnection) { rs: ResultSet -> rs.getLong(1) }
+        l shouldBePresent { it shouldBe 3L }
     }
 
     @Test
@@ -496,7 +485,7 @@ internal class SQLBuilderTest {
         // then expect to get the first element
         MockSQLBuilderProvider.addResultSet("", "first\nsecond\nthird")
         val s = sqlBuilder.getString(mockConnection, 1, "default")
-        MatcherAssert.assertThat(s, CoreMatchers.`is`("first"))
+        s shouldBe "first"
     }
 
     @Test
@@ -506,7 +495,7 @@ internal class SQLBuilderTest {
         // then expect to get the first element
         MockSQLBuilderProvider.addResultSet("", "first")
         val s = sqlBuilder.getString(mockConnection, 1, "default")
-        MatcherAssert.assertThat(s, CoreMatchers.`is`("first"))
+        s shouldBe "first"
     }
 
     @Test
@@ -515,7 +504,7 @@ internal class SQLBuilderTest {
         // then expect to get the default element
         MockSQLBuilderProvider.addResultSet(empty(""))
         val s = sqlBuilder.getString(mockConnection, 1, "default")
-        MatcherAssert.assertThat(s, CoreMatchers.`is`("default"))
+        s shouldBe "default"
     }
 
     @Test
@@ -524,7 +513,7 @@ internal class SQLBuilderTest {
         // then expect to get the default element even if that is null
         MockSQLBuilderProvider.addResultSet(empty(""))
         val s = sqlBuilder.getString(mockConnection, 1, null)
-        MatcherAssert.assertThat(s, CoreMatchers.nullValue())
+        s shouldBe null
     }
 
     @Test
@@ -534,7 +523,7 @@ internal class SQLBuilderTest {
         // then expect to get the first element
         MockSQLBuilderProvider.addResultSet("", "LABEL", "first\nsecond\nthird")
         val s = sqlBuilder.getString(mockConnection, "LABEL", "default")
-        MatcherAssert.assertThat(s, CoreMatchers.`is`("first"))
+        s shouldBe "first"
     }
 
     @Test
@@ -542,8 +531,8 @@ internal class SQLBuilderTest {
         // when query returns no rows
         // then expect to get an empty optional
         MockSQLBuilderProvider.addResultSet(empty(""))
-        val l = sqlBuilder.getSingle(mockConnection, { rs: ResultSet -> rs.getLong(1) })
-        MatcherAssert.assertThat(l.isPresent, CoreMatchers.`is`(false))
+        val l = sqlBuilder.getSingle(mockConnection) { rs: ResultSet -> rs.getLong(1) }
+        l.shouldNotBePresent()
     }
 
     @Test
@@ -557,8 +546,7 @@ internal class SQLBuilderTest {
         while (rs.next()) {
             l.add(rs.getInt(2))
         }
-        MatcherAssert.assertThat(l.size, CoreMatchers.`is`(3))
-        MatcherAssert.assertThat<List<Int>>(l, CoreMatchers.`is`(listOf(3, 1, 4)))
+        l shouldBe listOf(3, 1, 4)
     }
 
     @Test
@@ -572,8 +560,7 @@ internal class SQLBuilderTest {
         while (rs.next()) {
             l.add(rs.getLong(3))
         }
-        MatcherAssert.assertThat(l.size, CoreMatchers.`is`(1))
-        MatcherAssert.assertThat(l[0], CoreMatchers.`is`(3L))
+        l shouldBe listOf(3L)
     }
 
     @Test
@@ -582,58 +569,58 @@ internal class SQLBuilderTest {
         // then expect to get a resultset that returns no row
         MockSQLBuilderProvider.addResultSet(empty(""))
         val rs = sqlBuilder.getResultSet(mockConnection)
-        MatcherAssert.assertThat(rs.next(), CoreMatchers.`is`(false))
+        rs.next() shouldBe false
     }
 
     @Test
     fun placeholder_dollar() {
         val sb = SQLBuilder("select a, \${b} from \${t} where x > ?", 5)
-        assertEquals("select a, \${b} from \${t} where x > ?; args=[5]", sb.toString())
+        sb.toString() shouldBe "select a, \${b} from \${t} where x > ?; args=[5]"
         sb.bind("b", "BCOL").bind("t", "table1")
-        assertEquals("select a, BCOL from table1 where x > ?; args=[5]", sb.toString())
+        sb.toString() shouldBe "select a, BCOL from table1 where x > ?; args=[5]"
     }
 
     @Test
     fun placeholder_colon() {
         val sb = SQLBuilder("select a, :{b} from :{t} where x > ?", 5)
-        assertEquals("select a, :{b} from :{t} where x > ?; args=[5]", sb.toString())
+        sb.toString() shouldBe "select a, :{b} from :{t} where x > ?; args=[5]"
         sb.bind("b", "BCOL").bind("t", "table1")
-        assertEquals("select a, BCOL from table1 where x > ?; args=[5]", sb.toString())
+        sb.toString() shouldBe "select a, BCOL from table1 where x > ?; args=[5]"
     }
 
     @Test
     fun multiPlaceholder_dollar() {
         val sb = SQLBuilder("select a, \${b} from \${t} where x > ?", 5)
-        assertEquals("select a, \${b} from \${t} where x > ?; args=[5]", sb.toString())
+        sb.toString() shouldBe "select a, \${b} from \${t} where x > ?; args=[5]"
         sb.bind("b", listOf("BCOL", "CCOL")).bind("t", "table1")
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb.toString())
+        sb.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
     }
 
     @Test
     fun multiPlaceholder_colon() {
         val sb = SQLBuilder("select a, :{b} from :{t} where x > ?", 5)
-        assertEquals("select a, :{b} from :{t} where x > ?; args=[5]", sb.toString())
+        sb.toString() shouldBe "select a, :{b} from :{t} where x > ?; args=[5]"
         sb.bind("b", listOf("BCOL", "CCOL")).bind("t", "table1")
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb.toString())
+        sb.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
     }
 
     @Test
     fun invalidPlaceholder_dollar() {
         val sb = SQLBuilder("select a, \${b+} from \${t} where x > ?", 5)
-        assertEquals("select a, \${b+} from \${t} where x > ?; args=[5]", sb.toString())
-        assertThrows(IllegalArgumentException::class.java) { sb.bind("b+", "BCOL") }
+        sb.toString() shouldBe "select a, \${b+} from \${t} where x > ?; args=[5]"
+        shouldThrow<IllegalArgumentException> { sb.bind("b+", "BCOL") }
     }
 
     @Test
     fun invalidPlaceholder_colon() {
         val sb = SQLBuilder("select a, :{b+} from :{t} where x > ?", 5)
-        assertEquals("select a, :{b+} from :{t} where x > ?; args=[5]", sb.toString())
-        assertThrows(IllegalArgumentException::class.java) { sb.bind("b+", "BCOL") }
+        sb.toString() shouldBe "select a, :{b+} from :{t} where x > ?; args=[5]"
+        shouldThrow<IllegalArgumentException> { sb.bind("b+", "BCOL") }
     }
 
     @Test
     fun repeatedPlaceholder() {
-        assertThrows(IllegalArgumentException::class.java) { SQLBuilder("").bind("a", "first").bind("a", "second") }
+        shouldThrow<IllegalArgumentException> { SQLBuilder("").bind("a", "first").bind("a", "second") }
     }
 
     @Test
@@ -641,7 +628,7 @@ internal class SQLBuilderTest {
         val sb1 = SQLBuilder("select a, \${b} from \${t} where x > ?", 5)
         sb1.bind("b", listOf("BCOL", "CCOL")).bind("t", "table1")
         val sb2 = SQLBuilder(sb1)
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb2.toString())
+        sb2.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
     }
 
     @Test
@@ -649,68 +636,68 @@ internal class SQLBuilderTest {
         val sb1 = SQLBuilder("select a, :{b} from :{t} where x > ?", 5)
         sb1.bind("b", listOf("BCOL", "CCOL")).bind("t", "table1")
         val sb2 = SQLBuilder(sb1)
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb2.toString())
+        sb2.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
     }
 
     @Test
     fun repeatedPlaceholder2() {
         val sb1 = SQLBuilder("").bind("a", "first")
         val sb2 = SQLBuilder("").bind("a", "first")
-        assertThrows(IllegalArgumentException::class.java) { sb1.append(sb2) }
+        shouldThrow<IllegalArgumentException> { sb1.append(sb2) }
     }
 
     @Test
     fun repeatedPlaceholder3_dollar() {
         val sb1 = SQLBuilder("select a, \${b} from \${t} where x > ?", 5)
         sb1.bind("b", listOf("BCOL", "CCOL")).bind("t", "table1")
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString())
+        sb1.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
         val sb2 = SQLBuilder("select \${b} from (").append(sb1).append(")")
-        assertEquals("select BCOL, CCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]", sb2.toString())
+        sb2.toString() shouldBe "select BCOL, CCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]"
     }
 
     @Test
     fun repeatedPlaceholder3_colon() {
         val sb1 = SQLBuilder("select a, :{b} from :{t} where x > ?", 5)
         sb1.bind("b", listOf("BCOL", "CCOL")).bind("t", "table1")
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString())
+        sb1.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
         val sb2 = SQLBuilder("select :{b} from (").append(sb1).append(")")
-        assertEquals("select BCOL, CCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]", sb2.toString())
+        sb2.toString() shouldBe "select BCOL, CCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]"
     }
 
     @Test
     fun repeatedPlaceholder4_dollar() {
         val sb1 = SQLBuilder("select a, \${b} from \${t} where x > ?", 5)
         sb1.bind("b", listOf("BCOL", "CCOL")).bind("t", "table1")
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString())
+        sb1.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
         val sb2 = SQLBuilder("select \${b} from (").append(sb1).append(")")
-        assertThrows(IllegalArgumentException::class.java) { sb2.bind("b", "BCOL") }
+        shouldThrow<IllegalArgumentException> { sb2.bind("b", "BCOL") }
     }
 
     @Test
     fun repeatedPlaceholder4_colon() {
         val sb1 = SQLBuilder("select a, :{b} from :{t} where x > ?", 5)
         sb1.bind("b", listOf("BCOL", "CCOL")).bind("t", "table1")
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString())
+        sb1.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
         val sb2 = SQLBuilder("select :{b} from (").append(sb1).append(")")
-        assertThrows(IllegalArgumentException::class.java) { sb2.bind("b", "BCOL") }
+        shouldThrow<IllegalArgumentException> { sb2.bind("b", "BCOL") }
     }
 
     @Test
     fun repeatedPlaceholder5_dollar() {
         val sb1 = SQLBuilder("select a, \${b} from \${t} where x > ?", 5)
         sb1.bind("b", listOf("BCOL", "CCOL")).bind("t", "table1")
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString())
+        sb1.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
         val sb2 = SQLBuilder("select \${b} from (").append(sb1.applyBindings()).append(")").bind("b", "BCOL")
-        assertEquals("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]", sb2.toString())
+        sb2.toString() shouldBe "select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]"
     }
 
     @Test
     fun repeatedPlaceholder5_colon() {
         val sb1 = SQLBuilder("select a, :{b} from :{t} where x > ?", 5)
         sb1.bind("b", listOf("BCOL", "CCOL")).bind("t", "table1")
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString())
+        sb1.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
         val sb2 = SQLBuilder("select :{b} from (").append(sb1.applyBindings()).append(")").bind("b", "BCOL")
-        assertEquals("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]", sb2.toString())
+        sb2.toString() shouldBe "select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]"
     }
 
     @Test
@@ -718,12 +705,12 @@ internal class SQLBuilderTest {
         val sb1 = SQLBuilder("select a, \${b} from \${t} where x > ?", 5)
         sb1.bind("b", listOf("BCOL", "CCOL")).bind("t", "table1")
         val sb1s = sb1.toString()
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString())
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString())
+        sb1.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
+        sb1.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
         sb1.applyBindings()
-        assertEquals(sb1s, sb1.toString())
+        sb1.toString() shouldBe sb1s
         val sb2 = SQLBuilder("select \${b} from (").append(sb1).append(")").bind("b", "BCOL")
-        assertEquals("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]", sb2.toString())
+        sb2.toString() shouldBe "select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]"
     }
 
     @Test
@@ -731,63 +718,48 @@ internal class SQLBuilderTest {
         val sb1 = SQLBuilder("select a, :{b} from :{t} where x > ?", 5)
         sb1.bind("b", listOf("BCOL", "CCOL")).bind("t", "table1")
         val sb1s = sb1.toString()
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString())
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString())
+        sb1.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
+        sb1.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
         sb1.applyBindings()
-        assertEquals(sb1s, sb1.toString())
+        sb1.toString() shouldBe sb1s
         val sb2 = SQLBuilder("select :{b} from (").append(sb1).append(")").bind("b", "BCOL")
-        assertEquals("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]", sb2.toString())
+        sb2.toString() shouldBe "select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]"
     }
 
     @Test
     fun testFromNumberedParams() {
         val params: QueryParams = QueryParamsImpl()
-        assertEquals("select n from t where i=?); args=[a]", fromNumberedParameters("select n from t where i=:1)", params).toString())
-        assertEquals("select n from t where i=? or i=?); args=[a, b]", fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString())
-        assertEquals("select n from t where i=? or i=?); args=[b, a]", fromNumberedParameters("select n from t where i=:2 or i=:1)", params).toString())
-        assertEquals("select n from t where i=? or k=?); args=[b, b]", fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString())
-        assertEquals("select n from t where i=? or k=':4'); args=[b]", fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString())
-        assertEquals("select n from t where i=? or k=':2'); args=[b]", fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString())
+        fromNumberedParameters("select n from t where i=:1)", params).toString() shouldBe "select n from t where i=?); args=[a]"
+        fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString() shouldBe "select n from t where i=? or i=?); args=[a, b]"
+        fromNumberedParameters("select n from t where i=:2 or i=:1)", params).toString() shouldBe "select n from t where i=? or i=?); args=[b, a]"
+        fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString() shouldBe "select n from t where i=? or k=?); args=[b, b]"
+        fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString() shouldBe "select n from t where i=? or k=':4'); args=[b]"
+        fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString() shouldBe "select n from t where i=? or k=':2'); args=[b]"
     }
 
     @Test
     fun maskData() {
-        assertEquals(
-            "select name from user where secret=?; args=[__masked__:982c0381c279d139fd221fce974916e7]",
-            SQLBuilder("select name from user where secret=?", mask("oops!")).toString()
-        )
+        SQLBuilder("select name from user where secret=?", mask("oops!")).toString() shouldBe "select name from user where secret=?; args=[__masked__:982c0381c279d139fd221fce974916e7]"
     }
 
     @Test
     fun maskDataNull() {
-        assertEquals(
-            "select name from user where secret=?; args=[null]",
-            SQLBuilder("select name from user where secret=?", mask(null)).toString()
-        )
+        SQLBuilder("select name from user where secret=?", mask(null)).toString() shouldBe "select name from user where secret=?; args=[null]"
     }
 
     @Test
     fun maskDataEmpty() {
-        assertEquals(
-            "select name from user where secret=?; args=[]",
-            SQLBuilder("select name from user where secret=?", mask("")).toString()
-        )
+        SQLBuilder("select name from user where secret=?", mask("")).toString() shouldBe "select name from user where secret=?; args=[]"
     }
 
     @Test
     fun maskDataLong() {
-        assertEquals(
-            "select name from user where secret=?; args=[__masked__:a1d0c6e83f027327d8461063f4ac58a6]",
-            SQLBuilder("select name from user where secret=?", mask(42L)).toString()
-        )
+        SQLBuilder("select name from user where secret=?", mask(42L)).toString() shouldBe "select name from user where secret=?; args=[__masked__:a1d0c6e83f027327d8461063f4ac58a6]"
     }
 
     @Test
     fun maskDataMixed() {
-        assertEquals(
-            "select name from user where secret=? and public=?; args=[__masked__:982c0381c279d139fd221fce974916e7, ok]",
-            SQLBuilder("select name from user where secret=? and public=?", mask("oops!"), "ok").toString()
-        )
+        SQLBuilder("select name from user where secret=? and public=?", mask("oops!"), "ok").toString() shouldBe "select name from user where secret=? and public=?; args=[__masked__:982c0381c279d139fd221fce974916e7, ok]"
     }
 
     private fun masked(value: Any): String {
@@ -796,9 +768,9 @@ internal class SQLBuilderTest {
 
     @Test
     fun maskSame() {
-        assertEquals(masked("hello"), masked("hello"))
-        assertEquals(masked(42L), masked("42".toLong()))
-        assertEquals(masked(42), masked("42".toInt()))
+        masked("hello") shouldBe masked("hello")
+        masked("42".toLong()) shouldBe masked(42L)
+        masked("42".toInt()) shouldBe masked(42)
     }
 
     @Test
@@ -811,7 +783,7 @@ internal class SQLBuilderTest {
                 else -> return@setIntByColumnIndex d
             }
         }
-        assertEquals(3, sb.getInt(mockConnection, 1, 4))
+        sb.getInt(mockConnection, 1, 4) shouldBe 3
     }
 
     @Test
@@ -820,16 +792,13 @@ internal class SQLBuilderTest {
         MockSQLBuilderProvider.addResultSet("", "_,3\n_,1\n_,4")
         // TODO: this just tests that `withMaxRows` is accepted, but not the actual implementation.
         val l = sqlBuilder.withMaxRows(1).getList(mockConnection, { rs: ResultSet -> rs.getInt(2) })
-        MatcherAssert.assertThat(l.size, CoreMatchers.`is`(3))
-        MatcherAssert.assertThat(l, CoreMatchers.`is`(listOf(3, 1, 4)))
+        l shouldBe listOf(3, 1, 4)
     }
 
     internal class QueryParamsImpl : QueryParams {
         // some arbitrary param values for testing
-        val values = arrayOf("a", "b", "c")
-        override val paramNames = IntStream.rangeClosed(1, values.size)
-            .mapToObj { i: Int -> i.toString() }
-            .collect(Collectors.toList())
+        private val values = arrayOf("a", "b", "c")
+        override val paramNames = (1..values.size).map(Int::toString)
 
         override fun getParameterValue(name: String?): Any? {
             return getParameterValue(name, false)

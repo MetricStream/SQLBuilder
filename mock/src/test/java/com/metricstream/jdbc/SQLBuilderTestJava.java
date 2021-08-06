@@ -3,16 +3,8 @@
  */
 package com.metricstream.jdbc;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -81,7 +73,7 @@ class SQLBuilderTestJava {
             while (rs.next()) {
                 total += rs.getInt(2);
             }
-            assertEquals(105, total);
+            assertThat(total).isEqualTo(105);
         }
 
         SQLBuilder sb2 = new SQLBuilder("select value from lookup where key=?", "first");
@@ -90,7 +82,7 @@ class SQLBuilderTestJava {
             if (rs.next()) {
                 value = rs.getString("value");
             }
-            assertNull(value);
+            assertThat(value).isNull();
         }
 
         SQLBuilder sb3 = new SQLBuilder("select value from lookup where key=?", "second");
@@ -99,30 +91,30 @@ class SQLBuilderTestJava {
             if (rs.next()) {
                 value = rs.getString("value");
             }
-            assertNull(value);
+            assertThat(value).isNull();
         }
 
         SQLBuilder sb4 = new SQLBuilder("select value from ${table}").bind("table", "VN");
         try (ResultSet rs = sb4.getResultSet(mockConnection)) {
             if (rs.next()) {
-                assertEquals("a", rs.getString(1));
+                assertThat(rs.getString(1)).isEqualTo("a");
             }
             if (rs.next()) {
-                assertEquals("b", rs.getString("COLUMN1"));
+                assertThat(rs.getString("COLUMN1")).isEqualTo("b");
             }
-            assertFalse(rs.next());
+            assertThat(rs.next()).isFalse();
         }
 
         SQLBuilder sb5 = new SQLBuilder("select count(*) from lookup");
         MockSQLBuilderProvider.setIntByColumnIndex((idx, def) -> 10);
-        assertEquals(10, sb5.getInt(mockConnection, 1, 0));
+        assertThat(sb5.getInt(mockConnection, 1, 0)).isEqualTo(10);
 
         SQLBuilder sb6 = new SQLBuilder("select count(*) from lookup");
-        assertEquals(10, sb6.getInt(mockConnection, 1, 0));
+        assertThat(sb6.getInt(mockConnection, 1, 0)).isEqualTo(10);
 
         MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb7", new Object[][] { { "a" }, { "b" } }));
         SQLBuilder sb7 = new SQLBuilder("select value from lookup where key = ?", 42);
-        assertEquals("a", sb7.getString(mockConnection, 1, "default"));
+        assertThat(sb7.getString(mockConnection, 1, "default")).isEqualTo("a");
 
         MockSQLBuilderProvider.addResultSet("testMock:sb8", "Alice,20\nBob,35\nCharles,50");
         SQLBuilder sb8 = new SQLBuilder("select name, age from friends where age > 18");
@@ -131,7 +123,7 @@ class SQLBuilderTestJava {
             while (rs.next()) {
                 total += rs.getInt(2);
             }
-            assertEquals(105, total);
+            assertThat(total).isEqualTo(105);
         }
 
         MockSQLBuilderProvider.addResultSet("testMock:sb9", "name,age", "Alice,20\nBob,35\nCharles,50");
@@ -141,7 +133,7 @@ class SQLBuilderTestJava {
             while (rs.next()) {
                 total += rs.getLong("age");
             }
-            assertEquals(105L, total);
+            assertThat(total).isEqualTo(105L);
         }
 
         MockSQLBuilderProvider.addResultSet("testMock:sb10",
@@ -156,22 +148,22 @@ class SQLBuilderTestJava {
             while (rs.next()) {
                 total += rs.getLong("AGE");
             }
-            assertEquals(105L, total);
+            assertThat(total).isEqualTo(105L);
         }
 
         MockSQLBuilderProvider.addResultSet("testMock:read from CSV file", getClass().getResourceAsStream("sb11.csv"));
         SQLBuilder sb11 = new SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t");
-        assertEquals("[100000, 100001, 100002, 100003]", sb11.getList(mockConnection, rs -> rs.getLong("USER_ID")).toString());
+        assertThat(sb11.getList(mockConnection, rs -> rs.getLong("USER_ID")).toString()).isEqualTo("[100000, 100001, 100002, 100003]");
 
         // SI_USERS_T.csv was produced via SQLDeveloper using "Export as csv" from right-click on the table
         MockSQLBuilderProvider.addResultSet("testMock:read from sqldeveloper export file", getClass().getResourceAsStream("SI_USERS_T.csv"));
         SQLBuilder sb12 = new SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t");
-        assertEquals("[100000, 100001, 100002, 100003]", sb12.getList(mockConnection, rs -> rs.getLong("USER_ID")).toString());
+        assertThat(sb12.getList(mockConnection, rs -> rs.getLong("USER_ID")).toString()).isEqualTo("[100000, 100001, 100002, 100003]");
 
         Timestamp ts = Timestamp.from(Instant.now());
         MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb13", new Object[][] { { ts } }));
         SQLBuilder sb13 = new SQLBuilder("select value from lookup where key = ?", 42);
-        assertEquals(ts, sb13.getTimestamp(mockConnection, 1, null));
+        assertThat(sb13.getTimestamp(mockConnection, 1, null)).isEqualTo(ts);
 
         MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb14", new Object[][] { { ts } }));
         SQLBuilder sb14 = new SQLBuilder("select value from lookup where key = ?", 42);
@@ -180,7 +172,7 @@ class SQLBuilderTestJava {
             if (rs14.next()) {
                 ts14 = rs14.getTimestamp(1);
             }
-            assertEquals(ts, ts14);
+            assertThat(ts14).isEqualTo(ts);
         }
 
         MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb15", new String[] { "value" }, new Object[][] { { ts } }));
@@ -190,36 +182,36 @@ class SQLBuilderTestJava {
             if (rs15.next()) {
                 ts15 = rs15.getTimestamp("value");
             }
-            assertEquals(ts, ts15);
+            assertThat(ts15).isEqualTo(ts);
         }
 
         Date date = new Date(Instant.now().toEpochMilli());
         MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb16", new Object[][] { { date } }));
         SQLBuilder sb16 = new SQLBuilder("select value from lookup where key = ?", 42);
-        assertEquals(date, sb16.getDate(mockConnection, 1, null));
+        assertThat(sb16.getDate(mockConnection, 1, null)).isEqualTo(date);
 
         final SQLBuilder updateFoo = new SQLBuilder("update foo");
-        assertEquals(42, updateFoo.execute(mockConnection));
+        assertThat(updateFoo.execute(mockConnection)).isEqualTo(42);
 
         MockSQLBuilderProvider.setExecute(1);
-        assertEquals(1, updateFoo.execute(mockConnection));
-        assertEquals(1, updateFoo.execute(mockConnection));
-        assertEquals(1, updateFoo.execute(mockConnection));
-        assertEquals(1, updateFoo.execute(mockConnection));
+        assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
+        assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
+        assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
+        assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
 
         MockSQLBuilderProvider.setExecute(1, 0, 1);
-        assertEquals(1, updateFoo.execute(mockConnection));
-        assertEquals(0, updateFoo.execute(mockConnection));
-        assertEquals(1, updateFoo.execute(mockConnection));
-        assertEquals(42, updateFoo.execute(mockConnection));
+        assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
+        assertThat(updateFoo.execute(mockConnection)).isEqualTo(0);
+        assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
+        assertThat(updateFoo.execute(mockConnection)).isEqualTo(42);
 
         final AtomicInteger count = new AtomicInteger();
         MockSQLBuilderProvider.setExecute(() -> count.getAndIncrement() < 3 ? 1 : 2);
-        assertEquals(1, updateFoo.execute(mockConnection));
-        assertEquals(1, updateFoo.execute(mockConnection));
-        assertEquals(1, updateFoo.execute(mockConnection));
-        assertEquals(2, updateFoo.execute(mockConnection));
-        assertEquals(2, updateFoo.execute(mockConnection));
+        assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
+        assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
+        assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
+        assertThat(updateFoo.execute(mockConnection)).isEqualTo(2);
+        assertThat(updateFoo.execute(mockConnection)).isEqualTo(2);
     }
 
     @Test
@@ -229,8 +221,8 @@ class SQLBuilderTestJava {
         // default mocked resultset
         ResultSet rs = MockResultSet.create("copyTest1", "A", "3");
         MockSQLBuilderProvider.addResultSet(rs);
-        assertEquals(3, sqlBuilder.getInt(mockConnection, 1, -1));
-        assertEquals(42, sqlBuilder.getInt(mockConnection, 1, -1));
+        assertThat(sqlBuilder.getInt(mockConnection, 1, -1)).isEqualTo(3);
+        assertThat(sqlBuilder.getInt(mockConnection, 1, -1)).isEqualTo(42);
     }
 
     @Test
@@ -239,15 +231,15 @@ class SQLBuilderTestJava {
         // resultset twice will not produce the same result.
         ResultSet rs = MockResultSet.create("copyTest2", "A", "3");
         MockSQLBuilderProvider.addResultSet(rs);
-        assertEquals(3, sqlBuilder.getInt(mockConnection, 1, -1));
+        assertThat(sqlBuilder.getInt(mockConnection, 1, -1)).isEqualTo(3);
         MockSQLBuilderProvider.addResultSet(rs);
-        assertEquals(-1, sqlBuilder.getInt(mockConnection, 1, -1));
+        assertThat(sqlBuilder.getInt(mockConnection, 1, -1)).isEqualTo(-1);
     }
 
     @Test
     void brokenTest() throws SQLException {
-        MockSQLBuilderProvider.addResultSet(MockResultSet.broken("brokenTest"));
-        assertThrows(SQLException.class, () -> new SQLBuilder("select A from T").getInt(mockConnection, 1, -1));
+        MockSQLBuilderProvider.addResultSet(MockResultSet.broken(""));
+        assertThatExceptionOfType(SQLException.class).isThrownBy(() -> new SQLBuilder("select A from T").getInt(mockConnection, 1, -1));
     }
 
     @Test
@@ -255,8 +247,8 @@ class SQLBuilderTestJava {
         MockSQLBuilderProvider.addResultSet("executeReturningTest:id", "43");
         SQLBuilder sb = new SQLBuilder("insert into foo(foo_s.nextval, ?", "fooValue");
         ResultSet rs = sb.execute(mockConnection, "id");
-        assertTrue(rs.next());
-        assertEquals(43, rs.getInt(1));
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getInt(1)).isEqualTo(43);
     }
 
     @Test
@@ -264,7 +256,7 @@ class SQLBuilderTestJava {
         MockSQLBuilderProvider.addResultSet("unusedMockResultSet:first", "1");
         MockSQLBuilderProvider.addResultSet("unusedMockResultSet:second", "2");
         SQLBuilder sb1 = new SQLBuilder("select count(*) from foo");
-        assertEquals(1, sb1.getInt(mockConnection, 1, 0));
+        assertThat(sb1.getInt(mockConnection, 1, 0)).isEqualTo(1);
     }
 
     @Test
@@ -272,19 +264,19 @@ class SQLBuilderTestJava {
         OffsetDateTime now = OffsetDateTime.now();
         MockSQLBuilderProvider.addResultSet(MockResultSet.create("testDateTime", new Object[][] { { now } }));
         SQLBuilder sb1 = new SQLBuilder("select created from lookup where key = ?", 42);
-        assertEquals(now, sb1.getDateTime(mockConnection, 1, null));
+        assertThat(sb1.getDateTime(mockConnection, 1, null)).isEqualTo(now);
 
         SQLBuilder sb2 = new SQLBuilder("select created from lookup where key = ?", 42);
         final OffsetDateTime dt2 = sb2.getDateTime(mockConnection, 1, null);
-        assertNotNull(dt2);
+        assertThat(dt2).isNotNull();
         // This will fail in about 3000 years.  Hopefully, mankind is still around by then but no longer uses JDBC...
-        assertTrue(dt2.isAfter(now.plusYears(1000L)));
+        assertThat(dt2.isAfter(now.plusYears(1000L))).isTrue();
 
         SQLBuilder sb3 = new SQLBuilder("select created from lookup where key = ?", 42);
         final OffsetDateTime dt3 = sb3.getDateTime(mockConnection, "created", null);
-        assertNotNull(dt3);
+        assertThat(dt3).isNotNull();
         // This will fail in about 3000 years.  Hopefully, mankind is still around by then but no longer uses JDBC...
-        assertTrue(dt3.isAfter(now.plusYears(1000L)));
+        assertThat(dt3.isAfter(now.plusYears(1000L))).isTrue();
     }
 
     @Test
@@ -293,19 +285,19 @@ class SQLBuilderTestJava {
         OffsetDateTime oNow = now.atOffset(ZoneOffset.UTC);
         MockSQLBuilderProvider.addResultSet(MockResultSet.create("testInstant", new Object[][] { { oNow } }));
         SQLBuilder sb1 = new SQLBuilder("select created from lookup where key = ?", 42);
-        assertEquals(now, sb1.getInstant(mockConnection, 1, null));
+        assertThat(sb1.getInstant(mockConnection, 1, null)).isEqualTo(now);
 
         SQLBuilder sb2 = new SQLBuilder("select created from lookup where key = ?", 42);
         final Instant dt2 = sb2.getInstant(mockConnection, 1, null);
-        assertNotNull(dt2);
+        assertThat(dt2).isNotNull();
         // This will fail in about 1150 years.  Hopefully, mankind is still around by then but no longer uses JDBC...
-        assertTrue(dt2.isAfter(now.plus(420_000L, ChronoUnit.DAYS)));
+        assertThat(dt2.isAfter(now.plus(420_000L, ChronoUnit.DAYS))).isTrue();
 
         SQLBuilder sb3 = new SQLBuilder("select created from lookup where key = ?", 42);
         final Instant dt3 = sb3.getInstant(mockConnection, "created", null);
-        assertNotNull(dt3);
+        assertThat(dt3).isNotNull();
         // This will fail in about 1150 years.  Hopefully, mankind is still around by then but no longer uses JDBC...
-        assertTrue(dt3.isAfter(now.plus(420_000L, ChronoUnit.DAYS)));
+        assertThat(dt3.isAfter(now.plus(420_000L, ChronoUnit.DAYS))).isTrue();
     }
 
     @Test
@@ -315,13 +307,13 @@ class SQLBuilderTestJava {
         SQLBuilder sb1 = new SQLBuilder("select count(*) from lookup");
 
         try (ResultSet rs = sb1.getResultSet(mockConnection)) {
-            assertTrue(rs.next());
-            assertFalse(rs.next());
+            assertThat(rs.next()).isTrue();
+            assertThat(rs.next()).isFalse();
         }
 
         try (ResultSet rs = sb1.getResultSet(mockConnection)) {
-            assertTrue(rs.next());
-            assertFalse(rs.next());
+            assertThat(rs.next()).isTrue();
+            assertThat(rs.next()).isFalse();
         }
     }
 
@@ -333,11 +325,11 @@ class SQLBuilderTestJava {
             SQLBuilder sb1 = new SQLBuilder("select count(*) from lookup");
 
             try (ResultSet rs = sb1.getResultSet(mockConnection)) {
-                assertFalse(rs.next());
+                assertThat(rs.next()).isFalse();
             }
 
             try (ResultSet rs = sb1.getResultSet(mockConnection)) {
-                assertFalse(rs.next());
+                assertThat(rs.next()).isFalse();
             }
         } finally {
             SQLBuilder.setDelegate(new MockSQLBuilderProvider(true, true));
@@ -352,12 +344,12 @@ class SQLBuilderTestJava {
         SQLBuilder sb = new SQLBuilder("select count(*) from lookup");
 
         try (ResultSet rs = sb.getResultSet(mockConnection)) {
-            assertFalse(rs.next());
+            assertThat(rs.next()).isFalse();
         }
 
         try (ResultSet rs = sb.getResultSet(mockConnection)) {
-            assertTrue(rs.next());
-            assertFalse(rs.next());
+            assertThat(rs.next()).isTrue();
+            assertThat(rs.next()).isFalse();
         }
     }
 
@@ -374,8 +366,7 @@ class SQLBuilderTestJava {
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", "_,3\n_,1\n_,4");
         List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getInt(2));
-        assertThat(l.size(), is(3));
-        assertThat(l, is(Arrays.asList(3, 1, 4)));
+        assertThat(l).containsExactly(3, 1, 4);
     }
 
     @Test
@@ -385,8 +376,7 @@ class SQLBuilderTestJava {
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 3 }, { "", null }, { "", 4 } });
         List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getInt(2));
-        assertThat(l.size(), is(3));
-        assertThat(l, is(Arrays.asList(3, 0, 4)));
+        assertThat(l).containsExactly(3, 0, 4);
     }
 
     @Test
@@ -396,8 +386,7 @@ class SQLBuilderTestJava {
         // then expect to get a list with 2 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", "first" }, { "", null }, { "", "third" } });
         List<String> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getString(2));
-        assertThat(l.size(), is(2));
-        assertThat(l, is(Arrays.asList("first", "third")));
+        assertThat(l).containsExactly("first", "third");
     }
 
     @Test
@@ -407,8 +396,7 @@ class SQLBuilderTestJava {
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", "first" }, { "", null }, { "", "third" } });
         List<String> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getString(2), true);
-        assertThat(l.size(), is(3));
-        assertThat(l, is(Arrays.asList("first", null, "third")));
+        assertThat(l).containsExactly("first", null, "third");
     }
 
     @Test
@@ -418,8 +406,7 @@ class SQLBuilderTestJava {
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
         List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> { int i = rs.getInt(2); return rs.wasNull() ? -1 : i;});
-        assertThat(l.size(), is(3));
-        assertThat(l, is(Arrays.asList(1, -1, 3)));
+        assertThat(l).containsExactly(1, -1, 3);
     }
 
     @Test
@@ -431,8 +418,7 @@ class SQLBuilderTestJava {
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
         List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getObject(2))
                 .stream().map(i -> (Integer) i).collect(Collectors.toList());
-        assertThat(l.size(), is(2));
-        assertThat(l, is(Arrays.asList(1, 3)));
+        assertThat(l).containsExactly(1, 3);
     }
 
     @Test
@@ -443,8 +429,7 @@ class SQLBuilderTestJava {
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
         List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getObject(2), true)
                 .stream().map(i -> (Integer) i).collect(Collectors.toList());
-        assertThat(l.size(), is(3));
-        assertThat(l, is(Arrays.asList(1, null, 3)));
+        assertThat(l).containsExactly(1, null, 3);
     }
 
     @Test
@@ -454,9 +439,8 @@ class SQLBuilderTestJava {
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", "3,Three\n1,One\n4,Four");
         Map<Integer, String> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getInt(1), rs.getString(2)));
-        assertThat(m.size(), is(3));
-        assertThat(m.keySet(), containsInAnyOrder(3, 1, 4));
-        assertTrue(m.containsValue("Three"));
+        assertThat(m.keySet()).containsExactlyInAnyOrder(3, 1, 4);
+        assertThat(m).containsValue("Three");
     }
 
     @Test
@@ -464,7 +448,7 @@ class SQLBuilderTestJava {
         // when query returns 3 rows with duplicate keys
         // then expect to get an IllegalStateException
         MockSQLBuilderProvider.addResultSet("", "3,Three\n1,One\n3,Four");
-        assertThrows(IllegalStateException.class, () -> sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getInt(1), rs.getString(2))));
+        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getInt(1), rs.getString(2))));
     }
 
     @Test
@@ -473,7 +457,7 @@ class SQLBuilderTestJava {
         // then expect to get an IllegalStateException
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { 3, "Three" }, { null, "Zero" } });
         // Note: we cannot use `getInt` for the key here because that would automatically convert `null` to `0` and thus not throw the expected exception
-        assertThrows(IllegalStateException.class, () -> sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getObject(1), rs.getString(2))));
+        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getObject(1), rs.getString(2))));
     }
 
     @Test
@@ -484,9 +468,7 @@ class SQLBuilderTestJava {
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "1", 1 }, { "2", null }, { "3", 3 } });
         Map<String, Integer> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)));
         // size is 3 and not 2 although 2 is mapped to null because we use getInt which will automatically convert null to 0
-        assertThat(m.size(), is(3));
-        assertThat(m.keySet(), containsInAnyOrder("1", "2", "3"));
-        assertFalse(m.containsValue("Three"));
+        assertThat(m.keySet()).containsExactlyInAnyOrder("1", "2", "3");
     }
 
     @Test
@@ -496,9 +478,7 @@ class SQLBuilderTestJava {
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "1", 1 }, { "2", null }, { "3", 3 } });
         Map<String, Integer> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)), false);
-        assertThat(m.size(), is(3));
-        assertThat(m.keySet(), containsInAnyOrder("1", "2", "3"));
-        assertFalse(m.containsValue("Three"));
+        assertThat(m.keySet()).containsExactlyInAnyOrder("1", "2", "3");
     }
 
     @Test
@@ -508,8 +488,7 @@ class SQLBuilderTestJava {
         // then expect to get the first element
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { 3L }, { 1L }, { 4L } });
         Optional<Long> l = sqlBuilder.getSingle(mockConnection, (rs) -> rs.getLong(1));
-        assertThat(l.isPresent(), is(true));
-        assertThat(l.get(), is(3L));
+        assertThat(l).isPresent().hasValue(3L);
     }
 
     @Test
@@ -519,7 +498,7 @@ class SQLBuilderTestJava {
         // then expect to get the first element
         MockSQLBuilderProvider.addResultSet("", "first\nsecond\nthird");
         String s = sqlBuilder.getString(mockConnection, 1, "default");
-        assertThat(s, is("first"));
+        assertThat(s).isEqualTo("first");
     }
 
     @Test
@@ -529,7 +508,7 @@ class SQLBuilderTestJava {
         // then expect to get the first element
         MockSQLBuilderProvider.addResultSet("", "first");
         String s = sqlBuilder.getString(mockConnection, 1, "default");
-        assertThat(s, is("first"));
+        assertThat(s).isEqualTo("first");
     }
 
     @Test
@@ -538,7 +517,7 @@ class SQLBuilderTestJava {
         // then expect to get the default element
         MockSQLBuilderProvider.addResultSet(MockResultSet.empty(""));
         String s = sqlBuilder.getString(mockConnection, 1, "default");
-        assertThat(s, is("default"));
+        assertThat(s).isEqualTo("default");
     }
 
     @Test
@@ -547,7 +526,7 @@ class SQLBuilderTestJava {
         // then expect to get the default element even if that is null
         MockSQLBuilderProvider.addResultSet(MockResultSet.empty(""));
         String s = sqlBuilder.getString(mockConnection, 1, null);
-        assertThat(s, nullValue());
+        assertThat(s).isNull();
     }
 
     @Test
@@ -557,7 +536,8 @@ class SQLBuilderTestJava {
         // then expect to get the first element
         MockSQLBuilderProvider.addResultSet("", "LABEL", "first\nsecond\nthird");
         String s = sqlBuilder.getString(mockConnection, "LABEL", "default");
-        assertThat(s, is("first"));
+        assertThat(s).isEqualTo("first");
+
     }
 
 
@@ -567,7 +547,7 @@ class SQLBuilderTestJava {
         // then expect to get an empty optional
         MockSQLBuilderProvider.addResultSet(MockResultSet.empty(""));
         Optional<Long> l = sqlBuilder.getSingle(mockConnection, (rs) -> rs.getLong(1));
-        assertThat(l.isPresent(), is(false));
+        assertThat(l).isNotPresent();
     }
 
     @Test
@@ -581,8 +561,7 @@ class SQLBuilderTestJava {
         while (rs.next()) {
             l.add(rs.getInt(2));
         }
-        assertThat(l.size(), is(3));
-        assertThat(l, is(Arrays.asList(3, 1, 4)));
+        assertThat(l).containsExactly(3, 1, 4);
     }
 
     @Test
@@ -596,8 +575,7 @@ class SQLBuilderTestJava {
         while (rs.next()) {
             l.add(rs.getLong(3));
         }
-        assertThat(l.size(), is(1));
-        assertThat(l.get(0), is(3L));
+        assertThat(l).containsExactly(3L);
     }
 
     @Test
@@ -606,58 +584,58 @@ class SQLBuilderTestJava {
         // then expect to get a resultset that returns no row
         MockSQLBuilderProvider.addResultSet(MockResultSet.empty(""));
         ResultSet rs = sqlBuilder.getResultSet(mockConnection);
-        assertThat(rs.next(), is(false));
+        assertThat(rs.next()).isFalse();
     }
 
     @Test
     void placeholder_dollar() {
         SQLBuilder sb = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
-        assertEquals("select a, ${b} from ${t} where x > ?; args=[5]", sb.toString());
+        assertThat(sb.toString()).isEqualTo("select a, ${b} from ${t} where x > ?; args=[5]");
         sb.bind("b", "BCOL").bind("t", "table1");
-        assertEquals("select a, BCOL from table1 where x > ?; args=[5]", sb.toString());
+        assertThat(sb.toString()).isEqualTo("select a, BCOL from table1 where x > ?; args=[5]");
     }
 
     @Test
     void placeholder_colon() {
         SQLBuilder sb = new SQLBuilder("select a, :{b} from :{t} where x > ?", 5);
-        assertEquals("select a, :{b} from :{t} where x > ?; args=[5]", sb.toString());
+        assertThat(sb.toString()).isEqualTo("select a, :{b} from :{t} where x > ?; args=[5]");
         sb.bind("b", "BCOL").bind("t", "table1");
-        assertEquals("select a, BCOL from table1 where x > ?; args=[5]", sb.toString());
+        assertThat(sb.toString()).isEqualTo("select a, BCOL from table1 where x > ?; args=[5]");
     }
 
     @Test
     void multiPlaceholder_dollar() {
         SQLBuilder sb = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
-        assertEquals("select a, ${b} from ${t} where x > ?; args=[5]", sb.toString());
+        assertThat(sb.toString()).isEqualTo("select a, ${b} from ${t} where x > ?; args=[5]");
         sb.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb.toString());
+        assertThat(sb.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
     }
 
     @Test
     void multiPlaceholder_colon() {
         SQLBuilder sb = new SQLBuilder("select a, :{b} from :{t} where x > ?", 5);
-        assertEquals("select a, :{b} from :{t} where x > ?; args=[5]", sb.toString());
+        assertThat(sb.toString()).isEqualTo("select a, :{b} from :{t} where x > ?; args=[5]");
         sb.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb.toString());
+        assertThat(sb.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
     }
 
     @Test
     void invalidPlaceholder_dollar() {
         SQLBuilder sb = new SQLBuilder("select a, ${b+} from ${t} where x > ?", 5);
-        assertEquals("select a, ${b+} from ${t} where x > ?; args=[5]", sb.toString());
-        assertThrows(IllegalArgumentException.class, () -> sb.bind("b+", "BCOL"));
+        assertThat(sb.toString()).isEqualTo("select a, ${b+} from ${t} where x > ?; args=[5]");
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> sb.bind("b+", "BCOL"));
     }
 
     @Test
     void invalidPlaceholder_colon() {
         SQLBuilder sb = new SQLBuilder("select a, :{b+} from :{t} where x > ?", 5);
-        assertEquals("select a, :{b+} from :{t} where x > ?; args=[5]", sb.toString());
-        assertThrows(IllegalArgumentException.class, () -> sb.bind("b+", "BCOL"));
+        assertThat(sb.toString()).isEqualTo("select a, :{b+} from :{t} where x > ?; args=[5]");
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> sb.bind("b+", "BCOL"));
     }
 
     @Test
     void repeatedPlaceholder() {
-        assertThrows(IllegalArgumentException.class, () -> new SQLBuilder("").bind("a", "first").bind("a", "second"));
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> new SQLBuilder("").bind("a", "first").bind("a", "second"));
     }
 
     @Test
@@ -665,7 +643,7 @@ class SQLBuilderTestJava {
         SQLBuilder sb1 = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
         sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
         SQLBuilder sb2 = new SQLBuilder(sb1);
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb2.toString());
+        assertThat(sb2.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
     }
 
     @Test
@@ -673,68 +651,68 @@ class SQLBuilderTestJava {
         SQLBuilder sb1 = new SQLBuilder("select a, :{b} from :{t} where x > ?", 5);
         sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
         SQLBuilder sb2 = new SQLBuilder(sb1);
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb2.toString());
+        assertThat(sb2.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
     }
 
     @Test
     void repeatedPlaceholder2() {
         SQLBuilder sb1 = new SQLBuilder("").bind("a", "first");
         SQLBuilder sb2 = new SQLBuilder("").bind("a", "first");
-        assertThrows(IllegalArgumentException.class, () -> sb1.append(sb2));
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> sb1.append(sb2));
     }
 
     @Test
     void repeatedPlaceholder3_dollar() {
         SQLBuilder sb1 = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
         sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString());
+        assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         SQLBuilder sb2 = new SQLBuilder("select ${b} from (").append(sb1).append(")");
-        assertEquals("select BCOL, CCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]", sb2.toString());
+        assertThat(sb2.toString()).isEqualTo("select BCOL, CCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]");
     }
 
     @Test
     void repeatedPlaceholder3_colon() {
         SQLBuilder sb1 = new SQLBuilder("select a, :{b} from :{t} where x > ?", 5);
         sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString());
+        assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         SQLBuilder sb2 = new SQLBuilder("select :{b} from (").append(sb1).append(")");
-        assertEquals("select BCOL, CCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]", sb2.toString());
+        assertThat(sb2.toString()).isEqualTo("select BCOL, CCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]");
     }
 
     @Test
     void repeatedPlaceholder4_dollar() {
         SQLBuilder sb1 = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
         sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString());
+        assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         SQLBuilder sb2 = new SQLBuilder("select ${b} from (").append(sb1).append(")");
-        assertThrows(IllegalArgumentException.class, () -> sb2.bind("b", "BCOL"));
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> sb2.bind("b", "BCOL"));
     }
 
     @Test
     void repeatedPlaceholder4_colon() {
         SQLBuilder sb1 = new SQLBuilder("select a, :{b} from :{t} where x > ?", 5);
         sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString());
+        assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         SQLBuilder sb2 = new SQLBuilder("select :{b} from (").append(sb1).append(")");
-        assertThrows(IllegalArgumentException.class, () -> sb2.bind("b", "BCOL"));
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> sb2.bind("b", "BCOL"));
     }
 
     @Test
     void repeatedPlaceholder5_dollar() {
         SQLBuilder sb1 = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
         sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString());
+        assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         SQLBuilder sb2 = new SQLBuilder("select ${b} from (").append(sb1.applyBindings()).append(")").bind("b", "BCOL");
-        assertEquals("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]", sb2.toString());
+        assertThat(sb2.toString()).isEqualTo("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]");
     }
 
     @Test
     void repeatedPlaceholder5_colon() {
         SQLBuilder sb1 = new SQLBuilder("select a, :{b} from :{t} where x > ?", 5);
         sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString());
+        assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         SQLBuilder sb2 = new SQLBuilder("select :{b} from (").append(sb1.applyBindings()).append(")").bind("b", "BCOL");
-        assertEquals("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]", sb2.toString());
+        assertThat(sb2.toString()).isEqualTo("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]");
     }
 
     @Test
@@ -742,12 +720,12 @@ class SQLBuilderTestJava {
         SQLBuilder sb1 = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
         sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
         String sb1s = sb1.toString();
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString());
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString());
+        assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
+        assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         sb1.applyBindings();
-        assertEquals(sb1s, sb1.toString());
+        assertThat(sb1.toString()).isEqualTo(sb1s);
         SQLBuilder sb2 = new SQLBuilder("select ${b} from (").append(sb1).append(")").bind("b", "BCOL");
-        assertEquals("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]", sb2.toString());
+        assertThat(sb2.toString()).isEqualTo("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]");
     }
 
     @Test
@@ -755,53 +733,48 @@ class SQLBuilderTestJava {
         SQLBuilder sb1 = new SQLBuilder("select a, :{b} from :{t} where x > ?", 5);
         sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
         String sb1s = sb1.toString();
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString());
-        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", sb1.toString());
+        assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
+        assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         sb1.applyBindings();
-        assertEquals(sb1s, sb1.toString());
+        assertThat(sb1.toString()).isEqualTo(sb1s);
         SQLBuilder sb2 = new SQLBuilder("select :{b} from (").append(sb1).append(")").bind("b", "BCOL");
-        assertEquals("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]", sb2.toString());
+        assertThat(sb2.toString()).isEqualTo("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]");
     }
 
     @Test
     void testFromNumberedParams() {
         QueryParams params = new QueryParamsImpl();
-        assertEquals("select n from t where i=?); args=[a]", SQLBuilder.fromNumberedParameters("select n from t where i=:1)", params).toString());
-        assertEquals("select n from t where i=? or i=?); args=[a, b]", SQLBuilder.fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString());
-        assertEquals("select n from t where i=? or i=?); args=[b, a]", SQLBuilder.fromNumberedParameters("select n from t where i=:2 or i=:1)", params).toString());
-        assertEquals("select n from t where i=? or k=?); args=[b, b]", SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString());
-        assertEquals("select n from t where i=? or k=':4'); args=[b]", SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString());
-        assertEquals("select n from t where i=? or k=':2'); args=[b]", SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString());
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:1)", params).toString()).isEqualTo("select n from t where i=?); args=[a]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString()).isEqualTo("select n from t where i=? or i=?); args=[a, b]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or i=:1)", params).toString()).isEqualTo("select n from t where i=? or i=?); args=[b, a]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString()).isEqualTo("select n from t where i=? or k=?); args=[b, b]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString()).isEqualTo("select n from t where i=? or k=':4'); args=[b]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString()).isEqualTo("select n from t where i=? or k=':2'); args=[b]");
     }
 
     @Test
     void maskData() {
-        assertEquals("select name from user where secret=?; args=[__masked__:982c0381c279d139fd221fce974916e7]",
-                new SQLBuilder("select name from user where secret=?", SQLBuilder.mask("oops!")).toString());
+        assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask("oops!")).toString()).isEqualTo("select name from user where secret=?; args=[__masked__:982c0381c279d139fd221fce974916e7]");
     }
 
     @Test
     void maskDataNull() {
-        assertEquals("select name from user where secret=?; args=[null]",
-                new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(null)).toString());
+        assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(null)).toString()).isEqualTo("select name from user where secret=?; args=[null]");
     }
 
     @Test
     void maskDataEmpty() {
-        assertEquals("select name from user where secret=?; args=[]",
-                new SQLBuilder("select name from user where secret=?", SQLBuilder.mask("")).toString());
+        assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask("")).toString()).isEqualTo("select name from user where secret=?; args=[]");
     }
 
     @Test
     void maskDataLong() {
-        assertEquals("select name from user where secret=?; args=[__masked__:a1d0c6e83f027327d8461063f4ac58a6]",
-                new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(42L)).toString());
+        assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(42L)).toString()).isEqualTo("select name from user where secret=?; args=[__masked__:a1d0c6e83f027327d8461063f4ac58a6]");
     }
 
     @Test
     void maskDataMixed() {
-        assertEquals("select name from user where secret=? and public=?; args=[__masked__:982c0381c279d139fd221fce974916e7, ok]",
-                new SQLBuilder("select name from user where secret=? and public=?", SQLBuilder.mask("oops!"), "ok").toString());
+        assertThat(new SQLBuilder("select name from user where secret=? and public=?", SQLBuilder.mask("oops!"), "ok").toString()).isEqualTo("select name from user where secret=? and public=?; args=[__masked__:982c0381c279d139fd221fce974916e7, ok]");
     }
 
     private String masked(Object value) {
@@ -810,16 +783,16 @@ class SQLBuilderTestJava {
 
     @Test
     void maskSame() {
-        assertEquals(masked("hello"), masked("hello"));
-        assertEquals(masked(42L), masked(Long.valueOf("42")));
-        assertEquals(masked(42), masked(Long.valueOf("42")));
+        assertThat(masked("hello")).isEqualTo(masked("hello"));
+        assertThat(masked(Long.valueOf("42"))).isEqualTo(masked(42L));
+        assertThat(masked(Long.valueOf("42"))).isEqualTo(masked(42));
     }
 
     @Test
     void mockInt() throws SQLException {
         SQLBuilder sb = new SQLBuilder("select count(*) from foo");
         MockSQLBuilderProvider.setIntByColumnIndex((c, d) -> { switch (c) {case 1: return 3; default: return d;}});
-        assertEquals(3, sb.getInt(mockConnection, 1, 4));
+        assertThat(sb.getInt(mockConnection, 1, 4)).isEqualTo(3);
     }
 
     @Test
@@ -827,8 +800,7 @@ class SQLBuilderTestJava {
         MockSQLBuilderProvider.addResultSet("", "_,3\n_,1\n_,4");
         // TODO: this just tests that `withMaxRows` is accepted, but not the actual implementation.
         List<Integer> l = sqlBuilder.withMaxRows(1).getList(mockConnection, (rs) -> rs.getInt(2));
-        assertThat(l.size(), is(3));
-        assertThat(l, is(Arrays.asList(3, 1, 4)));
+        assertThat(l).containsExactly(3, 1, 4);
     }
 
     static class QueryParamsImpl implements QueryParams {
