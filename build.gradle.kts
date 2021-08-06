@@ -20,6 +20,7 @@ repositories {
 subprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "java-library")
+    apply(plugin = "kotlin")
     apply(plugin = "signing")
 
     group = "com.metricstream.jdbc"

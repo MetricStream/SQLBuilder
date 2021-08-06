@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 
-class SQLBuilderTest {
+class SQLBuilderTestJava {
 
     private static final Connection mockConnection = Mockito.mock(Connection.class);
     private final SQLBuilder sqlBuilder = new SQLBuilder("SELECT 42 FROM DUAL");
@@ -819,7 +819,7 @@ class SQLBuilderTest {
     void mockInt() throws SQLException {
         SQLBuilder sb = new SQLBuilder("select count(*) from foo");
         MockSQLBuilderProvider.setIntByColumnIndex((c, d) -> { switch (c) {case 1: return 3; default: return d;}});
-        assertEquals(3, sb.getInt(null, 1, 4));
+        assertEquals(3, sb.getInt(mockConnection, 1, 4));
     }
 
     @Test

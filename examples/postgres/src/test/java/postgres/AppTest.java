@@ -4,7 +4,10 @@
 package postgres;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.MockitoAnnotations.initMocks;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -13,6 +16,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -22,27 +26,31 @@ import com.metricstream.jdbc.MockSQLBuilderProvider;
 
 
 @ExtendWith(MockitoExtension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AppTest {
 
     @InjectMocks
     App classUnderTest;
 
-    // IDE shows this as unused but in reality this is required for mocking access to Postgres
     @Mock
     DBConnection dbConnection;
 
+    @Mock
+    Connection connection;
 
-    @BeforeAll static void beforeAll() {
+
+    @BeforeAll void beforeAll() {
         MockSQLBuilderProvider.enable();
     }
 
     @AfterAll
-    static void afterAll() {
+    void afterAll() {
         MockSQLBuilderProvider.disable();
     }
 
-    @BeforeEach void beforeEach() {
+    @BeforeEach void beforeEach() throws SQLException {
         MockSQLBuilderProvider.reset();
+        doReturn(connection).when(dbConnection).getConnection();
     }
 
     @Test void isAnneInvited() throws SQLException {
