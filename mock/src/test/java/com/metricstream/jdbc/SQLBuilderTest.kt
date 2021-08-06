@@ -185,23 +185,31 @@ internal class SQLBuilderTest {
         sb16.getDate(mockConnection, 1, null) shouldBe date
         val updateFoo = SQLBuilder("update foo")
         updateFoo.execute(mockConnection) shouldBe 42
-        setExecute(1)
+
+        MockSQLBuilderProvider.setExecute("testMock", 1)
         updateFoo.execute(mockConnection) shouldBe 1
         updateFoo.execute(mockConnection) shouldBe 1
         updateFoo.execute(mockConnection) shouldBe 1
         updateFoo.execute(mockConnection) shouldBe 1
-        setExecute(1, 0, 1)
+
+        MockSQLBuilderProvider.setExecute("", 1, 0, 1)
         updateFoo.execute(mockConnection) shouldBe 1
         updateFoo.execute(mockConnection) shouldBe 0
         updateFoo.execute(mockConnection) shouldBe 1
         updateFoo.execute(mockConnection) shouldBe 42
+
         val count = AtomicInteger()
-        setExecute { if (count.getAndIncrement() < 3) 1 else 2 }
+        MockSQLBuilderProvider.setExecute("testMock") { if (count.getAndIncrement() < 3) 1 else 2 }
         updateFoo.execute(mockConnection) shouldBe 1
         updateFoo.execute(mockConnection) shouldBe 1
         updateFoo.execute(mockConnection) shouldBe 1
         updateFoo.execute(mockConnection) shouldBe 2
         updateFoo.execute(mockConnection) shouldBe 2
+
+        shouldThrow<IllegalStateException> {
+            MockSQLBuilderProvider.setExecute("abc", 1)
+            updateFoo.execute(mockConnection) shouldBe 1
+        } shouldHaveMessage "Trying to use abc for method testMock"
     }
 
     @Test

@@ -160,7 +160,8 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
     }
 
     override fun execute(sqlBuilder: SQLBuilder, connection: Connection): Int {
-        return executeSupplier!!.get()
+        checkTag(executeTag)
+        return executeSupplier.get()
     }
 
     override fun execute(sqlBuilder: SQLBuilder, connection: Connection, vararg keyColumns: String): ResultSet {
@@ -191,33 +192,34 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
     @Throws(SQLException::class)
     private fun getRs(): ResultSet {
         var rs = mockResultSets.poll()
-        if (rs != null) {
-            if (enforceTags) {
-                val tag = rs.toString()
-                if (tag.isNotEmpty() && !tag.startsWith("MockResultSet#")) {
-                    val stackTrace = Throwable().stackTrace
-                    for (stackTraceElement in stackTrace) {
-                        val declaringClass = stackTraceElement.className
-                        val methodName = stackTraceElement.methodName
-                        if (declaringClass != "com.metricstream.jdbc.MockSQLBuilderProvider"
-                            && declaringClass != "com.metricstream.jdbc.SQLBuilder"
-                            && !declaringClass.startsWith("org.junit.")
-                            && !methodName.startsWith("lambda$")
-                            && !methodName.contains(Regex("""\${"$"}lambda-\d+$"""))
-                        ) {
-                            check(methodName == tag.split(":").first()) { "Trying to use $tag for method $methodName" }
-                            break
-                        }
-                    }
-                }
-            }
-        } else if (generateSingleRowResultSet) {
-            rs = MockResultSet.create("", "42", withLabels = false, generated = true)
-        } else {
-            rs = MockResultSet.empty("")
+        when {
+            rs != null -> checkTag(rs.toString())
+            generateSingleRowResultSet -> rs = MockResultSet.create("", "42", withLabels = false, generated = true)
+            else -> rs = MockResultSet.empty("")
         }
         logger.debug("Using mock ResultSet {}", rs)
         return rs
+    }
+
+    private fun checkTag(tag: String) {
+        if (enforceTags && tag.isNotEmpty() && !tag.startsWith("MockResultSet#")) {
+            val stackTrace = Throwable().stackTrace
+            for (stackTraceElement in stackTrace) {
+                val declaringClass = stackTraceElement.className
+                val methodName = stackTraceElement.methodName
+                if (declaringClass != "com.metricstream.jdbc.MockSQLBuilderProvider"
+                    && declaringClass != "com.metricstream.jdbc.SQLBuilder"
+                    && !declaringClass.startsWith("org.junit.")
+                    && methodName != "catchThrowable"
+                    && methodName != "isThrownBy"
+                    && !methodName.startsWith("lambda$")
+                    && !methodName.contains(Regex("""\${"$"}lambda-\d+$"""))
+                ) {
+                    check(methodName == tag.split(":").first()) { "Trying to use $tag for method $methodName" }
+                    break
+                }
+            }
+        }
     }
 
     companion object {
@@ -233,7 +235,8 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         private var bigDecimalByColumnLabel: BiFunction<String, BigDecimal?, BigDecimal?>? = null
         private var objectByColumnIndex: BiFunction<Int, Any?, Any?>? = null
         private var objectByColumnLabel: BiFunction<String, Any?, Any?>? = null
-        private var executeSupplier: Supplier<Int>? = null
+        private var executeSupplier: Supplier<Int> = Supplier { 42 }
+        private var executeTag: String = ""
         @JvmStatic
         fun enable() {
             setDelegate(MockSQLBuilderProvider())
@@ -331,18 +334,21 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         }
 
         @JvmStatic
-        fun setExecute(supplier: Supplier<Int>?) {
+        fun setExecute(tag: String, supplier: Supplier<Int>) {
+            executeTag = tag
             executeSupplier = supplier
         }
 
         @JvmStatic
-        fun setExecute(value: Int) {
+        fun setExecute(tag: String, value: Int) {
+            executeTag = tag
             executeSupplier = Supplier { value }
         }
 
         @JvmStatic
-        fun setExecute(vararg values: Int) {
+        fun setExecute(tag: String, vararg values: Int) {
             val count = AtomicInteger()
+            executeTag = tag
             executeSupplier = Supplier { if (count.get() < values.size) values[count.getAndIncrement()] else 42 }
         }
 
@@ -362,7 +368,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             bigDecimalByColumnLabel = null
             objectByColumnIndex = null
             objectByColumnLabel = null
-            setExecute(42)
+            setExecute("", 42)
         }
     }
 

@@ -193,25 +193,30 @@ class SQLBuilderTestJava {
         final SQLBuilder updateFoo = new SQLBuilder("update foo");
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(42);
 
-        MockSQLBuilderProvider.setExecute(1);
+        MockSQLBuilderProvider.setExecute("testMock", 1);
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
 
-        MockSQLBuilderProvider.setExecute(1, 0, 1);
+        MockSQLBuilderProvider.setExecute("", 1, 0, 1);
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(0);
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(42);
 
         final AtomicInteger count = new AtomicInteger();
-        MockSQLBuilderProvider.setExecute(() -> count.getAndIncrement() < 3 ? 1 : 2);
+        MockSQLBuilderProvider.setExecute("testMock", () -> count.getAndIncrement() < 3 ? 1 : 2);
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(1);
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(2);
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(2);
+
+        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
+            MockSQLBuilderProvider.setExecute("abc", 1);
+            updateFoo.execute(mockConnection);
+        }).withMessage("Trying to use abc for method testMock");
     }
 
     @Test
