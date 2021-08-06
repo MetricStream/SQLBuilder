@@ -25,6 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -816,13 +818,15 @@ class SQLBuilderTestJava {
                 .mapToObj(String::valueOf)
                 .collect(Collectors.toList());
 
+        @Nullable
         @Override
-        public Object getParameterValue(String name) {
+        public Object getParameterValue(@NotNull String name) {
             return getParameterValue(name, false);
         }
 
+        @Nullable
         @Override
-        public Object getParameterValue(String name, boolean isMulti) {
+        public Object getParameterValue(@NotNull String name, boolean isMulti) {
             final String value = values[Integer.parseInt(name) - 1];
             if (isMulti) {
                 String[] values = new String[4];
@@ -832,24 +836,27 @@ class SQLBuilderTestJava {
             return value;
         }
 
+        @Nullable
         @Override
-        public Object getParameterValue(String name, boolean isMulti, boolean dateAsString) {
+        public Object getParameterValue(@NotNull String name, boolean isMulti, boolean dateAsString) {
             return getParameterValue(name, isMulti);
         }
 
+        @NotNull
         @Override
         public List<String> getParamNames() {
             return names;
         }
 
         @Override
-        public boolean dateAsStringNeeded(String subStr) {
+        public boolean dateAsStringNeeded(@NotNull String subStr) {
             return false;
         }
 
+        @NotNull
         @Override
         public String getDateParameterAsString() {
-            return null;
+            return "";
         }
 
     }

@@ -764,7 +764,7 @@ class SQLBuilder {
         @JvmStatic
         fun fromNumberedParameters(sql: String, params: QueryParams): SQLBuilder {
             val paramNames = params.paramNames
-            if (paramNames == null || paramNames.isEmpty()) {
+            if (paramNames.isEmpty()) {
                 return SQLBuilder(sql)
             }
             val names = StringJoiner("|")

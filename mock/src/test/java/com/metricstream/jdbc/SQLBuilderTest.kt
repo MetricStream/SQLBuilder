@@ -779,7 +779,7 @@ internal class SQLBuilderTest {
     @Throws(SQLException::class)
     fun mockInt() {
         val sb = SQLBuilder("select count(*) from foo")
-        setIntByColumnIndex { c: Int, d: Int ->
+        MockSQLBuilderProvider.setIntByColumnIndex { c: Int, d: Int ->
             when (c) {
                 1 -> return@setIntByColumnIndex 3
                 else -> return@setIntByColumnIndex d
@@ -800,14 +800,14 @@ internal class SQLBuilderTest {
     internal class QueryParamsImpl : QueryParams {
         // some arbitrary param values for testing
         private val values = arrayOf("a", "b", "c")
-        override val paramNames = (1..values.size).map(Int::toString)
+        override val paramNames: List<String> = (1..values.size).map(Int::toString)
 
-        override fun getParameterValue(name: String?): Any? {
+        override fun getParameterValue(name: String): Any? {
             return getParameterValue(name, false)
         }
 
-        override fun getParameterValue(name: String?, isMulti: Boolean): Any? {
-            val value = values[name!!.toInt() - 1]
+        override fun getParameterValue(name: String, isMulti: Boolean): Any? {
+            val value = values.getOrNull(name!!.toInt() - 1)
             if (isMulti) {
                 val values = arrayOfNulls<String>(4)
                 Arrays.fill(values, value)
@@ -816,15 +816,14 @@ internal class SQLBuilderTest {
             return value
         }
 
-        override fun getParameterValue(name: String?, isMulti: Boolean, dateAsString: Boolean): Any? {
+        override fun getParameterValue(name: String, isMulti: Boolean, dateAsString: Boolean): Any? {
             return getParameterValue(name, isMulti)
         }
 
-        override fun dateAsStringNeeded(subStr: String?): Boolean {
+        override fun dateAsStringNeeded(subStr: String): Boolean {
             return false
         }
 
-        override val dateParameterAsString: String?
-            get() = null
+        override val dateParameterAsString: String = ""
     }
 }

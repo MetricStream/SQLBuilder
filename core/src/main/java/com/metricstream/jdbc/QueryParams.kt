@@ -11,15 +11,15 @@ interface QueryParams {
      * @param name name of the parameter
      * @return parameter value by name
      */
-    fun getParameterValue(name: String?): Any?
+    fun getParameterValue(name: String): Any?
 
     /**
      * @param name name of the parameter
      * @param isMulti can have multiple values
      * @return parameter values collection if it is has multiple values by name
      */
-    fun getParameterValue(name: String?, isMulti: Boolean): Any?
-    fun getParameterValue(name: String?, isMulti: Boolean, dateAsString: Boolean): Any?
+    fun getParameterValue(name: String, isMulti: Boolean): Any?
+    fun getParameterValue(name: String, isMulti: Boolean, dateAsString: Boolean): Any?
 
     /**
      * To check if parameter expects date as string. TO_DATE function can be misused in queries.
@@ -31,12 +31,12 @@ interface QueryParams {
      * @param subStr The string that is searched
      * @return true if `getDateParameterAsString` should be used for this parameter value
      */
-    fun dateAsStringNeeded(subStr: String?): Boolean
+    fun dateAsStringNeeded(subStr: String): Boolean
 
     /**
      * Date type parameter may be considered as VARCHAR.
      * @return DATE format to convert Date object
      */
-    val dateParameterAsString: String?
-    val paramNames: List<String?>?
+    val dateParameterAsString: String
+    val paramNames: List<String>
 }
