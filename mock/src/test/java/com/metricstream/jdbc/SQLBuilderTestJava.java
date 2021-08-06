@@ -338,7 +338,7 @@ class SQLBuilderTestJava {
 
     @Test
     void emptyForever() throws SQLException {
-        SQLBuilder.setDelegate(new MockSQLBuilderProvider());
+        SQLBuilder.setDelegate(new MockSQLBuilderProvider(true, true));
         MockSQLBuilderProvider.addResultSet(MockResultSet.empty(""));
 
         SQLBuilder sb = new SQLBuilder("select count(*) from lookup");

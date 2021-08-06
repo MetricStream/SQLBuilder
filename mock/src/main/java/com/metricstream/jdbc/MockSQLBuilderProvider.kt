@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory
 @ExperimentalStdlibApi
 class MockSQLBuilderProvider @JvmOverloads constructor(
     private val generateSingleRowResultSet: Boolean = true,
-    private val enforceTags: Boolean = false
+    private val enforceTags: Boolean = true
 ) : SQLBuilderProvider {
 
     init {
@@ -236,7 +236,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         private var executeSupplier: Supplier<Int>? = null
         @JvmStatic
         fun enable() {
-            setDelegate(MockSQLBuilderProvider(true, true))
+            setDelegate(MockSQLBuilderProvider())
         }
 
         @JvmStatic
