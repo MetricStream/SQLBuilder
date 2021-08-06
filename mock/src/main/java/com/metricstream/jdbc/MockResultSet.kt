@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory
  * Initially copied from https://github.com/sharfah/java-utils/blob/master/src/test/java/com/sharfah/util/sql/MockResultSet.java
  * https://github.com/sharfah/java-utils/commit/0e930cbf74134e4d1cb71b0c4ca0602250e4f6fc
  */
-class MockResultSet private constructor(tag: String?, names: Array<String>?, private val data: Array<Array<Any?>>) {
+class MockResultSet private constructor(tag: String, names: Array<String>?, private val data: Array<Array<Any?>>) {
     private val tag: String
     private val columnIndices: Map<String, Int>
     private var rowIndex = -1
@@ -243,7 +243,7 @@ class MockResultSet private constructor(tag: String?, names: Array<String>?, pri
          */
         @JvmStatic
         @Throws(SQLException::class)
-        fun create(tag: String?, columnNames: Array<String>?, data: Array<Array<Any?>>): ResultSet {
+        fun create(tag: String, columnNames: Array<String>?, data: Array<Array<Any?>>): ResultSet {
             return MockResultSet(tag, columnNames, data).buildMock()
         }
 
@@ -256,7 +256,7 @@ class MockResultSet private constructor(tag: String?, names: Array<String>?, pri
          */
         @JvmStatic
         @Throws(SQLException::class)
-        fun create(tag: String?, data: Array<Array<Any?>>): ResultSet {
+        fun create(tag: String, data: Array<Array<Any?>>): ResultSet {
             return MockResultSet(tag, null, data).buildMock()
         }
 
@@ -270,7 +270,7 @@ class MockResultSet private constructor(tag: String?, names: Array<String>?, pri
         @JvmStatic
         @JvmOverloads
         @Throws(SQLException::class)
-        fun create(tag: String?, csv: String, withLabels: Boolean, generated: Boolean = false): ResultSet {
+        fun create(tag: String, csv: String, withLabels: Boolean, generated: Boolean = false): ResultSet {
             try {
                 CSVReader(StringReader(csv)).use { csvReader ->
                     val data: MutableList<Array<String?>> = csvReader.readAll()
@@ -297,7 +297,7 @@ class MockResultSet private constructor(tag: String?, names: Array<String>?, pri
          */
         @JvmStatic
         @Throws(SQLException::class)
-        fun create(tag: String?, csv: InputStream, withLabels: Boolean): ResultSet {
+        fun create(tag: String, csv: InputStream, withLabels: Boolean): ResultSet {
             try {
                 CSVReader(InputStreamReader(csv)).use { csvReader ->
                     val data = csvReader.readAll()
@@ -319,7 +319,7 @@ class MockResultSet private constructor(tag: String?, names: Array<String>?, pri
          */
         @JvmStatic
         @Throws(SQLException::class)
-        fun create(tag: String?, labels: String, vararg csvs: String): ResultSet {
+        fun create(tag: String, labels: String, vararg csvs: String): ResultSet {
             try {
                 CSVReader(StringReader(labels)).use { csvReader1 ->
                     val columnNames = csvReader1.readNext()
@@ -346,13 +346,13 @@ class MockResultSet private constructor(tag: String?, names: Array<String>?, pri
          */
         @JvmStatic
         @Throws(SQLException::class)
-        fun empty(tag: String?): ResultSet {
+        fun empty(tag: String): ResultSet {
             return MockResultSet(tag, arrayOf(), arrayOf()).buildMock()
         }
 
         @JvmStatic
         @Throws(SQLException::class)
-        fun broken(tag: String?): ResultSet {
+        fun broken(tag: String): ResultSet {
             val mockResultSet = MockResultSet(tag, arrayOf(), arrayOf())
             mockResultSet.generateData = false
             mockResultSet.rowIndex = -2
@@ -361,11 +361,7 @@ class MockResultSet private constructor(tag: String?, names: Array<String>?, pri
     }
 
     init {
-        this.tag = if (tag.isNullOrEmpty()) {
-            "MockResultSet#${counter.incrementAndGet()}"
-        } else {
-            tag
-        }
+        this.tag = tag.ifEmpty { "MockResultSet#${counter.incrementAndGet()}" }
         val columnNames: Array<String> = if (names.isNullOrEmpty()) {
             Array(data.getOrNull(0)?.size ?: 0) { i: Int -> "COLUMN${i + 1}" }
         } else {
