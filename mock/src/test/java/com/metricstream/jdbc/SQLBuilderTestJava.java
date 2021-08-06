@@ -365,8 +365,8 @@ class SQLBuilderTestJava {
         // with 3 ints in column 2
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", "_,3\n_,1\n_,4");
-        List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getInt(2));
-        assertThat(l).containsExactly(3, 1, 4);
+        List<Integer> actual = sqlBuilder.getList(mockConnection, (rs) -> rs.getInt(2));
+        assertThat(actual).containsExactly(3, 1, 4);
     }
 
     @Test
@@ -375,8 +375,8 @@ class SQLBuilderTestJava {
         // with 2 ints and a null in column 2
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 3 }, { "", null }, { "", 4 } });
-        List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getInt(2));
-        assertThat(l).containsExactly(3, 0, 4);
+        List<Integer> actual = sqlBuilder.getList(mockConnection, (rs) -> rs.getInt(2));
+        assertThat(actual).containsExactly(3, 0, 4);
     }
 
     @Test
@@ -385,8 +385,8 @@ class SQLBuilderTestJava {
         // with 2 Strings and a null in column 2
         // then expect to get a list with 2 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", "first" }, { "", null }, { "", "third" } });
-        List<String> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getString(2));
-        assertThat(l).containsExactly("first", "third");
+        List<String> actual = sqlBuilder.getList(mockConnection, (rs) -> rs.getString(2));
+        assertThat(actual).containsExactly("first", "third");
     }
 
     @Test
@@ -395,8 +395,8 @@ class SQLBuilderTestJava {
         // with 2 Strings and a null in column 2
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", "first" }, { "", null }, { "", "third" } });
-        List<String> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getString(2), true);
-        assertThat(l).containsExactly("first", null, "third");
+        List<String> actual = sqlBuilder.getList(mockConnection, (rs) -> rs.getString(2), true);
+        assertThat(actual).containsExactly("first", null, "third");
     }
 
     @Test
@@ -405,8 +405,8 @@ class SQLBuilderTestJava {
         // with 2 ints and a null (converted to 0 by getInt()) in column 2
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
-        List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> { int i = rs.getInt(2); return rs.wasNull() ? -1 : i;});
-        assertThat(l).containsExactly(1, -1, 3);
+        List<Integer> actual = sqlBuilder.getList(mockConnection, (rs) -> { int i = rs.getInt(2); return rs.wasNull() ? -1 : i;});
+        assertThat(actual).containsExactly(1, -1, 3);
     }
 
     @Test
@@ -416,9 +416,9 @@ class SQLBuilderTestJava {
         // then expect to get a list with 2 elements in the correct order.  We must avoid
         // calling `getInt` here because that automatically converts null to 0.
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
-        List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getObject(2))
+        List<Integer> actual = sqlBuilder.getList(mockConnection, (rs) -> rs.getObject(2))
                 .stream().map(i -> (Integer) i).collect(Collectors.toList());
-        assertThat(l).containsExactly(1, 3);
+        assertThat(actual).containsExactly(1, 3);
     }
 
     @Test
@@ -427,9 +427,9 @@ class SQLBuilderTestJava {
         // with 2 ints and a null in column 2
         // then expect to get 3 elements with null mapped to null
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
-        List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getObject(2), true)
+        List<Integer> actual = sqlBuilder.getList(mockConnection, (rs) -> rs.getObject(2), true)
                 .stream().map(i -> (Integer) i).collect(Collectors.toList());
-        assertThat(l).containsExactly(1, null, 3);
+        assertThat(actual).containsExactly(1, null, 3);
     }
 
     @Test
@@ -487,8 +487,8 @@ class SQLBuilderTestJava {
         // with 3 longs in column 1
         // then expect to get the first element
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { 3L }, { 1L }, { 4L } });
-        Optional<Long> l = sqlBuilder.getSingle(mockConnection, (rs) -> rs.getLong(1));
-        assertThat(l).isPresent().hasValue(3L);
+        Optional<Long> actual = sqlBuilder.getSingle(mockConnection, (rs) -> rs.getLong(1));
+        assertThat(actual).isPresent().hasValue(3L);
     }
 
     @Test
@@ -546,8 +546,8 @@ class SQLBuilderTestJava {
         // when query returns no rows
         // then expect to get an empty optional
         MockSQLBuilderProvider.addResultSet(MockResultSet.empty(""));
-        Optional<Long> l = sqlBuilder.getSingle(mockConnection, (rs) -> rs.getLong(1));
-        assertThat(l).isNotPresent();
+        Optional<Long> actual = sqlBuilder.getSingle(mockConnection, (rs) -> rs.getLong(1));
+        assertThat(actual).isNotPresent();
     }
 
     @Test
@@ -557,11 +557,11 @@ class SQLBuilderTestJava {
         // then expect to get a resultset that returns 3 rows in correct order
         MockSQLBuilderProvider.addResultSet("", "_,3\n_,1\n_,4");
         ResultSet rs = sqlBuilder.getResultSet(mockConnection);
-        List<Integer> l = new ArrayList<>();
+        List<Integer> actual = new ArrayList<>();
         while (rs.next()) {
-            l.add(rs.getInt(2));
+            actual.add(rs.getInt(2));
         }
-        assertThat(l).containsExactly(3, 1, 4);
+        assertThat(actual).containsExactly(3, 1, 4);
     }
 
     @Test
@@ -571,11 +571,11 @@ class SQLBuilderTestJava {
         // then expect to get a resultset that returns 1 row
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", "", 3L } });
         ResultSet rs = sqlBuilder.getResultSet(mockConnection);
-        List<Long> l = new ArrayList<>();
+        List<Long> actual = new ArrayList<>();
         while (rs.next()) {
-            l.add(rs.getLong(3));
+            actual.add(rs.getLong(3));
         }
-        assertThat(l).containsExactly(3L);
+        assertThat(actual).containsExactly(3L);
     }
 
     @Test
@@ -799,8 +799,8 @@ class SQLBuilderTestJava {
     void maxRows() throws SQLException {
         MockSQLBuilderProvider.addResultSet("", "_,3\n_,1\n_,4");
         // TODO: this just tests that `withMaxRows` is accepted, but not the actual implementation.
-        List<Integer> l = sqlBuilder.withMaxRows(1).getList(mockConnection, (rs) -> rs.getInt(2));
-        assertThat(l).containsExactly(3, 1, 4);
+        List<Integer> actual = sqlBuilder.withMaxRows(1).getList(mockConnection, (rs) -> rs.getInt(2));
+        assertThat(actual).containsExactly(3, 1, 4);
     }
 
     static class QueryParamsImpl implements QueryParams {
