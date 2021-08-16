@@ -23,35 +23,7 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
     @Throws(SQLException::class)
     private fun build(sqlBuilder: SQLBuilder, connection: Connection, vararg columns: String): PreparedStatement {
         val expanded: MutableList<Any?> = mutableListOf()
-        if (sqlBuilder.arguments.isNotEmpty()) {
-            var sqlPos = 0
-            for (arg in sqlBuilder.arguments) {
-                sqlPos = sqlBuilder.statement.indexOf("?", sqlPos) + 1
-                if (sqlPos == 0) {
-                    // We ran out of placeholders (i.e. we have extra parameters).
-                    // We do not consider that as a bug (though one could argue this
-                    // should result in a warning).
-                    break
-                }
-                if (arg is Collection<*>) {
-                    val col = arg as Collection<Any?>
-                    val length = col.size
-                    if (length == 0) {
-                        throw SQLException("Collection parameters must contain at least one element")
-                    }
-                    // The statement already contains one "?", therefore we start with 1 instead of 0
-                    for (k in 1 until length) {
-                        sqlBuilder.statement.insert(sqlPos, ",?")
-                    }
-                    // move sqlPos beyond the inserted ",?"
-                    sqlPos += 2 * (length - 1)
-                    expanded.addAll(col)
-                } else {
-                    expanded.add(arg)
-                }
-            }
-        }
-        sqlBuilder.interpolate(apply = true, withArgs = true)
+        sqlBuilder.interpolate(apply = true, withArgs = true, expanded)
         val ps: PreparedStatement = if (columns.isEmpty()) {
             connection.prepareStatement(sqlBuilder.statement.toString(), sqlBuilder.resultSetType, ResultSet.CONCUR_READ_ONLY)
         } else {

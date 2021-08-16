@@ -18,6 +18,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -219,6 +220,17 @@ class SQLBuilderTestJava {
             MockSQLBuilderProvider.setExecute("abc", 1);
             updateFoo.execute(mockConnection);
         }).withMessage("Trying to use abc for method testMock");
+    }
+
+    @Test
+    void expandTest() {
+        assertThat(new SQLBuilder("select a from foo where a in (?)", 3).toSQL()).endsWith("a in (?)");
+        assertThat(new SQLBuilder("select a from foo where a in (?)", Collections.singletonList(3)).toSQL()).endsWith("a in (?)");
+        assertThat(new SQLBuilder("select a from foo where a in (?)", Arrays.asList(3, 1, 4)).toSQL()).endsWith("a in (?,?,?)");
+        assertThat(new SQLBuilder("select a from foo where a in (?) and b in (?)", Arrays.asList(3, 1, 4), Arrays.asList(2, 1)).toSQL()).endsWith("a in (?,?,?) and b in (?,?)");
+        assertThatExceptionOfType(SQLException.class).isThrownBy(() ->
+                new SQLBuilder("select a from foo where a in (?)", Collections.emptyList()).toSQL()
+        ).withMessage("Collection parameters must contain at least one element");
     }
 
     @Test

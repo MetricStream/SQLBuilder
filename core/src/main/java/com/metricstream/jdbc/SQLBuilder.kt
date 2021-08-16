@@ -234,7 +234,36 @@ class SQLBuilder {
         require(names.add(name)) { "The binding name \"$name\" must be unique" }
     }
 
-    internal fun interpolate(apply: Boolean, withArgs: Boolean): String {
+    internal fun interpolate(apply: Boolean, withArgs: Boolean, expanded: MutableList<Any?>? = null): String {
+        if (arguments.isNotEmpty()) {
+            var sqlPos = 0
+            for (arg in arguments) {
+                sqlPos = statement.indexOf("?", sqlPos) + 1
+                if (sqlPos == 0) {
+                    // We ran out of placeholders (i.e. we have extra parameters).
+                    // We do not consider that as a bug (though one could argue this
+                    // should result in a warning).
+                    break
+                }
+                if (arg is Collection<*>) {
+                    val col = arg as Collection<Any?>
+                    val length = col.size
+                    if (length == 0) {
+                        // TODO: This should throw an IllegalArgumentException, but we first have to check what that does to all the callers
+                        throw SQLException("Collection parameters must contain at least one element")
+                    }
+                    // The statement already contains one "?", therefore we only add length - 1 additional placeholders
+                    val additionalPlaceHolders = ",?".repeat(length - 1)
+                    statement.insert(sqlPos, additionalPlaceHolders)
+                    // move sqlPos beyond the inserted ",?"
+                    sqlPos += additionalPlaceHolders.length
+                    expanded?.addAll(col)
+                } else {
+                    expanded?.add(arg)
+                }
+            }
+        }
+
         val quoted = mutableMapOf<String, String>()
         val regexp = StringJoiner("""|""", """[:$]\{(""", """)\}""")
         for ((key, value) in singleValuedNames) {

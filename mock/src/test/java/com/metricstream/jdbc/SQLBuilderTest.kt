@@ -27,6 +27,7 @@ import io.kotest.matchers.optional.shouldNotBePresent
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldEndWith
 import io.kotest.matchers.throwable.shouldHaveMessage
 import org.mockito.Mockito
 import org.junit.jupiter.api.BeforeAll
@@ -203,6 +204,17 @@ internal class SQLBuilderTest {
             MockSQLBuilderProvider.setExecute("abc", 1)
             updateFoo.execute(mockConnection) shouldBe 1
         } shouldHaveMessage "Trying to use abc for method testMock"
+    }
+
+    @Test
+    internal fun expandTest() {
+        SQLBuilder("select a from foo where a in (?)", 3).toSQL() shouldEndWith "a in (?)"
+        SQLBuilder("select a from foo where a in (?)", listOf(3)).toSQL() shouldEndWith "a in (?)"
+        SQLBuilder("select a from foo where a in (?)", listOf(3, 1, 4)).toSQL() shouldEndWith "a in (?,?,?)"
+        SQLBuilder("select a from foo where a in (?) and b in (?)", listOf(3, 1, 4), listOf(2, 1)).toSQL() shouldEndWith "a in (?,?,?) and b in (?,?)"
+        shouldThrow<SQLException> {
+            SQLBuilder("select a from foo where a in (?)", emptyList<Int>()).toSQL()
+        } shouldHaveMessage "Collection parameters must contain at least one element"
     }
 
     @Test
