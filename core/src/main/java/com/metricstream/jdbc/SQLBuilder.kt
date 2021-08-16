@@ -795,11 +795,8 @@ class SQLBuilder {
             if (paramNames.isEmpty()) {
                 return SQLBuilder(sql)
             }
-            val names = StringJoiner("|")
-            for (name in paramNames) {
-                names.add(String.format(":\\Q%s\\E\\b", name))
-            }
-            val p = Pattern.compile(names.toString())
+            val names = paramNames.joinToString("|") { """:\Q$it\E\b""" }
+            val p = Pattern.compile(names)
             val args: MutableList<Any?> = mutableListOf()
             // To avoid replacement within quotes, split the string with quote
             // replace with alternative tokens and join after replacement logic from

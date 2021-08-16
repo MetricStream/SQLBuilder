@@ -751,6 +751,7 @@ internal class SQLBuilderTest {
         SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString() shouldBe "select n from t where i=? or k=?); args=[b, b]"
         SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString() shouldBe "select n from t where i=? or k=':4'); args=[b]"
         SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString() shouldBe "select n from t where i=? or k=':2'); args=[b]"
+        SQLBuilder.fromNumberedParameters("select n from t where i=:11 or i=:2)", params).toString() shouldBe "select n from t where i=:11 or i=?); args=[b]"
     }
 
     @Test

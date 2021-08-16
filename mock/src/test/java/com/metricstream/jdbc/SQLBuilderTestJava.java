@@ -769,6 +769,7 @@ class SQLBuilderTestJava {
         assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString()).isEqualTo("select n from t where i=? or k=?); args=[b, b]");
         assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString()).isEqualTo("select n from t where i=? or k=':4'); args=[b]");
         assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString()).isEqualTo("select n from t where i=? or k=':2'); args=[b]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:11 or i=:2)", params).toString()).isEqualTo("select n from t where i=:11 or i=?); args=[b]");
     }
 
     @Test
