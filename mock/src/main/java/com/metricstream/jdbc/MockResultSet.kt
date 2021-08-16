@@ -70,7 +70,7 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
 
         // mock rs.next()
         lenient().doAnswer {
-            if (rowIndex == -2) {
+            if (rowIndex == FORCE_EXCEPTION) {
                 throw SQLException("Forced exception")
             }
             rowIndex++
@@ -232,6 +232,7 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
     companion object {
         private val logger = LoggerFactory.getLogger(MockResultSet::class.java)
         private val counter = AtomicLong(0)
+        private const val FORCE_EXCEPTION = -2
 
         /**
          * Creates the mock ResultSet.
@@ -355,7 +356,7 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
         fun broken(tag: String): ResultSet {
             val mockResultSet = MockResultSet(tag, arrayOf(), arrayOf())
             mockResultSet.generateData = false
-            mockResultSet.rowIndex = -2
+            mockResultSet.rowIndex = FORCE_EXCEPTION
             return mockResultSet.buildMock()
         }
     }
