@@ -6,6 +6,7 @@ plugins {
     `maven-publish`
     signing
     kotlin("jvm") version "1.5.21"
+    id("org.jlleitschuh.gradle.ktlint") version "10.1.0"
 }
 
 // These are credentials required for the task `uploadArchives`. They are read either from gradle.properties or from the command
@@ -22,6 +23,7 @@ subprojects {
     apply(plugin = "java-library")
     apply(plugin = "kotlin")
     apply(plugin = "signing")
+    apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
     group = "com.metricstream.jdbc"
     version = "3.0.2"
@@ -104,4 +106,8 @@ subprojects {
         sign(publishing.publications["maven${project.name}"])
     }
 
+    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        // See https://github.com/pinterest/ktlint/issues/527
+        disabledRules.set(setOf("import-ordering"))
+    }
 }

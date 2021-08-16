@@ -75,7 +75,7 @@ class SQLBuilder {
      * // produces "select name from user where secret=?; args = [oops!]"
      * String good = new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(secret)).toString();
      * // produces "select name from user where secret=?; args = [__masked__:982c0381c279d139fd221fce974916e7]"
-    `</pre> *
+     * `</pre>
      */
     class Masked(val data: Any?) {
         override fun toString(): String {
@@ -810,6 +810,7 @@ class SQLBuilder {
             }
             return SQLBuilder(queryBuilder.toString(), *args.toTypedArray())
         }
+
         /**
          * Quotes a system object name (e.g. table, column).
          *

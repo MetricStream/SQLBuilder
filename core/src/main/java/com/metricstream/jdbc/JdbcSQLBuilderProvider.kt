@@ -66,11 +66,12 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
                 ps.maxRows = sqlBuilder.maxRows
             }
             if (expanded.isNotEmpty()) {
-                expanded.forEachIndexed { index, arg -> when (arg) {
-                    is LongString -> ps.setCharacterStream(index + 1, arg.reader)
-                    is Masked -> ps.setObject(index + 1, arg.data)
-                    else -> ps.setObject(index + 1, arg)
-                }
+                expanded.forEachIndexed { index, arg ->
+                    when (arg) {
+                        is LongString -> ps.setCharacterStream(index + 1, arg.reader)
+                        is Masked -> ps.setObject(index + 1, arg.data)
+                        else -> ps.setObject(index + 1, arg)
+                    }
                 }
             }
         } catch (ex: SQLException) {

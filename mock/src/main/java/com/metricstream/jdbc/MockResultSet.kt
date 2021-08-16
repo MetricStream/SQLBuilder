@@ -45,7 +45,7 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
 
     // We could use this method to unify the "by name" and "by number" mocks if we can somehow handle an union type of String and Int
     // Something like `whenever(rs).getLong(anyString() | anyInt())` or `whenever(rs).or(getLong(anyString()), getLong(anyInt()))`
-    private fun InvocationOnMock.index() = when(val arg: Any = getArgument(0)) {
+    private fun InvocationOnMock.index() = when (val arg: Any = getArgument(0)) {
         is Int -> arg - 1
         is String -> columnIndices[arg.uppercase()] ?: Int.MAX_VALUE
         else -> Int.MAX_VALUE

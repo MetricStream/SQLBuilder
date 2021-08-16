@@ -34,11 +34,20 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         reset()
     }
 
-    override fun getResultSet(sqlBuilder: SQLBuilder, connection: Connection, wrapConnection: Boolean): ResultSet {
+    override fun getResultSet(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        wrapConnection: Boolean
+    ): ResultSet {
         return getRs()
     }
 
-    override fun getInt(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: Int): Int {
+    override fun getInt(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: Int
+    ): Int {
         if (intByColumnIndex != null) {
             return intByColumnIndex!!.apply(columnNumber, defaultValue)
         }
@@ -47,7 +56,12 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
     }
 
     @Throws(SQLException::class)
-    override fun getInt(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: Int): Int {
+    override fun getInt(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: Int
+    ): Int {
         if (intByColumnLabel != null) {
             return intByColumnLabel!!.apply(columnName, defaultValue)
         }
@@ -55,7 +69,12 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         return if (rs.next()) rs.getInt(columnName) else defaultValue
     }
 
-    override fun getLong(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: Long): Long {
+    override fun getLong(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: Long
+    ): Long {
         if (longByColumnIndex != null) {
             return longByColumnIndex!!.apply(columnNumber, defaultValue)
         }
@@ -63,7 +82,12 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         return if (rs.next()) rs.getLong(columnNumber) else defaultValue
     }
 
-    override fun getLong(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: Long): Long {
+    override fun getLong(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: Long
+    ): Long {
         if (longByColumnLabel != null) {
             return longByColumnLabel!!.apply(columnName, defaultValue)
         }
@@ -71,7 +95,12 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         return if (rs.next()) rs.getLong(columnName) else defaultValue
     }
 
-    override fun getString(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: String?): String? {
+    override fun getString(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: String?
+    ): String? {
         if (stringByColumnIndex != null) {
             return stringByColumnIndex!!.apply(columnNumber, defaultValue)
         }
@@ -79,7 +108,12 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         return if (rs.next()) rs.getString(columnNumber) else defaultValue
     }
 
-    override fun getString(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: String?): String? {
+    override fun getString(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: String?
+    ): String? {
         if (stringByColumnLabel != null) {
             return stringByColumnLabel!!.apply(columnName, defaultValue)
         }
@@ -87,7 +121,12 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         return if (rs.next()) rs.getString(columnName) else defaultValue
     }
 
-    override fun getBigDecimal(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: BigDecimal?): BigDecimal? {
+    override fun getBigDecimal(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: BigDecimal?
+    ): BigDecimal? {
         if (bigDecimalByColumnIndex != null) {
             return bigDecimalByColumnIndex!!.apply(columnNumber, defaultValue)
         }
@@ -95,7 +134,12 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         return if (rs.next()) rs.getBigDecimal(columnNumber) else defaultValue
     }
 
-    override fun getBigDecimal(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: BigDecimal?): BigDecimal? {
+    override fun getBigDecimal(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: BigDecimal?
+    ): BigDecimal? {
         if (bigDecimalByColumnLabel != null) {
             return bigDecimalByColumnLabel!!.apply(columnName, defaultValue)
         }
@@ -103,7 +147,12 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         return if (rs.next()) rs.getBigDecimal(columnName) else defaultValue
     }
 
-    override fun getObject(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: Any?): Any? {
+    override fun getObject(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: Any?
+    ): Any? {
         if (objectByColumnIndex != null) {
             return objectByColumnIndex!!.apply(columnNumber, defaultValue)
         }
@@ -111,7 +160,12 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         return if (rs.next()) rs.getObject(columnNumber) else defaultValue
     }
 
-    override fun getObject(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: Any?): Any? {
+    override fun getObject(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: Any?
+    ): Any? {
         if (objectByColumnLabel != null) {
             return objectByColumnLabel!!.apply(columnName, defaultValue)
         }
@@ -119,72 +173,135 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         return if (rs.next()) rs.getObject(columnName) else defaultValue
     }
 
-    override fun getDateTime(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: OffsetDateTime?): OffsetDateTime? {
+    override fun getDateTime(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: OffsetDateTime?
+    ): OffsetDateTime? {
         val rs = getRs()
         return if (rs.next()) rs.getObject(columnNumber, OffsetDateTime::class.java) else defaultValue
     }
 
-    override fun getDateTime(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: OffsetDateTime?): OffsetDateTime? {
+    override fun getDateTime(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: OffsetDateTime?
+    ): OffsetDateTime? {
         val rs = getRs()
         return if (rs.next()) rs.getObject(columnName, OffsetDateTime::class.java) else defaultValue
     }
 
-    override fun getInstant(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: Instant?): Instant? {
+    override fun getInstant(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: Instant?
+    ): Instant? {
         val rs = getRs()
         return if (rs.next()) rs.getObject(columnNumber, OffsetDateTime::class.java).toInstant() else defaultValue
     }
 
-    override fun getInstant(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: Instant?): Instant? {
+    override fun getInstant(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: Instant?
+    ): Instant? {
         val rs = getRs()
         return if (rs.next()) rs.getObject(columnName, OffsetDateTime::class.java).toInstant() else defaultValue
     }
 
-    override fun getTimestamp(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: Timestamp?): Timestamp? {
+    override fun getTimestamp(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: Timestamp?
+    ): Timestamp? {
         val rs = getRs()
         return if (rs.next()) rs.getTimestamp(columnNumber) else defaultValue
     }
 
-    override fun getTimestamp(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: Timestamp?): Timestamp? {
+    override fun getTimestamp(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: Timestamp?
+    ): Timestamp? {
         val rs = getRs()
         return if (rs.next()) rs.getTimestamp(columnName) else defaultValue
     }
 
-    override fun getDate(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: Date?): Date? {
+    override fun getDate(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: Date?
+    ): Date? {
         val rs = getRs()
         return if (rs.next()) rs.getDate(columnNumber) else defaultValue
     }
 
-    override fun getDate(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: Date?): Date? {
+    override fun getDate(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: Date?
+    ): Date? {
         val rs = getRs()
         return if (rs.next()) rs.getDate(columnName) else defaultValue
     }
 
-    override fun execute(sqlBuilder: SQLBuilder, connection: Connection): Int {
+    override fun execute(
+        sqlBuilder: SQLBuilder,
+        connection: Connection
+    ): Int {
         checkTag(executeTag)
         return executeSupplier.get()
     }
 
-    override fun execute(sqlBuilder: SQLBuilder, connection: Connection, vararg keyColumns: String): ResultSet {
+    override fun execute(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        vararg keyColumns: String
+    ): ResultSet {
         return getRs()
     }
 
-    override fun <T> getList(sqlBuilder: SQLBuilder, connection: Connection, rowMapper: SQLBuilder.RowMapper<T?>, withNull: Boolean): List<T?> {
+    override fun <T> getList(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        rowMapper: SQLBuilder.RowMapper<T?>,
+        withNull: Boolean
+    ): List<T?> {
         return getList(getRs(), rowMapper, withNull)
     }
 
     override fun <K, V> getMap(
-        sqlBuilder: SQLBuilder, connection: Connection,
-        rowMapper: SQLBuilder.RowMapper<Map.Entry<K, V?>>, withNull: Boolean
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        rowMapper: SQLBuilder.RowMapper<Map.Entry<K, V?>>,
+        withNull: Boolean
     ): Map<K, V?> {
         return getMap(getRs(), rowMapper, withNull)
     }
 
-    override fun <T> getSingle(sqlBuilder: SQLBuilder, connection: Connection, rowMapper: SQLBuilder.RowMapper<T?>): Optional<T> {
+    override fun <T> getSingle(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        rowMapper: SQLBuilder.RowMapper<T?>
+    ): Optional<T> {
         val rs = getRs()
         return Optional.ofNullable(if (rs.next()) rowMapper.map(rs) else null)
     }
 
-    override fun <T> getSingle(sqlBuilder: SQLBuilder, connection: Connection, rowMapper: SQLBuilder.RowMapper<T?>, defaultValue: T?): T? {
+    override fun <T> getSingle(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        rowMapper: SQLBuilder.RowMapper<T?>,
+        defaultValue: T?
+    ): T? {
         val rs = getRs()
         return if (rs.next()) rowMapper.map(rs) else defaultValue
     }
@@ -207,13 +324,13 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             for (stackTraceElement in stackTrace) {
                 val declaringClass = stackTraceElement.className
                 val methodName = stackTraceElement.methodName
-                if (declaringClass != "com.metricstream.jdbc.MockSQLBuilderProvider"
-                    && declaringClass != "com.metricstream.jdbc.SQLBuilder"
-                    && !declaringClass.startsWith("org.junit.")
-                    && methodName != "catchThrowable"
-                    && methodName != "isThrownBy"
-                    && !methodName.startsWith("lambda$")
-                    && !methodName.contains(Regex("""\${"$"}lambda-\d+$"""))
+                if (declaringClass != "com.metricstream.jdbc.MockSQLBuilderProvider" &&
+                    declaringClass != "com.metricstream.jdbc.SQLBuilder" &&
+                    !declaringClass.startsWith("org.junit.") &&
+                    methodName != "catchThrowable" &&
+                    methodName != "isThrownBy" &&
+                    !methodName.startsWith("lambda$") &&
+                    !methodName.contains(Regex("""\${"$"}lambda-\d+$"""))
                 ) {
                     check(methodName == tag.split(":").first()) { "Trying to use $tag for method $methodName" }
                     break
@@ -371,5 +488,4 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             setExecute("", 42)
         }
     }
-
 }

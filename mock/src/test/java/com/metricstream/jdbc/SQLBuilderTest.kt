@@ -388,10 +388,13 @@ internal class SQLBuilderTest {
         // with 2 ints and a null (converted to 0 by getInt()) in column 2
         // then expect to get a list with 3 elements in the correct order
         MockSQLBuilderProvider.addResultSet("", arrayOf(arrayOf("", 1), arrayOf("", null), arrayOf("", 3)))
-        val actual = sqlBuilder.getList(mockConnection, { rs: ResultSet ->
-            val i = rs.getInt(2)
-            if (rs.wasNull()) -1 else i
-        })
+        val actual = sqlBuilder.getList(
+            mockConnection,
+            { rs: ResultSet ->
+                val i = rs.getInt(2)
+                if (rs.wasNull()) -1 else i
+            }
+        )
         actual shouldBe listOf(1, -1, 3)
     }
 
@@ -807,7 +810,7 @@ internal class SQLBuilderTest {
         }
 
         override fun getParameterValue(name: String, isMulti: Boolean): Any? {
-            val value = values.getOrNull(name!!.toInt() - 1)
+            val value = values.getOrNull(name.toInt() - 1)
             if (isMulti) {
                 val values = arrayOfNulls<String>(4)
                 Arrays.fill(values, value)
