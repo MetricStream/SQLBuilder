@@ -33,7 +33,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.TestInstance
 
-@ExperimentalStdlibApi
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class SQLBuilderTest {
     private val sqlBuilder = SQLBuilder("SELECT 42 FROM DUAL")

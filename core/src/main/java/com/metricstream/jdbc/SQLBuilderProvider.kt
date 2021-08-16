@@ -15,7 +15,6 @@ import java.sql.Date
 import java.sql.Timestamp
 import java.util.Optional
 
-@ExperimentalStdlibApi
 interface SQLBuilderProvider {
     @Throws(SQLException::class)
     fun getResultSet(sqlBuilder: SQLBuilder, connection: Connection, wrapConnection: Boolean): ResultSet
@@ -94,14 +93,14 @@ interface SQLBuilderProvider {
 
     @Throws(SQLException::class)
     fun <T> getList(rs: ResultSet, rowMapper: SQLBuilder.RowMapper<T>, withNull: Boolean): List<T?> {
-        return buildList {
-            while (rs.next()) {
-                val item: T? = rowMapper.map(rs)
-                if (withNull || item != null) {
-                    add(item)
-                }
+        val list = mutableListOf<T?>()
+        while (rs.next()) {
+            val item: T? = rowMapper.map(rs)
+            if (withNull || item != null) {
+                list.add(item)
             }
         }
+        return list
     }
 
     @Throws(SQLException::class, IllegalStateException::class)

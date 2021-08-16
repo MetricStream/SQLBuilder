@@ -52,7 +52,6 @@ import org.slf4j.LoggerFactory
  * int a = sb.getInt(connection, 1, -1);
  * </pre>
  */
-@ExperimentalStdlibApi
 class SQLBuilder {
     internal val statement = StringBuilder()
     internal val arguments: MutableList<Any?> = mutableListOf()

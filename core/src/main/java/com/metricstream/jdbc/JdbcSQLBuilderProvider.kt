@@ -19,7 +19,6 @@ import java.time.OffsetDateTime
 import java.time.Instant
 import java.util.Optional
 
-@ExperimentalStdlibApi
 internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
     @Throws(SQLException::class)
     private fun build(sqlBuilder: SQLBuilder, connection: Connection, vararg columns: String): PreparedStatement {

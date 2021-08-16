@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
 import org.slf4j.LoggerFactory
 
-@ExperimentalStdlibApi
 class MockSQLBuilderProvider @JvmOverloads constructor(
     private val generateSingleRowResultSet: Boolean = true,
     private val enforceTags: Boolean = true
