@@ -4,25 +4,24 @@
 package com.metricstream.jdbc
 
 import java.io.InputStream
-import com.metricstream.jdbc.SQLBuilder.Companion.setDelegate
-import com.metricstream.jdbc.SQLBuilder.Companion.resetDelegate
-import kotlin.jvm.JvmOverloads
-import java.sql.ResultSet
-import kotlin.Throws
-import java.sql.SQLException
 import java.math.BigDecimal
-import java.time.OffsetDateTime
-import java.time.Instant
 import java.sql.Connection
 import java.sql.Date
+import java.sql.ResultSet
+import java.sql.SQLException
 import java.sql.Timestamp
+import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.Optional
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.function.BiFunction
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.BiFunction
 import java.util.function.Supplier
 import org.slf4j.LoggerFactory
+import com.metricstream.jdbc.MockResultSet.Companion.THE_ANSWER_TO_THE_ULTIMATE_QUESTION
+import com.metricstream.jdbc.SQLBuilder.Companion.resetDelegate
+import com.metricstream.jdbc.SQLBuilder.Companion.setDelegate
 
 class MockSQLBuilderProvider @JvmOverloads constructor(
     private val generateSingleRowResultSet: Boolean = true,
@@ -310,7 +309,12 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         var rs = mockResultSets.poll()
         when {
             rs != null -> checkTag(rs.toString())
-            generateSingleRowResultSet -> rs = MockResultSet.create("", "42", withLabels = false, generated = true)
+            generateSingleRowResultSet -> rs = MockResultSet.create(
+                "",
+                THE_ANSWER_TO_THE_ULTIMATE_QUESTION.toString(),
+                withLabels = false,
+                generated = true
+            )
             else -> rs = MockResultSet.empty("")
         }
         logger.debug("Using mock ResultSet {}", rs)
@@ -351,7 +355,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         private var bigDecimalByColumnLabel: BiFunction<String, BigDecimal?, BigDecimal?>? = null
         private var objectByColumnIndex: BiFunction<Int, Any?, Any?>? = null
         private var objectByColumnLabel: BiFunction<String, Any?, Any?>? = null
-        private var executeSupplier: Supplier<Int> = Supplier { 42 }
+        private var executeSupplier: Supplier<Int> = Supplier { THE_ANSWER_TO_THE_ULTIMATE_QUESTION }
         private var executeTag: String = ""
         @JvmStatic
         fun enable() {
@@ -465,7 +469,13 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         fun setExecute(tag: String, vararg values: Int) {
             val count = AtomicInteger()
             executeTag = tag
-            executeSupplier = Supplier { if (count.get() < values.size) values[count.getAndIncrement()] else 42 }
+            executeSupplier = Supplier {
+                if (count.get() < values.size) {
+                    values[count.getAndIncrement()]
+                } else {
+                    THE_ANSWER_TO_THE_ULTIMATE_QUESTION
+                }
+            }
         }
 
         @JvmStatic
@@ -484,7 +494,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             bigDecimalByColumnLabel = null
             objectByColumnIndex = null
             objectByColumnLabel = null
-            setExecute("", 42)
+            setExecute("", THE_ANSWER_TO_THE_ULTIMATE_QUESTION)
         }
     }
 }

@@ -58,7 +58,7 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
     private fun outOfRange(columnIndex: Int) = generated || generateData && (rowIndex >= data.size || columnIndex >= data[rowIndex].size)
 
     private fun answer(columnIndex: Int): Any? = when {
-        outOfRange(columnIndex) -> "42"
+        outOfRange(columnIndex) -> THE_ANSWER_TO_THE_ULTIMATE_QUESTION.toString()
         else -> data[rowIndex][columnIndex]
     }.also {
         wasNull = it == null
@@ -233,6 +233,7 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
         private val logger = LoggerFactory.getLogger(MockResultSet::class.java)
         private val counter = AtomicLong(0)
         private const val FORCE_EXCEPTION = -2
+        internal const val THE_ANSWER_TO_THE_ULTIMATE_QUESTION = 42
 
         /**
          * Creates the mock ResultSet.
