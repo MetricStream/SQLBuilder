@@ -698,8 +698,8 @@ class SQLBuilder {
         }
 
         @Throws(Throwable::class)
-        override fun invoke(proxy: Any, method: Method, args: Array<Any?>): Any? {
-            // Warning: we have to go though the code below even is
+        override fun invoke(proxy: Any, method: Method, vararg args: Any?): Any? {
+            // Warning: we have to go through the code below even is
             // rs.isClosed() is true because we still would need to close the
             // statement and connection.  Also, Oracle's ResultSet.next()
             // implicitly closes the ResultSet when it returns false (bypassing
@@ -707,7 +707,8 @@ class SQLBuilder {
             if (rs == null) {
                 return null
             }
-            if ("close" == method.name) {
+
+            if (method.name == "close") {
                 val stmt: Statement?
                 var conn: Connection? = null
                 when (scope) {
@@ -724,10 +725,11 @@ class SQLBuilder {
                 rs = null
                 return null
             }
+
             return try {
                 method.invoke(rs, *args)
             } catch (e: InvocationTargetException) {
-                throw e.cause!!
+                throw e.cause ?: e
             }
         }
     }
