@@ -763,38 +763,50 @@ class SQLBuilderTestJava {
     @Test
     void testFromNumberedParams() {
         QueryParams params = new QueryParamsImpl();
-        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:1)", params).toString()).isEqualTo("select n from t where i=?); args=[a]");
-        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString()).isEqualTo("select n from t where i=? or i=?); args=[a, b]");
-        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or i=:1)", params).toString()).isEqualTo("select n from t where i=? or i=?); args=[b, a]");
-        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString()).isEqualTo("select n from t where i=? or k=?); args=[b, b]");
-        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString()).isEqualTo("select n from t where i=? or k=':4'); args=[b]");
-        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString()).isEqualTo("select n from t where i=? or k=':2'); args=[b]");
-        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:11 or i=:2)", params).toString()).isEqualTo("select n from t where i=:11 or i=?); args=[b]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:1)", params).toString())
+                .isEqualTo("select n from t where i=?); args=[a]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString())
+                .isEqualTo("select n from t where i=? or i=?); args=[a, b]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or i=:1)", params).toString())
+                .isEqualTo("select n from t where i=? or i=?); args=[b, a]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString())
+                .isEqualTo("select n from t where i=? or k=?); args=[b, b]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString())
+                .isEqualTo("select n from t where i=? or k=':4'); args=[b]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString())
+                .isEqualTo("select n from t where i=? or k=':2'); args=[b]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:11 or i=:2)", params).toString())
+                .isEqualTo("select n from t where i=:11 or i=?); args=[b]");
     }
 
     @Test
     void maskData() {
-        assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask("oops!")).toString()).isEqualTo("select name from user where secret=?; args=[__masked__:982c0381c279d139fd221fce974916e7]");
+        assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask("oops!")).toString())
+                .isEqualTo("select name from user where secret=?; args=[__masked__:982c0381c279d139fd221fce974916e7]");
     }
 
     @Test
     void maskDataNull() {
-        assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(null)).toString()).isEqualTo("select name from user where secret=?; args=[null]");
+        assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(null)).toString())
+                .isEqualTo("select name from user where secret=?; args=[null]");
     }
 
     @Test
     void maskDataEmpty() {
-        assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask("")).toString()).isEqualTo("select name from user where secret=?; args=[]");
+        assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask("")).toString())
+                .isEqualTo("select name from user where secret=?; args=[]");
     }
 
     @Test
     void maskDataLong() {
-        assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(42L)).toString()).isEqualTo("select name from user where secret=?; args=[__masked__:a1d0c6e83f027327d8461063f4ac58a6]");
+        assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(42L)).toString())
+                .isEqualTo("select name from user where secret=?; args=[__masked__:a1d0c6e83f027327d8461063f4ac58a6]");
     }
 
     @Test
     void maskDataMixed() {
-        assertThat(new SQLBuilder("select name from user where secret=? and public=?", SQLBuilder.mask("oops!"), "ok").toString()).isEqualTo("select name from user where secret=? and public=?; args=[__masked__:982c0381c279d139fd221fce974916e7, ok]");
+        assertThat(new SQLBuilder("select name from user where secret=? and public=?", SQLBuilder.mask("oops!"), "ok").toString())
+                .isEqualTo("select name from user where secret=? and public=?; args=[__masked__:982c0381c279d139fd221fce974916e7, ok]");
     }
 
     private String masked(Object value) {

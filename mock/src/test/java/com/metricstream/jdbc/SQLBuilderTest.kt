@@ -147,7 +147,10 @@ internal class SQLBuilderTest {
         sb11.getList(mockConnection, { rs -> rs.getLong("USER_ID") }).toString() shouldBe "[100000, 100001, 100002, 100003]"
 
         // SI_USERS_T.csv was produced via SQLDeveloper using "Export as csv" from right-click on the table
-        MockSQLBuilderProvider.addResultSet("testMock:read from sqldeveloper export file", javaClass.getResourceAsStream("SI_USERS_T.csv")!!)
+        MockSQLBuilderProvider.addResultSet(
+            "testMock:read from sqldeveloper export file",
+            javaClass.getResourceAsStream("SI_USERS_T.csv")!!
+        )
         val sb12 = SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t")
         sb12.getList(mockConnection, { it.getLong("USER_ID") }).toString() shouldBe "[100000, 100001, 100002, 100003]"
         val ts = Timestamp.from(Instant.now())
@@ -211,7 +214,8 @@ internal class SQLBuilderTest {
         SQLBuilder("select a from foo where a in (?)", 3).toSQL() shouldEndWith "a in (?)"
         SQLBuilder("select a from foo where a in (?)", listOf(3)).toSQL() shouldEndWith "a in (?)"
         SQLBuilder("select a from foo where a in (?)", listOf(3, 1, 4)).toSQL() shouldEndWith "a in (?,?,?)"
-        SQLBuilder("select a from foo where a in (?) and b in (?)", listOf(3, 1, 4), listOf(2, 1)).toSQL() shouldEndWith "a in (?,?,?) and b in (?,?)"
+        SQLBuilder("select a from foo where a in (?) and b in (?)", listOf(3, 1, 4), listOf(2, 1)).toSQL() shouldEndWith
+            "a in (?,?,?) and b in (?,?)"
         shouldThrow<SQLException> {
             SQLBuilder("select a from foo where a in (?)", emptyList<Int>()).toSQL()
         } shouldHaveMessage "Collection parameters must contain at least one element"
@@ -456,7 +460,8 @@ internal class SQLBuilderTest {
         // when query returns rows with null keys
         // then expect to get an IllegalStateException
         MockSQLBuilderProvider.addResultSet("", arrayOf(arrayOf(3, "Three"), arrayOf(null, "Zero")))
-        // Note: we cannot use `getInt` for the key here because that would automatically convert `null` to `0` and thus not throw the expected exception
+        // Note: we cannot use `getInt` for the key here because that would automatically convert `null` to `0`
+        // and thus not throw the expected exception
         val exp = shouldThrow<IllegalStateException> {
             sqlBuilder.getMap(mockConnection, { rs: ResultSet -> SQLBuilder.entry(rs.getObject(1), rs.getString(2)) })
         }
@@ -745,38 +750,50 @@ internal class SQLBuilderTest {
     @Test
     fun testFromNumberedParams() {
         val params: QueryParams = QueryParamsImpl()
-        SQLBuilder.fromNumberedParameters("select n from t where i=:1)", params).toString() shouldBe "select n from t where i=?); args=[a]"
-        SQLBuilder.fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString() shouldBe "select n from t where i=? or i=?); args=[a, b]"
-        SQLBuilder.fromNumberedParameters("select n from t where i=:2 or i=:1)", params).toString() shouldBe "select n from t where i=? or i=?); args=[b, a]"
-        SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString() shouldBe "select n from t where i=? or k=?); args=[b, b]"
-        SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString() shouldBe "select n from t where i=? or k=':4'); args=[b]"
-        SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString() shouldBe "select n from t where i=? or k=':2'); args=[b]"
-        SQLBuilder.fromNumberedParameters("select n from t where i=:11 or i=:2)", params).toString() shouldBe "select n from t where i=:11 or i=?); args=[b]"
+        SQLBuilder.fromNumberedParameters("select n from t where i=:1)", params).toString() shouldBe
+            "select n from t where i=?); args=[a]"
+        SQLBuilder.fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString() shouldBe
+            "select n from t where i=? or i=?); args=[a, b]"
+        SQLBuilder.fromNumberedParameters("select n from t where i=:2 or i=:1)", params).toString() shouldBe
+            "select n from t where i=? or i=?); args=[b, a]"
+        SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString() shouldBe
+            "select n from t where i=? or k=?); args=[b, b]"
+        SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString() shouldBe
+            "select n from t where i=? or k=':4'); args=[b]"
+        SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString() shouldBe
+            "select n from t where i=? or k=':2'); args=[b]"
+        SQLBuilder.fromNumberedParameters("select n from t where i=:11 or i=:2)", params).toString() shouldBe
+            "select n from t where i=:11 or i=?); args=[b]"
     }
 
     @Test
     fun maskData() {
-        SQLBuilder("select name from user where secret=?", SQLBuilder.mask("oops!")).toString() shouldBe "select name from user where secret=?; args=[__masked__:982c0381c279d139fd221fce974916e7]"
+        SQLBuilder("select name from user where secret=?", SQLBuilder.mask("oops!")).toString() shouldBe
+            "select name from user where secret=?; args=[__masked__:982c0381c279d139fd221fce974916e7]"
     }
 
     @Test
     fun maskDataNull() {
-        SQLBuilder("select name from user where secret=?", SQLBuilder.mask(null)).toString() shouldBe "select name from user where secret=?; args=[null]"
+        SQLBuilder("select name from user where secret=?", SQLBuilder.mask(null)).toString() shouldBe
+            "select name from user where secret=?; args=[null]"
     }
 
     @Test
     fun maskDataEmpty() {
-        SQLBuilder("select name from user where secret=?", SQLBuilder.mask("")).toString() shouldBe "select name from user where secret=?; args=[]"
+        SQLBuilder("select name from user where secret=?", SQLBuilder.mask("")).toString() shouldBe
+            "select name from user where secret=?; args=[]"
     }
 
     @Test
     fun maskDataLong() {
-        SQLBuilder("select name from user where secret=?", SQLBuilder.mask(42L)).toString() shouldBe "select name from user where secret=?; args=[__masked__:a1d0c6e83f027327d8461063f4ac58a6]"
+        SQLBuilder("select name from user where secret=?", SQLBuilder.mask(42L)).toString() shouldBe
+            "select name from user where secret=?; args=[__masked__:a1d0c6e83f027327d8461063f4ac58a6]"
     }
 
     @Test
     fun maskDataMixed() {
-        SQLBuilder("select name from user where secret=? and public=?", SQLBuilder.mask("oops!"), "ok").toString() shouldBe "select name from user where secret=? and public=?; args=[__masked__:982c0381c279d139fd221fce974916e7, ok]"
+        SQLBuilder("select name from user where secret=? and public=?", SQLBuilder.mask("oops!"), "ok").toString() shouldBe
+            "select name from user where secret=? and public=?; args=[__masked__:982c0381c279d139fd221fce974916e7, ok]"
     }
 
     private fun masked(value: Any): String {

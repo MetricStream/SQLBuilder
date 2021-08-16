@@ -21,13 +21,24 @@ import java.util.Optional
 
 internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
     @Throws(SQLException::class)
-    private fun build(sqlBuilder: SQLBuilder, connection: Connection, vararg columns: String): PreparedStatement {
+    private fun build(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        vararg columns: String
+    ): PreparedStatement {
         val expanded: MutableList<Any?> = mutableListOf()
         sqlBuilder.interpolate(apply = true, withArgs = true, expanded)
         val ps: PreparedStatement = if (columns.isEmpty()) {
-            connection.prepareStatement(sqlBuilder.statement.toString(), sqlBuilder.resultSetType, ResultSet.CONCUR_READ_ONLY)
+            connection.prepareStatement(
+                sqlBuilder.statement.toString(),
+                sqlBuilder.resultSetType,
+                ResultSet.CONCUR_READ_ONLY
+            )
         } else {
-            connection.prepareStatement(sqlBuilder.statement.toString(), columns)
+            connection.prepareStatement(
+                sqlBuilder.statement.toString(),
+                columns
+            )
         }
         try {
             if (sqlBuilder.fetchSize > 0) {
@@ -53,11 +64,17 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
     }
 
     @Throws(SQLException::class)
-    override fun getResultSet(sqlBuilder: SQLBuilder, connection: Connection, wrapConnection: Boolean): ResultSet {
+    override fun getResultSet(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        wrapConnection: Boolean
+    ): ResultSet {
         var preparedStatement: PreparedStatement? = null
         return try {
             preparedStatement = build(sqlBuilder, connection)
-            preparedStatement.executeQuery()!!.let { rs -> if (wrapConnection) wrapConnection(rs) else wrapStatement(rs) }
+            preparedStatement.executeQuery()!!.let { rs ->
+                if (wrapConnection) wrapConnection(rs) else wrapStatement(rs)
+            }
         } catch (e: SQLException) {
             close(preparedStatement)
             throw e
@@ -73,11 +90,26 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getInt(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: Int): Int {
-        return get(sqlBuilder, connection, { it.getInt(columnNumber) }, defaultValue)
+    override fun getInt(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: Int
+    ): Int {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getInt(columnNumber) },
+            defaultValue
+        )
     }
 
-    private fun <T> get(sqlBuilder: SQLBuilder, connection: Connection, transform: (ResultSet) -> T, defaultValue: T): T {
+    private fun <T> get(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        transform: (ResultSet) -> T,
+        defaultValue: T
+    ): T {
         build(sqlBuilder, connection).use { ps ->
             ps.executeQuery().use { rs ->
                 return if (rs.next()) transform(rs) else defaultValue
@@ -94,8 +126,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getInt(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: Int): Int {
-        return get(sqlBuilder, connection, { it.getInt(columnName) }, defaultValue)
+    override fun getInt(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: Int
+    ): Int {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getInt(columnName) },
+            defaultValue
+        )
     }
 
     /**
@@ -107,8 +149,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getLong(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: Long): Long {
-        return get(sqlBuilder, connection, { it.getLong(columnNumber) }, defaultValue)
+    override fun getLong(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: Long
+    ): Long {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getLong(columnNumber) },
+            defaultValue
+        )
     }
 
     /**
@@ -120,8 +172,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getLong(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: Long): Long {
-        return get(sqlBuilder, connection, { it.getLong(columnName) }, defaultValue)
+    override fun getLong(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: Long
+    ): Long {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getLong(columnName) },
+            defaultValue
+        )
     }
 
     /**
@@ -133,8 +195,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getString(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: String?): String? {
-        return get(sqlBuilder, connection, { it.getString(columnNumber) }, defaultValue)
+    override fun getString(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: String?
+    ): String? {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getString(columnNumber) },
+            defaultValue
+        )
     }
 
     /**
@@ -146,8 +218,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getBigDecimal(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: BigDecimal?): BigDecimal? {
-        return get(sqlBuilder, connection, { it.getBigDecimal(columnName) }, defaultValue)
+    override fun getBigDecimal(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: BigDecimal?
+    ): BigDecimal? {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getBigDecimal(columnName) },
+            defaultValue
+        )
     }
 
     /**
@@ -159,8 +241,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getBigDecimal(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: BigDecimal?): BigDecimal? {
-        return get(sqlBuilder, connection, { it.getBigDecimal(columnNumber) }, defaultValue)
+    override fun getBigDecimal(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: BigDecimal?
+    ): BigDecimal? {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getBigDecimal(columnNumber) },
+            defaultValue
+        )
     }
 
     /**
@@ -172,8 +264,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getString(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: String?): String? {
-        return get(sqlBuilder, connection, { it.getString(columnName) }, defaultValue)
+    override fun getString(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: String?
+    ): String? {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getString(columnName) },
+            defaultValue
+        )
     }
 
     /**
@@ -185,8 +287,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getObject(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: Any?): Any? {
-        return get(sqlBuilder, connection, { it.getObject(columnNumber) }, defaultValue)
+    override fun getObject(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: Any?
+    ): Any? {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getObject(columnNumber) },
+            defaultValue
+        )
     }
 
     /**
@@ -198,8 +310,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getObject(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: Any?): Any? {
-        return get(sqlBuilder, connection, { it.getObject(columnName) }, defaultValue)
+    override fun getObject(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: Any?
+    ): Any? {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getObject(columnName) },
+            defaultValue
+        )
     }
 
     /**
@@ -211,8 +333,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getDateTime(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: OffsetDateTime?): OffsetDateTime? {
-        return get(sqlBuilder, connection, { it.getObject(columnNumber, OffsetDateTime::class.java) }, defaultValue)
+    override fun getDateTime(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: OffsetDateTime?
+    ): OffsetDateTime? {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getObject(columnNumber, OffsetDateTime::class.java) },
+            defaultValue
+        )
     }
 
     /**
@@ -224,8 +356,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getDateTime(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: OffsetDateTime?): OffsetDateTime? {
-        return get(sqlBuilder, connection, { it.getObject(columnName, OffsetDateTime::class.java) }, defaultValue)
+    override fun getDateTime(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: OffsetDateTime?
+    ): OffsetDateTime? {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getObject(columnName, OffsetDateTime::class.java) },
+            defaultValue
+        )
     }
 
     /**
@@ -237,8 +379,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getInstant(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: Instant?): Instant? {
-        return get(sqlBuilder, connection, { it.getObject(columnNumber, OffsetDateTime::class.java).toInstant() }, defaultValue)
+    override fun getInstant(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: Instant?
+    ): Instant? {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getObject(columnNumber, OffsetDateTime::class.java).toInstant() },
+            defaultValue
+        )
     }
 
     /**
@@ -250,8 +402,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getInstant(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: Instant?): Instant? {
-        return get(sqlBuilder, connection, { it.getObject(columnName, OffsetDateTime::class.java).toInstant() }, defaultValue)
+    override fun getInstant(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: Instant?
+    ): Instant? {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getObject(columnName, OffsetDateTime::class.java).toInstant() },
+            defaultValue
+        )
     }
 
     /**
@@ -263,8 +425,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getTimestamp(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: Timestamp?): Timestamp? {
-        return get(sqlBuilder, connection, { it.getTimestamp(columnName) }, defaultValue)
+    override fun getTimestamp(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: Timestamp?
+    ): Timestamp? {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getTimestamp(columnName) },
+            defaultValue
+        )
     }
 
     /**
@@ -276,8 +448,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getTimestamp(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: Timestamp?): Timestamp? {
-        return get(sqlBuilder, connection, { it.getTimestamp(columnNumber) }, defaultValue)
+    override fun getTimestamp(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: Timestamp?
+    ): Timestamp? {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getTimestamp(columnNumber) },
+            defaultValue
+        )
     }
 
     /**
@@ -289,8 +471,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getDate(sqlBuilder: SQLBuilder, connection: Connection, columnName: String, defaultValue: Date?): Date? {
-        return get(sqlBuilder, connection, { it.getDate(columnName) }, defaultValue)
+    override fun getDate(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: Date?
+    ): Date? {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getDate(columnName) },
+            defaultValue
+        )
     }
 
     /**
@@ -302,8 +494,18 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Throws(SQLException::class)
-    override fun getDate(sqlBuilder: SQLBuilder, connection: Connection, columnNumber: Int, defaultValue: Date?): Date? {
-        return get(sqlBuilder, connection, { it.getDate(columnNumber) }, defaultValue)
+    override fun getDate(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: Date?
+    ): Date? {
+        return get(
+            sqlBuilder,
+            connection,
+            { it.getDate(columnNumber) },
+            defaultValue
+        )
     }
 
     /**
@@ -326,15 +528,28 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when executing the query
      */
     @Throws(SQLException::class)
-    override fun execute(sqlBuilder: SQLBuilder, connection: Connection, vararg keyColumns: String): ResultSet {
+    override fun execute(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        vararg keyColumns: String
+    ): ResultSet {
         val ps = build(sqlBuilder, connection, *keyColumns)
         ps.executeUpdate()
         return wrapStatement(ps.generatedKeys)
     }
 
     @Throws(SQLException::class)
-    override fun <T> getList(sqlBuilder: SQLBuilder, connection: Connection, rowMapper: SQLBuilder.RowMapper<T?>, withNull: Boolean): List<T?> {
-        build(sqlBuilder, connection).use { ps -> ps.executeQuery().use { rs -> return getList(rs, rowMapper, withNull) } }
+    override fun <T> getList(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        rowMapper: SQLBuilder.RowMapper<T?>,
+        withNull: Boolean
+    ): List<T?> {
+        build(sqlBuilder, connection).use { ps ->
+            ps.executeQuery().use { rs ->
+                return getList(rs, rowMapper, withNull)
+            }
+        }
     }
 
     @Throws(SQLException::class)
@@ -344,16 +559,33 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
         rowMapper: SQLBuilder.RowMapper<Map.Entry<K, V?>>,
         withNull: Boolean
     ): Map<K, V?> {
-        build(sqlBuilder, connection).use { ps -> ps.executeQuery().use { rs -> return getMap(rs, rowMapper, withNull) } }
+        build(sqlBuilder, connection).use { ps ->
+            ps.executeQuery().use { rs ->
+                return getMap(rs, rowMapper, withNull)
+            }
+        }
     }
 
     @Throws(SQLException::class)
-    override fun <T> getSingle(sqlBuilder: SQLBuilder, connection: Connection, rowMapper: SQLBuilder.RowMapper<T?>): Optional<T> {
-        build(sqlBuilder, connection).use { ps -> ps.executeQuery().use { rs -> return Optional.ofNullable(if (rs.next()) rowMapper.map(rs) else null) } }
+    override fun <T> getSingle(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        rowMapper: SQLBuilder.RowMapper<T?>
+    ): Optional<T> {
+        build(sqlBuilder, connection).use { ps ->
+            ps.executeQuery().use { rs ->
+                return Optional.ofNullable(if (rs.next()) rowMapper.map(rs) else null)
+            }
+        }
     }
 
     @Throws(SQLException::class)
-    override fun <T> getSingle(sqlBuilder: SQLBuilder, connection: Connection, rowMapper: SQLBuilder.RowMapper<T?>, defaultValue: T?): T? {
+    override fun <T> getSingle(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        rowMapper: SQLBuilder.RowMapper<T?>,
+        defaultValue: T?
+    ): T? {
         return get(sqlBuilder, connection, { rowMapper.map(it) }, defaultValue)
     }
 }
