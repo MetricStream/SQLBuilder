@@ -234,6 +234,21 @@ class SQLBuilderTestJava {
     }
 
     @Test
+    void expandRepeatedTest() {
+        List<Integer> args = new ArrayList<>(Arrays.asList(3, 1, 4));
+        SQLBuilder sb = new SQLBuilder("select a from foo where a in (?)", args);
+        assertThat(sb.toSQL()).endsWith("a in (?,?,?)");
+        assertThat(sb.toString()).endsWith("a in (?,?,?); args=[3, 1, 4]");
+        assertThat(sb.toSQL()).endsWith("a in (?,?,?)");
+        assertThat(sb.toString()).endsWith("a in (?,?,?); args=[3, 1, 4]");
+        args.add(1);
+        assertThat(sb.toSQL()).endsWith("a in (?,?,?,?)");
+        assertThat(sb.toString()).endsWith("a in (?,?,?,?); args=[3, 1, 4, 1]");
+        assertThat(sb.toSQL()).endsWith("a in (?,?,?,?)");
+        assertThat(sb.toString()).endsWith("a in (?,?,?,?); args=[3, 1, 4, 1]");
+    }
+
+    @Test
     void copyTest1() throws SQLException {
         // A resultset is consumed by a SQLBuilder `getResultSet` (or higher level callers like `getInt`). Therefore,
         // adding it once but trying to use it twice will not work.  Instead, the next usage will create a new

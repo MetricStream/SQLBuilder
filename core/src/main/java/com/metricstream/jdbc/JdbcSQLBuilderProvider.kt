@@ -27,7 +27,7 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
         vararg columns: String
     ): PreparedStatement {
         val expanded: MutableList<Any?> = mutableListOf()
-        sqlBuilder.interpolate(apply = true, withArgs = true, expanded)
+        sqlBuilder.interpolate(SQLBuilder.Mode.EXPAND_AND_APPLY, expanded)
         val ps: PreparedStatement = if (columns.isEmpty()) {
             connection.prepareStatement(
                 sqlBuilder.statement.toString(),

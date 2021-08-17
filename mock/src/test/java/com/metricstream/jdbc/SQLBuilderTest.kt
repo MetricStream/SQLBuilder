@@ -1,6 +1,9 @@
 /*
  * Copyright © 2020-2021, MetricStream, Inc. All rights reserved.
  */
+/*
+ * Copyright © 2020-2021, MetricStream, Inc. All rights reserved.
+ */
 package com.metricstream.jdbc
 
 import org.junit.jupiter.api.AfterEach
@@ -219,6 +222,21 @@ internal class SQLBuilderTest {
         shouldThrow<SQLException> {
             SQLBuilder("select a from foo where a in (?)", emptyList<Int>()).toSQL()
         } shouldHaveMessage "Collection parameters must contain at least one element"
+    }
+
+    @Test
+    internal fun expandRepeatedTest() {
+        val args = mutableListOf(3, 1, 4)
+        val sb = SQLBuilder("select a from foo where a in (?)", args)
+        sb.toSQL() shouldEndWith "a in (?,?,?)"
+        sb.toString() shouldEndWith "a in (?,?,?); args=[3, 1, 4]"
+        sb.toSQL() shouldEndWith "a in (?,?,?)"
+        sb.toString() shouldEndWith "a in (?,?,?); args=[3, 1, 4]"
+        args += 1
+        sb.toSQL() shouldEndWith "a in (?,?,?,?)"
+        sb.toString() shouldEndWith "a in (?,?,?,?); args=[3, 1, 4, 1]"
+        sb.toSQL() shouldEndWith "a in (?,?,?,?)"
+        sb.toString() shouldEndWith "a in (?,?,?,?); args=[3, 1, 4, 1]"
     }
 
     @Test
@@ -730,6 +748,9 @@ internal class SQLBuilderTest {
         sb1.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
         sb1.applyBindings()
         sb1.toString() shouldBe sb1s
+        // applyBindings once more to make sure it is idempotent (e.g. does not expand placeholders)
+        sb1.applyBindings()
+        sb1.toString() shouldBe sb1s
         val sb2 = SQLBuilder("select \${b} from (").append(sb1).append(")").bind("b", "BCOL")
         sb2.toString() shouldBe "select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]"
     }
@@ -741,6 +762,9 @@ internal class SQLBuilderTest {
         val sb1s = sb1.toString()
         sb1.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
         sb1.toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
+        sb1.applyBindings()
+        sb1.toString() shouldBe sb1s
+        // applyBindings once more to make sure it is idempotent (e.g. does not expand placeholders)
         sb1.applyBindings()
         sb1.toString() shouldBe sb1s
         val sb2 = SQLBuilder("select :{b} from (").append(sb1).append(")").bind("b", "BCOL")

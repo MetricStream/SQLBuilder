@@ -66,6 +66,8 @@ class SQLBuilder {
     @JvmField
     var maxRows = -1
 
+    internal enum class Mode { APPLY_BINDINGS, EXPAND_AND_APPLY, EXPAND_AND_SQL, EXPAND_AND_STRING }
+
     /**
      * Simple wrapper class for "sensitive" data like full names, email addresses or SSNs.
      * When logging a SQLBuilder object, we will print the hash of sensitive values instead of the value itself
@@ -165,7 +167,7 @@ class SQLBuilder {
      * @return the SQLBuilder object
      */
     fun applyBindings(): SQLBuilder {
-        interpolate(apply = true, withArgs = true)
+        interpolate(Mode.APPLY_BINDINGS)
         return this
     }
 
@@ -234,11 +236,14 @@ class SQLBuilder {
         require(names.add(name)) { "The binding name \"$name\" must be unique" }
     }
 
-    internal fun interpolate(apply: Boolean, withArgs: Boolean, expanded: MutableList<Any?>? = null): String {
-        if (arguments.isNotEmpty()) {
+    internal fun interpolate(mode: Mode, expanded: MutableList<Any?> = mutableListOf()): String {
+        val expandedStatement = StringBuilder(statement)
+        if (arguments.isNotEmpty() && mode != Mode.APPLY_BINDINGS) {
+            // We must not expand in APPLY_BINDINGS mode because that can be called multiple times
+            // and would thus expand the placeholders multiple times
             var sqlPos = 0
             for (arg in arguments) {
-                sqlPos = statement.indexOf("?", sqlPos) + 1
+                sqlPos = expandedStatement.indexOf("?", sqlPos) + 1
                 if (sqlPos == 0) {
                     // We ran out of placeholders (i.e. we have extra parameters).
                     // We do not consider that as a bug (though one could argue this
@@ -254,12 +259,12 @@ class SQLBuilder {
                     }
                     // The statement already contains one "?", therefore we only add length - 1 additional placeholders
                     val additionalPlaceHolders = ",?".repeat(length - 1)
-                    statement.insert(sqlPos, additionalPlaceHolders)
+                    expandedStatement.insert(sqlPos, additionalPlaceHolders)
                     // move sqlPos beyond the inserted ",?"
                     sqlPos += additionalPlaceHolders.length
-                    expanded?.addAll(col)
+                    expanded.addAll(col)
                 } else {
-                    expanded?.add(arg)
+                    expanded.add(arg)
                 }
             }
         }
@@ -278,26 +283,34 @@ class SQLBuilder {
         val sb = StringBuffer()
         if (quoted.isNotEmpty()) {
             val p = Pattern.compile(regexp.toString())
-            val m = p.matcher(statement.toString())
+            val m = p.matcher(expandedStatement.toString())
             while (m.find()) {
                 m.appendReplacement(sb, Matcher.quoteReplacement(quoted[m.group(1)]))
             }
             m.appendTail(sb)
         } else {
-            sb.append(statement)
+            sb.append(expandedStatement)
         }
 
-        if (apply) {
-            names.clear()
-            singleValuedNames.clear()
-            multiValuedNames.clear()
-            statement.setLength(0)
-            statement.append(sb)
-            sb.setLength(0)
-        } else if (withArgs) {
-            sb.append("; args=").append(arguments)
+        return when (mode) {
+            Mode.APPLY_BINDINGS, Mode.EXPAND_AND_APPLY -> {
+                names.clear()
+                singleValuedNames.clear()
+                multiValuedNames.clear()
+                statement.setLength(0)
+                statement.append(sb)
+                sb.setLength(0)
+                logger.debug("{}; args={}", statement, expanded)
+                ""
+            }
+            Mode.EXPAND_AND_STRING -> {
+                sb.append("; args=").append(expanded)
+                sb.toString()
+            }
+            Mode.EXPAND_AND_SQL -> {
+                sb.toString()
+            }
         }
-        return sb.toString()
     }
 
     /**
@@ -740,7 +753,7 @@ class SQLBuilder {
      * @return A String representation
      */
     override fun toString(): String {
-        return interpolate(apply = false, withArgs = true)
+        return interpolate(Mode.EXPAND_AND_STRING)
     }
 
     /**
@@ -749,7 +762,7 @@ class SQLBuilder {
      * @return A String representation
      */
     fun toSQL(): String {
-        return interpolate(apply = false, withArgs = false)
+        return interpolate(Mode.EXPAND_AND_SQL)
     }
 
     companion object {
