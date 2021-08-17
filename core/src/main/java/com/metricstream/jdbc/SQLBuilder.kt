@@ -3,33 +3,25 @@
  */
 package com.metricstream.jdbc
 
-import java.sql.ResultSet
-import org.apache.commons.codec.digest.DigestUtils
-import java.util.StringJoiner
-import java.lang.StringBuffer
-import kotlin.Throws
-import java.sql.SQLException
-import java.math.BigDecimal
-import java.time.OffsetDateTime
-import java.time.Instant
-import java.lang.IllegalStateException
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.InvocationTargetException
-import java.util.AbstractMap.SimpleImmutableEntry
-import kotlin.jvm.JvmOverloads
-import java.lang.AutoCloseable
-import java.lang.Exception
-import java.lang.IllegalArgumentException
-import java.lang.StringBuilder
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
+import java.math.BigDecimal
 import java.sql.Connection
 import java.sql.Date
+import java.sql.ResultSet
+import java.sql.SQLException
 import java.sql.Statement
 import java.sql.Timestamp
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.util.AbstractMap.SimpleImmutableEntry
 import java.util.Optional
+import java.util.StringJoiner
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import org.apache.commons.codec.digest.DigestUtils
 import org.slf4j.LoggerFactory
 
 /**
@@ -54,7 +46,7 @@ import org.slf4j.LoggerFactory
  */
 class SQLBuilder {
     internal val statement = StringBuilder()
-    internal val arguments: MutableList<Any?> = mutableListOf()
+    private val arguments: MutableList<Any?> = mutableListOf()
     private val names: MutableSet<String> = mutableSetOf()
     private val singleValuedNames: MutableMap<String, String> = mutableMapOf()
     private val multiValuedNames: MutableMap<String, List<String>> = mutableMapOf()
