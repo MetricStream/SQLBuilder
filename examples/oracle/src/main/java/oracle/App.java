@@ -6,6 +6,7 @@ package oracle;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 import com.metricstream.jdbc.SQLBuilder;
@@ -16,7 +17,7 @@ public class App {
     private final DBConnection dbConnection = new DBConnection();
 
     public String getGreeting() throws SQLException {
-        return String.format("Lets party, %s!%n", invite());
+        return String.format("Lets party, %d users!%n", invite().size());
     }
 
     public static void main(String[] args) throws SQLException {
@@ -31,7 +32,7 @@ public class App {
 
     public List<String> invite() throws SQLException {
         try (Connection con = getConnection()) {
-            SQLBuilder sb = new SQLBuilder("select first_name from si_users");
+            SQLBuilder sb = new SQLBuilder("select first_name from ${view} where last_name in (?)", Arrays.asList("Pan", "Stream")).bind("view", "si_users");
             return sb.getList(con, rs -> rs.getString(1));
         }
     }
