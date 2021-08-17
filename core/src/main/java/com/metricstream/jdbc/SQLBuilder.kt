@@ -686,7 +686,7 @@ class SQLBuilder {
         }
 
         @Throws(Throwable::class)
-        override fun invoke(proxy: Any, method: Method, vararg args: Any?): Any? {
+        override fun invoke(proxy: Any, method: Method, args: Array<out Any?>?): Any? {
             // Warning: we have to go through the code below even is
             // rs.isClosed() is true because we still would need to close the
             // statement and connection.  Also, Oracle's ResultSet.next()
@@ -715,7 +715,11 @@ class SQLBuilder {
             }
 
             return try {
-                method.invoke(rs, *args)
+                if (args != null) {
+                    method.invoke(rs, *args)
+                } else {
+                    method.invoke(rs)
+                }
             } catch (e: InvocationTargetException) {
                 throw e.cause ?: e
             }
