@@ -590,12 +590,13 @@ class SQLBuilderTestJava {
         // with 3 ints in column 2
         // then expect to get a resultset that returns 3 rows in correct order
         MockSQLBuilderProvider.addResultSet("", "_,3\n_,1\n_,4");
-        ResultSet rs = sqlBuilder.getResultSet(mockConnection);
-        List<Integer> actual = new ArrayList<>();
-        while (rs.next()) {
-            actual.add(rs.getInt(2));
+        try (ResultSet rs = sqlBuilder.getResultSet(mockConnection)) {
+            List<Integer> actual = new ArrayList<>();
+            while (rs.next()) {
+                actual.add(rs.getInt(2));
+            }
+            assertThat(actual).containsExactly(3, 1, 4);
         }
-        assertThat(actual).containsExactly(3, 1, 4);
     }
 
     @Test
@@ -604,12 +605,13 @@ class SQLBuilderTestJava {
         // with 1 long in column 3
         // then expect to get a resultset that returns 1 row
         MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", "", 3L } });
-        ResultSet rs = sqlBuilder.getResultSet(mockConnection);
-        List<Long> actual = new ArrayList<>();
-        while (rs.next()) {
-            actual.add(rs.getLong(3));
+        try (ResultSet rs = sqlBuilder.getResultSet(mockConnection)) {
+            List<Long> actual = new ArrayList<>();
+            while (rs.next()) {
+                actual.add(rs.getLong(3));
+            }
+            assertThat(actual).containsExactly(3L);
         }
-        assertThat(actual).containsExactly(3L);
     }
 
     @Test
@@ -617,8 +619,9 @@ class SQLBuilderTestJava {
         // when query returns no rows
         // then expect to get a resultset that returns no row
         MockSQLBuilderProvider.addResultSet(MockResultSet.empty(""));
-        ResultSet rs = sqlBuilder.getResultSet(mockConnection);
-        assertThat(rs.next()).isFalse();
+        try (ResultSet rs = sqlBuilder.getResultSet(mockConnection)) {
+            assertThat(rs.next()).isFalse();
+        }
     }
 
     @Test

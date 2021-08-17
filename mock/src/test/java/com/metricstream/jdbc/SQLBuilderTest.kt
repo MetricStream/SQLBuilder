@@ -580,12 +580,13 @@ internal class SQLBuilderTest {
         // with 3 ints in column 2
         // then expect to get a resultset that returns 3 rows in correct order
         MockSQLBuilderProvider.addResultSet("", "_,3\n_,1\n_,4")
-        val rs = sqlBuilder.getResultSet(mockConnection)
-        val actual = mutableListOf<Int>()
-        while (rs.next()) {
-            actual.add(rs.getInt(2))
+        sqlBuilder.getResultSet(mockConnection).use { rs ->
+            val actual = mutableListOf<Int>()
+            while (rs.next()) {
+                actual.add(rs.getInt(2))
+            }
+            actual shouldBe listOf(3, 1, 4)
         }
-        actual shouldBe listOf(3, 1, 4)
     }
 
     @Test
@@ -594,12 +595,13 @@ internal class SQLBuilderTest {
         // with 1 long in column 3
         // then expect to get a resultset that returns 1 row
         MockSQLBuilderProvider.addResultSet("", arrayOf(arrayOf("", "", 3L)))
-        val rs = sqlBuilder.getResultSet(mockConnection)
-        val actual = mutableListOf<Long>()
-        while (rs.next()) {
-            actual.add(rs.getLong(3))
+        sqlBuilder.getResultSet(mockConnection).use { rs ->
+            val actual = mutableListOf<Long>()
+            while (rs.next()) {
+                actual.add(rs.getLong(3))
+            }
+            actual shouldBe listOf(3L)
         }
-        actual shouldBe listOf(3L)
     }
 
     @Test
@@ -607,8 +609,9 @@ internal class SQLBuilderTest {
         // when query returns no rows
         // then expect to get a resultset that returns no row
         MockSQLBuilderProvider.addResultSet(MockResultSet.empty(""))
-        val rs = sqlBuilder.getResultSet(mockConnection)
-        rs.next() shouldBe false
+        sqlBuilder.getResultSet(mockConnection).use { rs ->
+            rs.next() shouldBe false
+        }
     }
 
     @Test
