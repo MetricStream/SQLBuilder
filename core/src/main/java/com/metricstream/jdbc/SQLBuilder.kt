@@ -355,7 +355,6 @@ class SQLBuilder {
     @Throws(SQLException::class)
     @JvmOverloads
     fun getResultSet(connection: Connection, wrapConnection: Boolean = false): ResultSet {
-        logger.debug("{}", this)
         return delegate.getResultSet(this, connection, wrapConnection)
     }
 
@@ -369,7 +368,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getInt(connection: Connection, columnNumber: Int, defaultValue: Int): Int {
-        logger.debug("{}", this)
         return delegate.getInt(this, connection, columnNumber, defaultValue)
     }
 
@@ -383,7 +381,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getInt(connection: Connection, columnName: String, defaultValue: Int): Int {
-        logger.debug("{}", this)
         return delegate.getInt(this, connection, columnName, defaultValue)
     }
 
@@ -397,7 +394,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getLong(connection: Connection, columnNumber: Int, defaultValue: Long): Long {
-        logger.debug("{}", this)
         return delegate.getLong(this, connection, columnNumber, defaultValue)
     }
 
@@ -411,7 +407,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getLong(connection: Connection, columnName: String, defaultValue: Long): Long {
-        logger.debug("{}", this)
         return delegate.getLong(this, connection, columnName, defaultValue)
     }
 
@@ -425,7 +420,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getString(connection: Connection, columnNumber: Int, defaultValue: String?): String? {
-        logger.debug("{}", this)
         return delegate.getString(this, connection, columnNumber, defaultValue)
     }
 
@@ -439,7 +433,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getString(connection: Connection, columnName: String, defaultValue: String?): String? {
-        logger.debug("{}", this)
         return delegate.getString(this, connection, columnName, defaultValue)
     }
 
@@ -453,7 +446,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getBigDecimal(connection: Connection, columnNumber: Int, defaultValue: BigDecimal?): BigDecimal? {
-        logger.debug("{}", this)
         return delegate.getBigDecimal(this, connection, columnNumber, defaultValue)
     }
 
@@ -467,7 +459,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getBigDecimal(connection: Connection, columnName: String, defaultValue: BigDecimal?): BigDecimal? {
-        logger.debug("{}", this)
         return delegate.getBigDecimal(this, connection, columnName, defaultValue)
     }
 
@@ -481,7 +472,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getObject(connection: Connection, columnNumber: Int, defaultValue: Any?): Any? {
-        logger.debug("{}", this)
         return delegate.getObject(this, connection, columnNumber, defaultValue)
     }
 
@@ -495,7 +485,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getObject(connection: Connection, columnName: String, defaultValue: Any?): Any? {
-        logger.debug("{}", this)
         return delegate.getObject(this, connection, columnName, defaultValue)
     }
 
@@ -509,7 +498,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getDateTime(connection: Connection, columnNumber: Int, defaultValue: OffsetDateTime?): OffsetDateTime? {
-        logger.debug("{}", this)
         return delegate.getDateTime(this, connection, columnNumber, defaultValue)
     }
 
@@ -523,7 +511,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getDateTime(connection: Connection, columnName: String, defaultValue: OffsetDateTime?): OffsetDateTime? {
-        logger.debug("{}", this)
         return delegate.getDateTime(this, connection, columnName, defaultValue)
     }
 
@@ -537,7 +524,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getInstant(connection: Connection, columnNumber: Int, defaultValue: Instant?): Instant? {
-        logger.debug("{}", this)
         return delegate.getInstant(this, connection, columnNumber, defaultValue)
     }
 
@@ -551,7 +537,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getInstant(connection: Connection, columnName: String, defaultValue: Instant?): Instant? {
-        logger.debug("{}", this)
         return delegate.getInstant(this, connection, columnName, defaultValue)
     }
 
@@ -565,7 +550,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getTimestamp(connection: Connection, columnNumber: Int, defaultValue: Timestamp?): Timestamp? {
-        logger.debug("{}", this)
         return delegate.getTimestamp(this, connection, columnNumber, defaultValue)
     }
 
@@ -579,7 +563,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getTimestamp(connection: Connection, columnName: String, defaultValue: Timestamp?): Timestamp? {
-        logger.debug("{}", this)
         return delegate.getTimestamp(this, connection, columnName, defaultValue)
     }
 
@@ -593,7 +576,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getDate(connection: Connection, columnNumber: Int, defaultValue: Date?): Date? {
-        logger.debug("{}", this)
         return delegate.getDate(this, connection, columnNumber, defaultValue)
     }
 
@@ -607,7 +589,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun getDate(connection: Connection, columnName: String, defaultValue: Date?): Date? {
-        logger.debug("{}", this)
         return delegate.getDate(this, connection, columnName, defaultValue)
     }
 
@@ -619,7 +600,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun execute(connection: Connection): Int {
-        logger.debug("{}", this)
         return delegate.execute(this, connection)
     }
 
@@ -633,7 +613,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun execute(connection: Connection, vararg keyColumns: String): ResultSet {
-        logger.debug("{}", this)
         return delegate.execute(this, connection, *keyColumns)
     }
 
@@ -654,7 +633,6 @@ class SQLBuilder {
     @Throws(SQLException::class)
     @JvmOverloads
     fun <T> getList(connection: Connection, rowMapper: RowMapper<T?>, withNull: Boolean = false): List<T?> {
-        logger.debug("{}", this)
         return delegate.getList(this, connection, rowMapper, withNull)
     }
 
@@ -671,7 +649,6 @@ class SQLBuilder {
     @Throws(SQLException::class, IllegalStateException::class)
     @JvmOverloads
     fun <K, V> getMap(connection: Connection, rowMapper: RowMapper<Map.Entry<K, V?>>, withNull: Boolean = false): Map<K, V?> {
-        logger.debug("{}", this)
         return delegate.getMap(this, connection, rowMapper, withNull)
     }
 
@@ -684,7 +661,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun <T> getSingle(connection: Connection, rowMapper: RowMapper<T?>): Optional<T> {
-        logger.debug("{}", this)
         return delegate.getSingle(this, connection, rowMapper)
     }
 
@@ -697,7 +673,6 @@ class SQLBuilder {
      */
     @Throws(SQLException::class)
     fun <T> getSingle(connection: Connection, rowMapper: RowMapper<T?>, defaultValue: T?): T? {
-        logger.debug("{}", this)
         return delegate.getSingle(this, connection, rowMapper, defaultValue)
     }
 
