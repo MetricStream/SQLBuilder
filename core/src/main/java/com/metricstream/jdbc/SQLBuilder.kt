@@ -52,11 +52,13 @@ class SQLBuilder {
     private val multiValuedNames: MutableMap<String, List<String>> = mutableMapOf()
     private var delimiter = ""
     @JvmField
-    var resultSetType = ResultSet.TYPE_FORWARD_ONLY
+    var resultSetType: Int = ResultSet.TYPE_FORWARD_ONLY
     @JvmField
-    var fetchSize = -1
+    var resultSetConcurrency: Int = ResultSet.CONCUR_READ_ONLY
     @JvmField
-    var maxRows = -1
+    var fetchSize: Int = -1
+    @JvmField
+    var maxRows: Int = -1
 
     internal enum class Mode { APPLY_BINDINGS, EXPAND_AND_APPLY, EXPAND_AND_SQL, EXPAND_AND_STRING }
 
@@ -311,6 +313,15 @@ class SQLBuilder {
      */
     fun randomAccess(): SQLBuilder {
         resultSetType = ResultSet.TYPE_SCROLL_INSENSITIVE
+        return this
+    }
+
+    /**
+     * This changes the ResultSet concurrency from CONCUR_READ_ONLY to CONCUR_UPDATABLE
+     * @return The SQLBuilder object
+     */
+    fun updateable(): SQLBuilder {
+        resultSetConcurrency = ResultSet.CONCUR_UPDATABLE
         return this
     }
 

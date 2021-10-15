@@ -529,10 +529,25 @@ following steps (all examples are given for [Junit5], adapt for your test framew
      `when(rs.getLong("ID")).thenReturn(1L);`
 
 # Release Notes #
+- Version 3.1.0, released 2021-10-15
+  - allows to change ResultSet concurrency from default `CONCUR_READ_ONLY` to `CONCUR_UPDATABLE`
+  - upgraded to Gradle 7.2
+  - upgraded to Kotlin 1.5.31
+  - upgraded to JVM 11
+  - upgraded external dependencies
+    - `ch.qos.logback:logback-classic` from `1.2.5` to `1.2.6`
+    - `org.junit.jupiter:junit-jupiter-api` from `5.7.2` to `5.8.1`
+    - `org.junit.jupiter:junit-jupiter-engine` from `5.7.2` to `5.8.1`
+    - `org.mockito:mockito-core` from `3.11.2` to `4.0.0`
+    - `org.mockito:mockito-junit-jupiter` from `3.11.2` to `4.0.0`
+    - `com.opencsv:opencsv` from `5.4` to `5.5.2`
+    - `org.postgresql:postgresql` from `42.2.19` to `42.2.24` (only used for "examples" module)
+    - `com.oracle.database.jdbc:ojdbc8` from `21.1.0.0` to `21.3.0.0` (only used for "examples" module)
+    - `org.jlleitschuh.gradle.ktlint` from `10.1.0` to `20.2.0` (only used for build)
 - Version 3.0.2, released 2021-08-18
-  - switched implementation language from Java to Kotlin
-  - uses Kotest assertions for Kotlin tests
-  - uses AssertJ assertions for Java tests
+  - switched implementation language from Java to Kotlin (public API unchanged)
+  - uses Kotest assertions instead of JUnit+Hamcrest assertions for Kotlin tests
+  - uses AssertJ assertions instead of JUnit+Hamcrest for Java tests
 - Version 3.0.1, released 2021-06-26
   - switched to Gradle 7.1
 - Version 3.0.0, released 2021-06-26

@@ -32,7 +32,7 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
             connection.prepareStatement(
                 sqlBuilder.statement.toString(),
                 sqlBuilder.resultSetType,
-                ResultSet.CONCUR_READ_ONLY
+                sqlBuilder.resultSetConcurrency
             )
         } else {
             connection.prepareStatement(
