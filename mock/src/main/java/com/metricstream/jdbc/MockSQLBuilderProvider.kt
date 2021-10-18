@@ -18,6 +18,8 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.BiFunction
 import java.util.function.Supplier
+import org.mockito.MockingDetails
+import org.mockito.kotlin.mockingDetails
 import org.slf4j.LoggerFactory
 import com.metricstream.jdbc.MockResultSet.Companion.THE_ANSWER_TO_THE_ULTIMATE_QUESTION
 import com.metricstream.jdbc.SQLBuilder.Companion.resetDelegate
@@ -37,6 +39,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         connection: Connection,
         wrapConnection: Boolean
     ): ResultSet {
+        invocations.getResultSet++
         logger.debug("{}", sqlBuilder)
         return getRs()
     }
@@ -47,6 +50,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnNumber: Int,
         defaultValue: Int
     ): Int {
+        invocations.getInt++
         logger.debug("{}", sqlBuilder)
         if (intByColumnIndex != null) {
             return intByColumnIndex!!.apply(columnNumber, defaultValue)
@@ -62,6 +66,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnName: String,
         defaultValue: Int
     ): Int {
+        invocations.getInt++
         logger.debug("{}", sqlBuilder)
         if (intByColumnLabel != null) {
             return intByColumnLabel!!.apply(columnName, defaultValue)
@@ -76,6 +81,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnNumber: Int,
         defaultValue: Long
     ): Long {
+        invocations.getLong++
         logger.debug("{}", sqlBuilder)
         if (longByColumnIndex != null) {
             return longByColumnIndex!!.apply(columnNumber, defaultValue)
@@ -90,6 +96,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnName: String,
         defaultValue: Long
     ): Long {
+        invocations.getLong++
         logger.debug("{}", sqlBuilder)
         if (longByColumnLabel != null) {
             return longByColumnLabel!!.apply(columnName, defaultValue)
@@ -104,6 +111,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnNumber: Int,
         defaultValue: String?
     ): String? {
+        invocations.getString++
         logger.debug("{}", sqlBuilder)
         if (stringByColumnIndex != null) {
             return stringByColumnIndex!!.apply(columnNumber, defaultValue)
@@ -118,6 +126,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnName: String,
         defaultValue: String?
     ): String? {
+        invocations.getString++
         logger.debug("{}", sqlBuilder)
         if (stringByColumnLabel != null) {
             return stringByColumnLabel!!.apply(columnName, defaultValue)
@@ -132,6 +141,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnNumber: Int,
         defaultValue: BigDecimal?
     ): BigDecimal? {
+        invocations.getBigDecimal++
         logger.debug("{}", sqlBuilder)
         if (bigDecimalByColumnIndex != null) {
             return bigDecimalByColumnIndex!!.apply(columnNumber, defaultValue)
@@ -146,6 +156,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnName: String,
         defaultValue: BigDecimal?
     ): BigDecimal? {
+        invocations.getBigDecimal++
         logger.debug("{}", sqlBuilder)
         if (bigDecimalByColumnLabel != null) {
             return bigDecimalByColumnLabel!!.apply(columnName, defaultValue)
@@ -160,6 +171,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnNumber: Int,
         defaultValue: Any?
     ): Any? {
+        invocations.getObject++
         logger.debug("{}", sqlBuilder)
         if (objectByColumnIndex != null) {
             return objectByColumnIndex!!.apply(columnNumber, defaultValue)
@@ -174,6 +186,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnName: String,
         defaultValue: Any?
     ): Any? {
+        invocations.getObject++
         logger.debug("{}", sqlBuilder)
         if (objectByColumnLabel != null) {
             return objectByColumnLabel!!.apply(columnName, defaultValue)
@@ -188,6 +201,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnNumber: Int,
         defaultValue: OffsetDateTime?
     ): OffsetDateTime? {
+        invocations.getDateTime++
         logger.debug("{}", sqlBuilder)
         val rs = getRs()
         return if (rs.next()) rs.getObject(columnNumber, OffsetDateTime::class.java) else defaultValue
@@ -199,6 +213,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnName: String,
         defaultValue: OffsetDateTime?
     ): OffsetDateTime? {
+        invocations.getDateTime++
         logger.debug("{}", sqlBuilder)
         val rs = getRs()
         return if (rs.next()) rs.getObject(columnName, OffsetDateTime::class.java) else defaultValue
@@ -210,6 +225,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnNumber: Int,
         defaultValue: Instant?
     ): Instant? {
+        invocations.getInstant++
         logger.debug("{}", sqlBuilder)
         val rs = getRs()
         return if (rs.next()) rs.getObject(columnNumber, OffsetDateTime::class.java).toInstant() else defaultValue
@@ -221,6 +237,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnName: String,
         defaultValue: Instant?
     ): Instant? {
+        invocations.getInstant++
         logger.debug("{}", sqlBuilder)
         val rs = getRs()
         return if (rs.next()) rs.getObject(columnName, OffsetDateTime::class.java).toInstant() else defaultValue
@@ -232,6 +249,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnNumber: Int,
         defaultValue: Timestamp?
     ): Timestamp? {
+        invocations.getTimestamp++
         logger.debug("{}", sqlBuilder)
         val rs = getRs()
         return if (rs.next()) rs.getTimestamp(columnNumber) else defaultValue
@@ -243,6 +261,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnName: String,
         defaultValue: Timestamp?
     ): Timestamp? {
+        invocations.getTimestamp++
         logger.debug("{}", sqlBuilder)
         val rs = getRs()
         return if (rs.next()) rs.getTimestamp(columnName) else defaultValue
@@ -254,6 +273,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnNumber: Int,
         defaultValue: Date?
     ): Date? {
+        invocations.getDate++
         logger.debug("{}", sqlBuilder)
         val rs = getRs()
         return if (rs.next()) rs.getDate(columnNumber) else defaultValue
@@ -265,6 +285,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         columnName: String,
         defaultValue: Date?
     ): Date? {
+        invocations.getDate++
         logger.debug("{}", sqlBuilder)
         val rs = getRs()
         return if (rs.next()) rs.getDate(columnName) else defaultValue
@@ -274,6 +295,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         sqlBuilder: SQLBuilder,
         connection: Connection
     ): Int {
+        invocations.execute++
         logger.debug("{}", sqlBuilder)
         checkTag(executeTag)
         return executeSupplier.get()
@@ -284,6 +306,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         connection: Connection,
         vararg keyColumns: String
     ): ResultSet {
+        invocations.execute++
         logger.debug("{}", sqlBuilder)
         return getRs()
     }
@@ -294,6 +317,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         rowMapper: SQLBuilder.RowMapper<T?>,
         withNull: Boolean
     ): List<T?> {
+        invocations.getList++
         logger.debug("{}", sqlBuilder)
         return getList(getRs(), rowMapper, withNull)
     }
@@ -304,6 +328,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         rowMapper: SQLBuilder.RowMapper<Map.Entry<K, V?>>,
         withNull: Boolean
     ): Map<K, V?> {
+        invocations.getMap++
         logger.debug("{}", sqlBuilder)
         return getMap(getRs(), rowMapper, withNull)
     }
@@ -313,6 +338,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         connection: Connection,
         rowMapper: SQLBuilder.RowMapper<T?>
     ): Optional<T> {
+        invocations.getSingle++
         logger.debug("{}", sqlBuilder)
         val rs = getRs()
         return Optional.ofNullable(if (rs.next()) rowMapper.map(rs) else null)
@@ -324,6 +350,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         rowMapper: SQLBuilder.RowMapper<T?>,
         defaultValue: T?
     ): T? {
+        invocations.getSingle++
         logger.debug("{}", sqlBuilder)
         val rs = getRs()
         return if (rs.next()) rowMapper.map(rs) else defaultValue
@@ -331,6 +358,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
 
     @Throws(SQLException::class)
     private fun getRs(): ResultSet {
+        invocations.getRs++
         var rs = mockResultSets.poll()
         when {
             rs != null -> checkTag(rs.toString())
@@ -343,6 +371,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             else -> rs = MockResultSet.empty("")
         }
         logger.debug("Using mock ResultSet {}", rs)
+        invocations.returnedResultSets += rs
         return rs
     }
 
@@ -382,6 +411,8 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         private var objectByColumnLabel: BiFunction<String, Any?, Any?>? = null
         private var executeSupplier: Supplier<Int> = Supplier { THE_ANSWER_TO_THE_ULTIMATE_QUESTION }
         private var executeTag: String = ""
+        lateinit var invocations: Invocations
+
         @JvmStatic
         fun enable() {
             setDelegate(MockSQLBuilderProvider())
@@ -520,6 +551,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             objectByColumnIndex = null
             objectByColumnLabel = null
             setExecute("", THE_ANSWER_TO_THE_ULTIMATE_QUESTION)
+            invocations = Invocations()
         }
     }
 }
