@@ -16,7 +16,7 @@ subprojects {
     apply(plugin = "signing")
 
     group = "com.metricstream.jdbc"
-    version = "2.3.0"
+    version = "2.4.0"
 
     repositories {
         mavenCentral()
@@ -37,6 +37,9 @@ subprojects {
     }
 
     java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(11))
+        }
         withJavadocJar()
         withSourcesJar()
     }
