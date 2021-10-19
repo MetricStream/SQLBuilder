@@ -25,8 +25,7 @@ an optional test driver which in addition requires [Mockito] and [OpenCSV].
 # Motivation #
 
 We were faced with lots of legacy code using variants of the following (simplified code w/o error handling etc.):
-<details open>
-<summary>Java</summary>
+- Java
 ```java
 String filter(int age) {
     return age > 0 ? " and age >= ?" : "";
@@ -49,9 +48,7 @@ List<String> friends(int age) {
     }
 }
 ```
-</details>
-<details>
-<summary>Kotlin</summary>
+- Kotlin
 ```kotlin
 fun filter(age: Int): String {
     return if (age > 0) " and age >= ?" else ""
@@ -74,7 +71,6 @@ fun friends(age: Int): List<String> {
     }
 }
 ```
-</details>
 
 What stands out here is that the SQL fragments and the query parameters are disconnected:
  - The place where the SQL is constructed and the place where the parameter values are provided are lines apart
