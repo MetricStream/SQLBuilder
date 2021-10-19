@@ -61,7 +61,7 @@ fun friends(age: Int): List<String> {
         if (age > 0) {
             ps.setInt(2, age)
         }
-        ps.getResultSet().use { rs -> {
+        ps.getResultSet().use { rs ->
             val names = mutableListOf<String>()
             while (rs.next()) {
                 names += rs.getString(1)
@@ -102,7 +102,7 @@ fun filter(age: Int): SQLBuilder {
 
 fun friends(age: Int): List<String> {
     val query = SQLBuilder("select first_name from person where last_name = ?", name).append(filter(age))
-    sb.getResultSet(con).use { rs -> {
+    sb.getResultSet(con).use { rs ->
         val names = mutableListOf<String>()
         while (rs.next()) {
             names += rs.getString(1)
@@ -207,8 +207,8 @@ SQLBuilder count = new SQLBuilder(core).wrap("select count(*) from (", ")");
 ```
 - Kotlin
 ```kotlin
-val core = new SQLBuilder(...)  
-val count = new SQLBuilder(core).wrap("select count(*) from (", ")")
+val core = SQLBuilder(...)  
+val count = SQLBuilder(core).wrap("select count(*) from (", ")")
 ```
 
 
@@ -393,7 +393,6 @@ val sb = SQLBuilder("select count(*) from person where 1=0")
 list.forEach { col -> sb.append("or #{name}=?", lookingFor).bind("name", col).applyBindings() } 
 ```
 
-
 Using unique binding names is possible but often results in less readable code:
 - Java
 ```java
@@ -457,11 +456,12 @@ The usual mocking approach (using e.g. [Mockito]) is often very painful to use f
    adds or removes a call to `ResultSet#getString`.
 -  coding of test data is labour intensive, especially for queries that fill complex pojos.
 
-`SQLBuilder` therefore offers an optional native mocking solution which avoids these problems. In this mode,
-`SQLBuilder` internally delegates the calls to a mocking invoker instead of to the usual JDBC invoker. Unit tests should
-instruct SQLBuilder to use the mocking invoker which then automatically mocks all database access code. This mocking
-invoker can be customized (more on that later), but the default behavior is to return a single row of made-up data for
-every requested ResultSet. As an example, consider a method like this (error handling omitted for brevity):
+`SQLBuilder` therefore offers `MockSQLBuilderProvider` as an optional native mocking solution which avoids these
+problems. After enabling `MockSQLBuilderprovdier` by calling `MockSQLBuilderProvider.enable()`, `SQLBuilder` internally
+delegates all calls to the mocking invoker instead of to the usual JDBC invoker. Unit tests should therefore instruct
+SQLBuilder to use the mocking invoker which then automatically mocks all database access code. This mocking invoker can
+be customized (more on that later), but the default behavior is to return a single row of made-up data for every
+requested ResultSet. As an example, consider a method like this (error handling omitted for brevity):
 - Java
 ```java
 List<Person> getPersons(Connection con, List<Long> ids) {
@@ -499,17 +499,15 @@ fun getPersons(con: Connection, ids: List<Long>): List<Person> {
 This method can be unit tested without any prepared test data or mocking:
 - Java
 ```java
-MockSQLBuilderProvider.enable();
 assertFalse(dao.getPersons(con, List.of(1L, 2L)).isEmpty());
 ```
 - Kotlin
 ```kotlin
-MockSQLBuilderProvider.enable()
 assertFalse(dao.getPersons(con, listOf(1L, 2L)).isEmpty())
 ```
 
-
-Now consider a developer improves this method to:
+Because `MockSQLBuilderProvider` mocks all `SQLBuilder`-initiated calls, unit tests are generally easier to write and
+more robust. As an example, consider a developer improves the `getPersons` method to:
 - Java
 ```java
 List<Person> getPersons(Connection con, List<Long> ids) {
@@ -523,29 +521,28 @@ List<Person> getPersons(Connection con, List<Long> ids) {
 - Kotlin
 ```kotlin
 fun getPersons(con: Connection, ids: List<Long>): List<Person> {
-    val sb = new SQLBuilder("select name, age from person");
+    val sb = SQLBuilder("select name, age from person")
     if (ids.isNotEmpty()) {
-        sb.append("where id in (?)", ids);
+        sb.append("where id in (?)", ids)
     }
     return sb.getList(con, { rs -> Person(rs.getString(1), rs.getInt(2)) })
 }
 ```
 
-
-If we would have mocked `rs.getString("name")`, our unit test now would fail. However, the mocking `SQLBuilder` will
+If we had mocked e.g. `rs.getString("name")`, our unit test would now fail. However, the mocking `SQLBuilder` will
 return the same result as before and thus our unit test will continue to work.
 
-Internally, the mocking provider of `SQLBuilder` will by default return a ResultSet with a single row and for that row
-will answer `42` for every `ResultSet#getXXX` call (42 because it is an unusual enough answer to understand that this is
-generated test data and also because it is [the answer] to the ultimate question of life, the universe, and everything).
-If that is not good enough (e.g. because the code uses these results for branching decisions), then you can also direct
-`SQLBuilder` to return data that you provided.
+By default, the `MockSQLBuilderProvider` will return a `ResultSet` object with a single row for every
+`SQLBuilder#getResultSet` call and for that row will answer `42` for every `ResultSet#getXXX` call (42 because it is an
+unusual enough answer to understand that this is generated test data and also because it is [the answer] to the ultimate
+question of life, the universe, and everything). If that is not good enough (e.g. because the code uses these results
+for branching decisions), then you can also direct `MockSQLBuilderProvider` to return data that you provided.
 
-## Test data for Mocking ##
+## Test Data for Mocking ##
 
-The mocking provider for `SQLBuilder` internally maintains a queue of ResultSets and offers APIs to add to that queue.
-If the queue is depleted and the code asks for another ResultSet, then it either returns a generated ResultSet as
-described above or will return `null` which will usually lead to a `NullPointerException` in the calling code.
+`MockSQLBuilderProvider` internally maintains a queue of `ResultSet` objects and offers APIs to add to that queue. If
+the queue is depleted and the code asks for another ResultSet, then it either returns a generated ResultSet as described
+above or will return `null` which will usually lead to a `NullPointerException` in the calling code.
 
 As a practical example, assume we want to unit test the following method:
 - Java
@@ -577,9 +574,10 @@ assertEquals(2, countChildren(con, 14))
 ```
 
 
-We will discuss various ways to add `ResultSet` objects later. What is important to understand here is that these
-`ResultSet` objects are consumed. Thus, duplicating the `assertEquals` line will result in a test failure because the
-second call to `countChildren` will return `1` as explained above. One way to test multiple conditions is:
+We will discuss various ways to add `ResultSet` objects later. What is important to understand here is that every
+`ResultSet` object is only used for a single `SQLBuilder#getResultSet` call. Thus, duplicating the `assertEquals` line
+will result in a test failure because the second call to `countChildren` will return `1` as explained above. One way to
+test multiple conditions is:
 - Java
 ```java
 MockResultSet children = MockResultSet.create("getPersons", "name,age", "Peter,12", "Paul,11", "Mary,15");
@@ -600,7 +598,6 @@ assertEquals(0, countChildren(con, 5))
 MockSQLBuilderProvider.addResultSet(children)
 assertEquals(3, countChildren(con, 18))
 ```
-
 
 The first parameter for creating such `MockResultSet` objects is always a "tag". We will describe the reasons for these
 tags later. For now, just assume it provides a means to identify a specific mocked object.
@@ -625,7 +622,7 @@ complete list. Here we just highlight a few important ones:
    ```
 
 - `MockResultSet.create(String tag, String[] labels, Object[][] data)` is the most low-level approach but unlike most
-  other approaches allows to use correctly typed data instead of strings.
+  other approaches allows using correctly typed data instead of strings.
 
 As explained above, these test data sets must be added to `MockSQLBuilderProvider` so that they can be consumed by your
 code. Apart from the generic `MockSQLBuilderProvider.addResultSet(ResultSet resultSet)` which can be used to enqueue
@@ -706,7 +703,6 @@ MockSQLBuilderProvider.addResultSet("getCount:persons", "0")
 MockSQLBuilderProvider.addResultSet("getCount:aliens", "5")
 assertEquals(5, getCount(connection))
 ```
-
 
 Enforcing matching tag names helps to detect a very common problem with "classical" `ResultSet` mocking: if the tested
 code was changed to add or remove a query somewhere, the mocked data gets out of sync. Such errors often manifest
