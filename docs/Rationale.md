@@ -25,7 +25,8 @@ an optional test driver which in addition requires [Mockito] and [OpenCSV].
 # Motivation #
 
 We were faced with lots of legacy code using variants of the following (simplified code w/o error handling etc.):
-
+<details open>
+<summary>Java</summary>
 ```java
 String filter(int age) {
     return age > 0 ? " and age >= ?" : "";
@@ -48,13 +49,41 @@ List<String> friends(int age) {
     }
 }
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+fun filter(age: Int): String {
+    return if (age > 0) " and age >= ?" else ""
+}
+
+fun friends(age: Int): List<String> {
+    val query = "select first_name from person where last_name = ?" + filter(age);
+    con.prepareStatement(query).use { ps ->
+        ps.setString(1, name)
+        if (age > 0) {
+            ps.setInt(2, age)
+        }
+        ps.getResultSet().use { rs -> {
+            val names = mutableListOf<String>()
+            while (rs.next()) {
+                names += rs.getString(1)
+            }
+            return names
+        }
+    }
+}
+```
+</details>
 
 What stands out here is that the SQL fragments and the query parameters are disconnected:
  - The place where the SQL is constructed and the place where the parameter values are provided are lines apart
--  Conditions like the `age > 0` have to be repeated
+ - Conditions like the `age > 0` have to be repeated
 
 Compare that code with the equivalent SQLBuilder-based code:
 
+<details open>
+<summary>Java</summary>
 ```java
 SQLBuilder filter(int age) {
     return age > 0 ? new SQLBuilder("and age > ?", age) : new SQLBuilder("");
@@ -71,6 +100,26 @@ List<String> friends(int age) {
     }
 }
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+fun filter(age: Int): SQLBuilder {
+    return if (age > 0) SQLBuilder("and age > ?", age) else SQLBuilder("")
+}
+
+fun friends(age: Int): List<String> {
+    val query = SQLBuilder("select first_name from person where last_name = ?", name).append(filter(age))
+    sb.getResultSet(con).use { rs -> {
+        val names = mutableListOf<String>()
+        while (rs.next()) {
+            names += rs.getString(1)
+        }
+        return names
+    }
+}
+```
+</details>
 
 Here, the `age` condition is only coded once. We also avoid the `PreparedStatement` and directly compute the `ResultSet`
 from the `SQLBuilder` object. `SQLBuilder` also offers some more shortcuts for frequently used cases which are explained
@@ -88,20 +137,42 @@ closing the `ResultSet` also closes the `PreparedStatement` from which it was pr
 
 `SQLBuilder` objects are constructed from their 2 parts:
 
+<details open>
+<summary>Java</summary>
 ```java
-SQLBuilder core1 = new SQLBuilder("select name, age from person");  
-SQLBuilder core2 = new SQLBuilder("select name, age from person where age > ?", age);  
+SQLBuilder core1 = new SQLBuilder("select name, age from person");
+SQLBuilder core2 = new SQLBuilder("select name, age from person where age > ?", age);
 SQLBuilder core3 = new SQLBuilder("select name, age from person where age > ? and age < ?", age, age);
 SQLBuilder core4 = new SQLBuilder(core3);
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+val core1 = SQLBuilder("select name, age from person")
+val core2 = SQLBuilder("select name, age from person where age > ?", age)
+val core3 = SQLBuilder("select name, age from person where age > ? and age < ?", age, age)
+val core4 = SQLBuilder(core3)
+```
+</details>
 
 These objects can then be further modified using the `append` method which is also called with a SQL fragment and
 optional parameters:
 
+<details open>
+<summary>Java</summary>
 ```java
 core1.append("and name not null");
 core2.append("and name not null").append("and id in (?)", ids);
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+core1.append("and name not null")
+core2.append("and name not null").append("and id in (?)", ids)
+```
+</details>
 
 The last example highlights another advantage of `SQLBuilder` over `PreparedStatement`: passing a list as a parameter
 value automatically replaces the matching `?` with the correct number of `?`. Thus, if `ids` from above is a list
@@ -112,6 +183,8 @@ further fragments).
 Both the constructor and `append` also accept a `SQLBuilder` object. This is useful if we create partial queries in
 other methods or need 2 queries with an identical core part: first create the core, and then create the 2 variants:
 
+<details open>
+<summary>Java</summary>
 ```java
 SQLBuilder core = new SQLBuilder("select name from person");
 SQLBuilder filter1 = new SQLBuilder("where age > 18");
@@ -119,22 +192,51 @@ SQLBuilder filter2 = new SQLBuilder("where first_name like '%A'");
 SQLBuilder variant1 = new SQLBuilder(core).append(filter1);
 SQLBuilder variant2 = new SQLBuilder(core).append(filter2);
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+val core = SQLBuilder("select name from person")
+val filter1 = SQLBuilder("where age > 18")
+val filter2 = SQLBuilder("where first_name like '%A'")
+val variant1 = SQLBuilder(core).append(filter1)
+val variant2 = SQLBuilder(core).append(filter2)
+```
+</details>
 
 In addition, `SQLBuilder` offers some constructor function like `wrap` which modifies a `SQLBuilder` by wrapping the SQL
 fragment in the provided values:
-
+<details open>
+<summary>Java</summary>
 ```java
 SQLBuilder core = new SQLBuilder(...);  
 SQLBuilder count = core.wrap("select count(*) from (", ")");
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+val core = SQLBuilder(...)  
+val count = core.wrap("select count(*) from (", ")")
+```
+</details>
 
 Please note that this mutates the `core` object. If that is not desired (e.g. because you also need to execute the
 unmodified `core` object), instead use
-
+<details open>
+<summary>Java</summary>
 ```java
 SQLBuilder core = new SQLBuilder(...);  
 SQLBuilder count = new SQLBuilder(core).wrap("select count(*) from (", ")");
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+val core = new SQLBuilder(...)  
+val count = new SQLBuilder(core).wrap("select count(*) from (", ")")
+```
+</details>
 
 ## Using SQLBuilder Objects ##
 
@@ -155,11 +257,20 @@ For single values, SQLBuilder offers methods like
 
 The same methods are available for `String`, `Long`, `BigDecimal` and `Object`. They all return a value from the first
 returned row, or the default value if no row was returned. Examples for these methods are:
-
+<details open>
+<summary>Java</summary>
 ```java
 int count = new SQLBuilder("select count(*) from person where age > ?", age).getInt(connection, 1, 0);
 String name = new SQLBuilder("select last_name from person where id = ?", pid).getString(connection, "last_name", null);
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+val count = SQLBuilder("select count(*) from person where age > ?", age).getInt(connection, 1, 0)
+val name = SQLBuilder("select last_name from person where id = ?", pid).getString(connection, "last_name", null)
+```
+</details>
 
 As an additional feature, `SQLBuilder` also offers `getDateTime` as a single
 value method.  This is implemented using `getObject(column,
@@ -170,17 +281,28 @@ JDBC specification is the first revision which mandates support for `OffsetDateT
 
 For mapping rows from a `ResultSet`, `SQLBuilder` offers `getList(Connection connection, SQLBuilder.RowMapper<T>
 rowMapper)` which allows to further simplify code from the [Motivation](#motivation) section:
-
+<details open>
+<summary>Java</summary>
 ```java
-SQLBuilder filter(int age) {
-    return age > 0 ? new SQLBuilder("and age > ?", age) : new SQLBuilder("");
+SQLBuilder query = new SQLBuilder("select first_name, age from person where last_name = ?", name);
+if (age > 0) {
+    query.append("and age > ?", age);
 }
-
-SQLBuilder query = new SQLBuilder("select first_name, age from person where last_name = ?", name)
-    .append(filter(age));
 List<String> firstNames = query.getList(connection, rs -> rs.getString(1));
 Map<String, Integer> ages = query.getMap(connection, rs -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)));
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+val query = SQLBuilder("select first_name, age from person where last_name = ?", name)
+if (age > 0) {
+    query.append("and age > ?", age)
+}
+val firstNames = query.getList(connection, { rs -> rs.getString(1) })
+val ages = query.getMap(connection, { rs -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)) })
+```
+</details>
 
 ## Name Binding ##
 
@@ -188,8 +310,9 @@ String concatenation is the root of all evil, or at least the root for SQL injec
 `SQLBuilder` avoid the need to concatenate parameter values, removing one large source of SQL injections. However, there
 are still cases where String concatenation is required. One such case occurs when the table or column names are not
 static: `int num = new SQLBuilder("select count(*) from " + tableName").getInt(con, 1, 0);` is one simple example.
-SQLBuilder allows to avoid SQL injections here by using name bindings:
-
+SQLBuilder allows avoiding SQL injections here by using name bindings:
+<details open>
+<summary>Java</summary>
 ```java
 String tableName = "person";
 List<String> columns = List.of("first_name", "age");
@@ -197,12 +320,24 @@ List<String> columns = List.of("first_name", "age");
 int num = new SQLBuilder("select count(*) from ${table}").bind("table", tableName).getInt(con, 1, 0);
 new SQLBuilder("select ${columns} from person").bind("columns", columns);
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+val tableName = "person"
+val columns = listOf("first_name", "age")
+...
+val num = SQLBuilder("select count(*) from #{table}").bind("table", tableName).getInt(con, 1, 0)
+SQLBuilder("select #{columns} from person").bind("columns", columns)
+```
+</details>
 
 These "bindings" are resolved by quoting the values and then using string replacement before passing the SQL fragment on
 to `PreparedStatement`. The values can be either a single string or a list of strings (e.g. allowing to return a
 variable list of columns). Unlike positional parameters, these bindings could potentially clash when the SQLBuilder
 object is further modified:
-
+<details open>
+<summary>Java</summary>
 ```java
 SQLBuilder addFilter(SQLBuilder sqlBuilder, String columnName, int value) {
     return sqlBuilder.append("and ${col} > ?", value).bind("col", columnName);
@@ -218,11 +353,31 @@ List<String> getAdults(Connection connection, String tableName, String resultCol
 
 List<String> adults = getAdults(connection, "person", "first_name");
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+fun addFilter(sqlBuilder: SQLBuilder, columnName: String, value: Int): SQLBuilder {
+    return sqlBuilder.append("and #{col} > ?", value).bind("col", columnName)
+}
+
+fun getAdults(connection: Connection, tableName: String, resultColumnName: String): List<String> {
+    val query = SQLBuilder("select #{col} from #{table}")
+        .bind("table", tableName)
+        .bind("col", resultColumnName)
+    addFilter(query, "age", 18)
+    return query.getList(connection, { rs -> rs.getString(1) })
+}
+
+val adults = getAdults(connection, "person", "first_name")
+```
+</details>
 
 Note how `"col"` is used twice with different values. SQLBuilder detects this conflict at runtime and throws an
 exception. However, the recommended approach is to always force `SQLBuilder` to apply the current bindings before
 passing `SQLBuilder` objects with bindings between methods:
-
+<details open>
+<summary>Java</summary>
 ```java
 SQLBuilder addFilter(SQLBuilder sqlBuilder, String columnName, int value) {
     return sqlBuilder.append("and ${col} > ?", value).bind("col", columnName).applyBindings();
@@ -239,21 +394,53 @@ List<String> getAdults(Connection connection, String tableName, String resultCol
 
 List<String> adults = getAdults(connection, "person", "first_name");
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+fun addFilter(sqlBuilder: SQLBuilder, columnName: String, value: Int): SQLBuilder {
+    return sqlBuilder.append("and #{col} > ?", value).bind("col", columnName).applyBindings()
+}
+
+fun getAdults(connection: Connection, tableName: String, resultColumnName: String): List<String> {
+    val query = SQLBuilder("select #{col} from #{table}")
+        .bind("table", tableName)
+        .bind("col", resultColumnName)
+    addFilter(query, "age", 18)
+    return query.getList(connection, { rs -> rs.getString(1) })
+}
+
+val adults = getAdults(connection, "person", "first_name")
+```
+</details>
 
 The explicit call to `applyBindings` can also be necessary for `SQLBuilder` objects that are local to a method but
 modified in a loop. Here you must either make sure to use unique binding names in every iteration or call
-`applyBindings` repeatedly. One example is
-
+`applyBindings` repeatedly. One example is:
+<details open>
+<summary>Java</summary>
 ```java
 List<String> cols = List.of("first_name", "last_name");
 String lookingFor = "Mary";
 ...
 SQLBuilder sb = new SQLBuilder("select count(*) from person where 1=0");
-list.forEach(col -> sb.append("or ${name}=?", lookingFor).bind("name", col).applyBindings()); 
+list.forEach(col -> sb.append("or ${name}=?", lookingFor).bind("name", col).applyBindings());
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+val cols = listOf("first_name", "last_name")
+val lookingFor = "Mary"
+...
+val sb = SQLBuilder("select count(*) from person where 1=0")
+list.forEach { col -> sb.append("or #{name}=?", lookingFor).bind("name", col).applyBindings() } 
+```
+</details>
 
 Using unique binding names is possible but often results in less readable code:
-
+<details open>
+<summary>Java</summary>
 ```java
 List<String> cols = List.of("first_name", "last_name");
 String lookingFor = "Mary";
@@ -264,6 +451,17 @@ for (int i = 0; i < cols.size(); i++) {
     sb.append(String.format("or ${%s}=?", name), lookingFor).bind(name, col);
 }
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+val cols = listOf("first_name", "last_name")
+val lookingFor = "Mary"
+...
+val sb = SQLBuilder("select count(*) from person where 1=0")
+cols.forEachIndexed { i, col -> "name$i".let { name -> sb.append("or #{$name}=?"), lookingFor).bind(name, col) } }
+```
+</details>
 
 ## Masked Values ##
 
@@ -271,10 +469,20 @@ for (int i = 0; i < cols.size(); i++) {
 if parameter values are sensitive (e.g. passport numbers). `SQLBuilder` therefore allows to mask such values by wrapping
 them in `SQLBuilder.mask() `calls:
 
+<details open>
+<summary>Java</summary>
 ```java
 String bad = new SQLBuilder("select name from passports where num=?", "DE#12-22").getString(con, 1, null);
 String good = new SQLBuilder("select name from passports where num=?", SQLBuilder.mask("DE#12-22")).getString(con, 1, null);
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+val bad = SQLBuilder("select name from passports where num=?", "DE#12-22").getString(con, 1, null)
+val good = SQLBuilder("select name from passports where num=?", SQLBuilder.mask("DE#12-22")).getString(con, 1, null)
+```
+</details>
 
 The first call will log `select name from passports where num=?; args = DE#12-22` while the second call will log `select
 name from passports where num=?; args = __masked__:a323g3f`. The `mask` method computes the logged value using a hash
@@ -306,6 +514,8 @@ instruct SQLBuilder to use the mocking invoker which then automatically mocks al
 invoker can be customized (more on that later), but the default behavior is to return a single row of made-up data for
 every requested ResultSet. As an example, consider a method like this (error handling omitted for brevity):
 
+<details open>
+<summary>Java</summary>
 ```java
 List<Person> getPersons(Connection con, List<Long> ids) {
     SQLBuilder sb = new SQLBuilder("select name, age from person");
@@ -321,25 +531,69 @@ List<Person> getPersons(Connection con, List<Long> ids) {
     }
 }
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+fun getPersons(con: Connection, ids: List<Long>): List<Person> {
+    val sb = SQLBuilder("select name, age from person")
+    if (ids.isNotEmpty()) {
+        sb.append("where id in (?)", ids)
+    }
+    sb.getResultSet(con).use { rs ->
+        return buildList {
+            while (rs.next()) {
+                add(Person(rs.getString("name"), rs.getInt("age")))
+            }
+        }
+    }
+}
+```
+</details>
 
 This method can be unit tested without any prepared test data or mocking:
 
+<details open>
+<summary>Java</summary>
 ```java
-SQLBuilder.setDelegate(new MockSQLBuilderProvider());
+MockSQLBuilderProvider.enable();
 assertFalse(dao.getPersons(con, List.of(1L, 2L)).isEmpty());
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+MockSQLBuilderProvider.enable()
+assertFalse(dao.getPersons(con, listOf(1L, 2L)).isEmpty())
+```
+</details>
 
 Now consider a developer improves this method to:
 
+<details open>
+<summary>Java</summary>
 ```java
 List<Person> getPersons(Connection con, List<Long> ids) {
     SQLBuilder sb = new SQLBuilder("select name, age from person");
     if (!ids.isEmpty()) {
         sb.append("where id in (?)", ids);
     }
-    return sb.getList(con, rs -> new Peson(rs.getString(1), rs.getInt(2)));
+    return sb.getList(con, rs -> new Person(rs.getString(1), rs.getInt(2)));
 }
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+fun getPersons(con: Connection, ids: List<Long>): List<Person> {
+    val sb = new SQLBuilder("select name, age from person");
+    if (ids.isNotEmpty()) {
+        sb.append("where id in (?)", ids);
+    }
+    return sb.getList(con, { rs -> Person(rs.getString(1), rs.getInt(2)) })
+}
+```
+</details>
 
 If we would have mocked `rs.getString("name")`, our unit test now would fail. However, the mocking `SQLBuilder` will
 return the same result as before and thus our unit test will continue to work.
@@ -358,25 +612,48 @@ described above or will return `null` which will usually lead to a `NullPointerE
 
 As a practical example, assume we want to unit test the following method:
 
+<details open>
+<summary>Java</summary>
 ```java
 int countChildren(Connection con, int maxAge) {
     return getPersons(con, List.of()).stream().filter(p -> p.age <= maxAge).count();
 }
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+fun countChildren(con: Connection, maxAge: Int): Int {
+    return getPersons(con, emptyList()).count { p -> p.age <= maxAge }
+}
+```
+</details>
 
 This will out of the box always return `1` because as explained above `getPersons` called in a test using the mocking
 invoker will always return a single-element list of a `Person` with name `"42"` and age `42`. To unit test the correct
 handling of `maxAge`, we thus need to prepare test data:
 
+<details open>
+<summary>Java</summary>
 ```java
 MockSQLBuilderProvider.addResultSet("getPersons", "name,age", "Peter,12", "Paul,11", "Mary,15");
 assertEquals(2, countChildren(con, 14));
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+MockSQLBuilderProvider.addResultSet("getPersons", "name,age", "Peter,12", "Paul,11", "Mary,15")
+assertEquals(2, countChildren(con, 14))
+```
+</details>
 
 We will discuss various ways to add `ResultSet` objects later. What is important to understand here is that these
 `ResultSet` objects are consumed. Thus, duplicating the `assertEquals` line will result in a test failure because the
 second call to `countChildren` will return `1` as explained above. One way to test multiple conditions is:
 
+<details open>
+<summary>Java</summary>
 ```java
 MockResultSet children = MockResultSet.create("getPersons", "name,age", "Peter,12", "Paul,11", "Mary,15");
 MockSQLBuilderProvider.addResultSet(children);
@@ -386,6 +663,19 @@ assertEquals(0, countChildren(con, 5));
 MockSQLBuilderProvider.addResultSet(children);
 assertEquals(3, countChildren(con, 18));
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+val children = MockResultSet.create("getPersons", "name,age", "Peter,12", "Paul,11", "Mary,15")
+MockSQLBuilderProvider.addResultSet(children)
+assertEquals(2, countChildren(con, 14))
+MockSQLBuilderProvider.addResultSet(children)
+assertEquals(0, countChildren(con, 5))
+MockSQLBuilderProvider.addResultSet(children)
+assertEquals(3, countChildren(con, 18))
+```
+</details>
 
 The first parameter for creating such `MockResultSet` objects is always a "tag". We will describe the reasons for these
 tags later. For now, just assume it provides a means to identify a specific mocked object.
@@ -426,10 +716,20 @@ calling code checks the return value), then the return value can be explicitly s
 provided, followed by the default `42`. The most flexible approach is to call `MockSQLBuilderProvider#setExecute` with a
 `Supplier<Integer>` value which allows code like
 
+<details open>
+<summary>Java</summary>
 ```java
 final AtomicInteger count = new AtomicInteger();
-MockSQLBuilderProvider.setExecute(() -> count.getAndIncrement() < 3 ? 1 : 2);
+MockSQLBuilderProvider.setExecute("foo", () -> count.getAndIncrement() < 3 ? 1 : 2);
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+val count = AtomicInteger()
+MockSQLBuilderProvider.setExecute("foo", { count.getAndIncrement() < 3 ? 1 : 2 } )
+```
+</details>
 
 ## Tags and Tag Matching Enforcement ##
 
@@ -446,6 +746,8 @@ The `:` rule allows adding more information about the tagged `MockResultSet` obj
 contains multiple SQL queries.
 
 As a concrete example, consider the following code:
+<details open>
+<summary>Java</summary>
 ```java
 int getCount(Connection con) throws SQLException {
     int count = new SQLBuilder("select count(*) from persons").getInt(con, 1, -1);
@@ -455,8 +757,23 @@ int getCount(Connection con) throws SQLException {
     return count;
 }
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+fun getCount(con: Connection): Int {
+    var count = SQLBuilder("select count(*) from persons").getInt(con, 1, -1)
+    if (count <= 0) {
+        count = SQLBuilder("select count(*) from aliens").getInt(con, 1, -1)
+    }
+    return count
+}
+```
+</details>
 
 This method can be tested using:
+<details open>
+<summary>Java</summary>
 ```java
 MockSQLBuilderProvider.addResultSet("getCount:persons", "10");
 assertEquals(10, getCount(connection));
@@ -464,6 +781,17 @@ MockSQLBuilderProvider.addResultSet("getCount:persons", "0");
 MockSQLBuilderProvider.addResultSet("getCount:aliens", "5");
 assertEquals(5, getCount(connection));
 ```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+MockSQLBuilderProvider.addResultSet("getCount:persons", "10")
+assertEquals(10, getCount(connection))
+MockSQLBuilderProvider.addResultSet("getCount:persons", "0")
+MockSQLBuilderProvider.addResultSet("getCount:aliens", "5")
+assertEquals(5, getCount(connection))
+```
+</details>
 
 Enforcing matching tag names helps to detect a very common problem with "classical" `ResultSet` mocking: if the tested
 code was changed to add or remove a query somewhere, the mocked data gets out of sync. Such errors often manifest
@@ -473,6 +801,36 @@ name).
 
 In summary, enforcing tag name matching is highly recommended. If it were not for backwards compatibility, this would be
 enabled by default by now.
+
+## Invocation counts ##
+
+Sometimes. it is necessary to know how often specific mocked methods where called. Standard mocking frameworks like
+Mockito or Mockk have "verify" methods which support such requirements. `MockSQLBuilder` has a similar though more
+simple concept: it counts invocations of methods like `getResultSet` or `getLong` and allows to read these counters. A
+concrete example would be (using [Assert4J] or [Kotest] assertions):
+
+<details open>
+<summary>Java</summary>
+```java
+@Test void checkGetTotal() {
+    int total = getTotal();
+    assertThat(total).isEqualTo(10);
+    assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(5);
+}
+```
+</details>
+<details>
+<summary>Kotlin</summary>
+```kotlin
+@Test fun `check getTotal`() {
+    val total = getTotal()
+    total shouldBe 10
+    MockSQLBuilderProvider.invocations.getNext shouldBe 5
+}
+```
+</details>
+which ensures that `ResultSet#getNext` was called 5 times during the execution of `getTotal`. As described above, the
+best practice is to call `MockSQLBuilder#reset` within `@AfterEach`, which resets all the invocation counts to `0`.
 
 
 ## Other Ways To Provide Test Data ##
@@ -617,3 +975,5 @@ following steps (all examples are given for [Junit5], adapt for your test framew
 [the answer]: https://en.wikipedia.org/wiki/Phrases_from_The_Hitchhiker%27s_Guide_to_the_Galaxy#Answer_to_the_Ultimate_Question_of_Life,_the_Universe,_and_Everything_(42)
 [Junit5]: https://junit.org/junit5/
 [MetricStream]: https://www.metricstream.com/
+[Assert4J]: https://joel-costigliola.github.io/assertj/
+[Kotest]: https://kotest.io/
