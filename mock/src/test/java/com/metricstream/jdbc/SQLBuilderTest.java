@@ -3,6 +3,7 @@
  */
 package com.metricstream.jdbc;
 
+import static com.metricstream.jdbc.MockSQLBuilderProvider.addResultSet;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -37,7 +38,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
 import org.mockito.Mockito;
 
 
@@ -68,12 +68,12 @@ class SQLBuilderTest {
                         { "Alice", 20 },
                         { "Bob", 35 },
                         { "Charles", 50 }
-                });
-        MockSQLBuilderProvider.addResultSet(mrs);
-        MockSQLBuilderProvider
-                .addResultSet(MockResultSet.create("testMock:sb2", new String[] { "key", "value" }, new Object[][] {}));
-        MockSQLBuilderProvider.addResultSet(MockResultSet.empty("testMock:sb3"));
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb4", new Object[][] { { "a" }, { "b" } }));
+                }
+        );
+        addResultSet(mrs);
+        addResultSet(MockResultSet.create("testMock:sb2", new String[] { "key", "value" }, new Object[][] {}));
+        addResultSet(MockResultSet.empty("testMock:sb3"));
+        addResultSet(MockResultSet.create("testMock:sb4", new Object[][] { { "a" }, { "b" } }));
 
         SQLBuilder sb1 = new SQLBuilder("select name, age from friends where age > 18");
         try (ResultSet rs = sb1.getResultSet(mockConnection)) {
@@ -120,11 +120,11 @@ class SQLBuilderTest {
         SQLBuilder sb6 = new SQLBuilder("select count(*) from lookup");
         assertEquals(10, sb6.getInt(mockConnection, 1, 0));
 
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb7", new Object[][] { { "a" }, { "b" } }));
+        addResultSet(MockResultSet.create("testMock:sb7", new Object[][] { { "a" }, { "b" } }));
         SQLBuilder sb7 = new SQLBuilder("select value from lookup where key = ?", 42);
         assertEquals("a", sb7.getString(mockConnection, 1, "default"));
 
-        MockSQLBuilderProvider.addResultSet("testMock:sb8", "Alice,20\nBob,35\nCharles,50");
+        addResultSet("testMock:sb8", "Alice,20\nBob,35\nCharles,50");
         SQLBuilder sb8 = new SQLBuilder("select name, age from friends where age > 18");
         try (ResultSet rs = sb8.getResultSet(mockConnection)) {
             int total = 0;
@@ -134,7 +134,7 @@ class SQLBuilderTest {
             assertEquals(105, total);
         }
 
-        MockSQLBuilderProvider.addResultSet("testMock:sb9", "name,age", "Alice,20\nBob,35\nCharles,50");
+        addResultSet("testMock:sb9", "name,age", "Alice,20\nBob,35\nCharles,50");
         SQLBuilder sb9 = new SQLBuilder("select name, age from friends where age > 18");
         try (ResultSet rs = sb9.getResultSet(mockConnection)) {
             long total = 0;
@@ -144,7 +144,8 @@ class SQLBuilderTest {
             assertEquals(105L, total);
         }
 
-        MockSQLBuilderProvider.addResultSet("testMock:sb10",
+        addResultSet(
+                "testMock:sb10",
                 "name,age",
                 "Alice,20",
                 "Bob,35",
@@ -159,21 +160,21 @@ class SQLBuilderTest {
             assertEquals(105L, total);
         }
 
-        MockSQLBuilderProvider.addResultSet("testMock:read from CSV file", getClass().getResourceAsStream("sb11.csv"));
+        addResultSet("testMock:read from CSV file", getClass().getResourceAsStream("sb11.csv"));
         SQLBuilder sb11 = new SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t");
         assertEquals("[100000, 100001, 100002, 100003]", sb11.getList(mockConnection, rs -> rs.getLong("USER_ID")).toString());
 
         // SI_USERS_T.csv was produced via SQLDeveloper using "Export as csv" from right-click on the table
-        MockSQLBuilderProvider.addResultSet("testMock:read from sqldeveloper export file", getClass().getResourceAsStream("SI_USERS_T.csv"));
+        addResultSet("testMock:read from sqldeveloper export file", getClass().getResourceAsStream("SI_USERS_T.csv"));
         SQLBuilder sb12 = new SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t");
         assertEquals("[100000, 100001, 100002, 100003]", sb12.getList(mockConnection, rs -> rs.getLong("USER_ID")).toString());
 
         Timestamp ts = Timestamp.from(Instant.now());
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb13", new Object[][] { { ts } }));
+        addResultSet(MockResultSet.create("testMock:sb13", new Object[][] { { ts } }));
         SQLBuilder sb13 = new SQLBuilder("select value from lookup where key = ?", 42);
         assertEquals(ts, sb13.getTimestamp(mockConnection, 1, null));
 
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb14", new Object[][] { { ts } }));
+        addResultSet(MockResultSet.create("testMock:sb14", new Object[][] { { ts } }));
         SQLBuilder sb14 = new SQLBuilder("select value from lookup where key = ?", 42);
         try (ResultSet rs14 = sb14.getResultSet(mockConnection)) {
             Timestamp ts14 = null;
@@ -183,7 +184,7 @@ class SQLBuilderTest {
             assertEquals(ts, ts14);
         }
 
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testMock:sb15", new String[] { "value" }, new Object[][] { { ts } }));
+        addResultSet(MockResultSet.create("testMock:sb15", new String[] { "value" }, new Object[][] { { ts } }));
         SQLBuilder sb15 = new SQLBuilder("select value from lookup where key = ?", 42);
         try (ResultSet rs15 = sb15.getResultSet(mockConnection)) {
             Timestamp ts15 = null;
@@ -218,12 +219,68 @@ class SQLBuilderTest {
     }
 
     @Test
+    void reuseResultSetData1() throws SQLException {
+        addResultSet(MockResultSet.create(
+                "reuseResultSetData1",
+                new String[] { "A", "B" },
+                new Object[][] {
+                        { 1, "hello" }
+                },
+                3
+        ));
+
+        assertThat(sqlBuilder.getList(mockConnection, rs -> rs.getInt(1)), is(List.of(1, 1, 1)));
+    }
+
+    @Test
+    void reuseResultSetData2() throws SQLException {
+        addResultSet(MockResultSet.create(
+                "reuseResultSetData2",
+                new String[] { "A", "B" },
+                new Object[][] {
+                        { 1, "hello" }
+                },
+                1
+        ));
+
+        assertThat(sqlBuilder.getList(mockConnection, rs -> rs.getInt(1)), is(List.of(1)));
+    }
+
+    @Test
+    void reuseResultSetData3() throws SQLException {
+        addResultSet(MockResultSet.create(
+                "reuseResultSetData3",
+                new String[] { "A", "B" },
+                new Object[][] {
+                        { 1, "hello" }
+                }
+        ));
+
+        assertThat(sqlBuilder.getList(mockConnection, rs -> rs.getInt(1)), is(List.of(1)));
+    }
+
+    @Test
+    void reuseResultSetData4() throws SQLException {
+        addResultSet(MockResultSet.create(
+                "reuseResultSetData4",
+                new String[] { "A", "B" },
+                new Object[][] {
+                        { 1, "hello" },
+                        { 2, "world" }
+                },
+                3
+        ));
+
+        assertThat(sqlBuilder.getList(mockConnection, rs -> rs.getInt(1)), is(List.of(1, 2, 1, 2, 1, 2)));
+    }
+
+    @Test
     void copyTest1() throws SQLException {
         // A resultset is consumed by a SQLBuilder `getResultSet` (or higher level callers like `getInt`). Therefore,
         // adding it once but trying to use it twice will not work.  Instead, the next usage will create a new
         // default mocked resultset
         ResultSet rs = MockResultSet.create("copyTest1", "A", "3");
-        MockSQLBuilderProvider.addResultSet(rs);
+        addResultSet(rs);
         assertEquals(3, sqlBuilder.getInt(mockConnection, 1, -1));
         assertEquals(42, sqlBuilder.getInt(mockConnection, 1, -1));
     }
@@ -233,21 +290,21 @@ class SQLBuilderTest {
         // A resultset has an internal state which keeps track of the consumed rows.  Therefore, adding the same
         // resultset twice will not produce the same result.
         ResultSet rs = MockResultSet.create("copyTest2", "A", "3");
-        MockSQLBuilderProvider.addResultSet(rs);
+        addResultSet(rs);
         assertEquals(3, sqlBuilder.getInt(mockConnection, 1, -1));
-        MockSQLBuilderProvider.addResultSet(rs);
+        addResultSet(rs);
         assertEquals(-1, sqlBuilder.getInt(mockConnection, 1, -1));
     }
 
     @Test
     void brokenTest() throws SQLException {
-        MockSQLBuilderProvider.addResultSet(MockResultSet.broken("brokenTest"));
+        addResultSet(MockResultSet.broken("brokenTest"));
         assertThrows(SQLException.class, () -> new SQLBuilder("select A from T").getInt(mockConnection, 1, -1));
     }
 
     @Test
     void executeReturningTest() throws SQLException {
-        MockSQLBuilderProvider.addResultSet("executeReturningTest:id", "43");
+        addResultSet("executeReturningTest:id", "43");
         SQLBuilder sb = new SQLBuilder("insert into foo(foo_s.nextval, ?", "fooValue");
         ResultSet rs = sb.execute(mockConnection, "id");
         assertTrue(rs.next());
@@ -256,8 +313,8 @@ class SQLBuilderTest {
 
     @Test
     void unusedMockResultSet() throws SQLException {
-        MockSQLBuilderProvider.addResultSet("unusedMockResultSet:first", "1");
-        MockSQLBuilderProvider.addResultSet("unusedMockResultSet:second", "2");
+        addResultSet("unusedMockResultSet:first", "1");
+        addResultSet("unusedMockResultSet:second", "2");
         SQLBuilder sb1 = new SQLBuilder("select count(*) from foo");
         assertEquals(1, sb1.getInt(mockConnection, 1, 0));
     }
@@ -265,7 +322,7 @@ class SQLBuilderTest {
     @Test
     void testDateTime() throws SQLException {
         OffsetDateTime now = OffsetDateTime.now();
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testDateTime", new Object[][] { { now } }));
+        addResultSet(MockResultSet.create("testDateTime", new Object[][] { { now } }));
         SQLBuilder sb1 = new SQLBuilder("select created from lookup where key = ?", 42);
         assertEquals(now, sb1.getDateTime(mockConnection, 1, null));
 
@@ -286,7 +343,7 @@ class SQLBuilderTest {
     void testInstant() throws SQLException {
         Instant now = Clock.systemUTC().instant();
         OffsetDateTime oNow = now.atOffset(ZoneOffset.UTC);
-        MockSQLBuilderProvider.addResultSet(MockResultSet.create("testInstant", new Object[][] { { oNow } }));
+        addResultSet(MockResultSet.create("testInstant", new Object[][] { { oNow } }));
         SQLBuilder sb1 = new SQLBuilder("select created from lookup where key = ?", 42);
         assertEquals(now, sb1.getInstant(mockConnection, 1, null));
 
@@ -342,7 +399,7 @@ class SQLBuilderTest {
     @Test
     void emptyForever() throws SQLException {
         SQLBuilder.setDelegate(new MockSQLBuilderProvider());
-        MockSQLBuilderProvider.addResultSet(MockResultSet.empty(""));
+        addResultSet(MockResultSet.empty(""));
 
         SQLBuilder sb = new SQLBuilder("select count(*) from lookup");
 
@@ -367,7 +424,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 3 ints in column 2
         // then expect to get a list with 3 elements in the correct order
-        MockSQLBuilderProvider.addResultSet("", "_,3\n_,1\n_,4");
+        addResultSet("", "_,3\n_,1\n_,4");
         List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getInt(2));
         assertThat(l.size(), is(3));
         assertThat(l, is(Arrays.asList(3, 1, 4)));
@@ -378,7 +435,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 2 ints and a null in column 2
         // then expect to get a list with 3 elements in the correct order
-        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 3 }, { "", null }, { "", 4 } });
+        addResultSet("", new Object[][] { { "", 3 }, { "", null }, { "", 4 } });
         List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getInt(2));
         assertThat(l.size(), is(3));
         assertThat(l, is(Arrays.asList(3, 0, 4)));
@@ -389,7 +446,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 2 Strings and a null in column 2
         // then expect to get a list with 2 elements in the correct order
-        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", "first" }, { "", null }, { "", "third" } });
+        addResultSet("", new Object[][] { { "", "first" }, { "", null }, { "", "third" } });
         List<String> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getString(2));
         assertThat(l.size(), is(2));
         assertThat(l, is(Arrays.asList("first", "third")));
@@ -400,7 +457,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 2 Strings and a null in column 2
         // then expect to get a list with 3 elements in the correct order
-        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", "first" }, { "", null }, { "", "third" } });
+        addResultSet("", new Object[][] { { "", "first" }, { "", null }, { "", "third" } });
         List<String> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getString(2), true);
         assertThat(l.size(), is(3));
         assertThat(l, is(Arrays.asList("first", null, "third")));
@@ -411,8 +468,11 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 2 ints and a null (converted to 0 by getInt()) in column 2
         // then expect to get a list with 3 elements in the correct order
-        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
-        List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> { int i = rs.getInt(2); return rs.wasNull() ? -1 : i;});
+        addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
+        List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> {
+            int i = rs.getInt(2);
+            return rs.wasNull() ? -1 : i;
+        });
         assertThat(l.size(), is(3));
         assertThat(l, is(Arrays.asList(1, -1, 3)));
     }
@@ -423,7 +483,7 @@ class SQLBuilderTest {
         // with 2 ints and a null (converted to 0 by getInt()) in column 2
         // then expect to get a list with 2 elements in the correct order.  We must avoid
         // calling `getInt` here because that automatically converts null to 0.
-        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
+        addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
         List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getObject(2))
                 .stream().map(i -> (Integer) i).collect(Collectors.toList());
         assertThat(l.size(), is(2));
@@ -435,7 +495,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 2 ints and a null in column 2
         // then expect to get 3 elements with null mapped to null
-        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
+        addResultSet("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
         List<Integer> l = sqlBuilder.getList(mockConnection, (rs) -> rs.getObject(2), true)
                 .stream().map(i -> (Integer) i).collect(Collectors.toList());
         assertThat(l.size(), is(3));
@@ -447,7 +507,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 3 ints in column 2
         // then expect to get a list with 3 elements in the correct order
-        MockSQLBuilderProvider.addResultSet("", "3,Three\n1,One\n4,Four");
+        addResultSet("", "3,Three\n1,One\n4,Four");
         Map<Integer, String> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getInt(1), rs.getString(2)));
         assertThat(m.size(), is(3));
         assertThat(m.keySet(), containsInAnyOrder(3, 1, 4));
@@ -458,7 +518,7 @@ class SQLBuilderTest {
     void getMap_testDuplicateKeys() throws SQLException {
         // when query returns 3 rows with duplicate keys
         // then expect to get an IllegalStateException
-        MockSQLBuilderProvider.addResultSet("", "3,Three\n1,One\n3,Four");
+        addResultSet("", "3,Three\n1,One\n3,Four");
         assertThrows(IllegalStateException.class, () -> sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getInt(1), rs.getString(2))));
     }
 
@@ -466,7 +526,7 @@ class SQLBuilderTest {
     void getMap_testNullKey() throws SQLException {
         // when query returns 3 rows with duplicate keys
         // then expect to get an IllegalStateException
-        MockSQLBuilderProvider.addResultSet("", new Object[][] { { 3, "Three" }, { null, "Zero" } });
+        addResultSet("", new Object[][] { { 3, "Three" }, { null, "Zero" } });
         // Note: we cannot use `getInt` for the key here because that would automatically convert `null` to `0` and thus not throw the expected exception
         assertThrows(IllegalStateException.class, () -> sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getObject(1), rs.getString(2))));
     }
@@ -476,12 +536,11 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 3 ints in column 2
         // then expect to get a list with 3 elements in the correct order
-        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "1", 1 }, { "2", null }, { "3", 3 } });
+        addResultSet("", new Object[][] { { "1", 1 }, { "2", null }, { "3", 3 } });
         Map<String, Integer> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)));
         // size is 3 and not 2 although 2 is mapped to null because we use getInt which will automatically convert null to 0
         assertThat(m.size(), is(3));
         assertThat(m.keySet(), containsInAnyOrder("1", "2", "3"));
-        assertFalse(m.containsValue("Three"));
     }
 
     @Test
@@ -489,11 +548,10 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 3 ints in column 2
         // then expect to get a list with 3 elements in the correct order
-        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "1", 1 }, { "2", null }, { "3", 3 } });
+        addResultSet("", new Object[][] { { "1", 1 }, { "2", null }, { "3", 3 } });
         Map<String, Integer> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)), false);
         assertThat(m.size(), is(3));
         assertThat(m.keySet(), containsInAnyOrder("1", "2", "3"));
-        assertFalse(m.containsValue("Three"));
     }
 
     @Test
@@ -501,7 +559,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 3 longs in column 1
         // then expect to get the first element
-        MockSQLBuilderProvider.addResultSet("", new Object[][] { { 3L }, { 1L }, { 4L } });
+        addResultSet("", new Object[][] { { 3L }, { 1L }, { 4L } });
         Optional<Long> l = sqlBuilder.getSingle(mockConnection, (rs) -> rs.getLong(1));
         assertThat(l.isPresent(), is(true));
         assertThat(l.get(), is(3L));
@@ -512,7 +570,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 3 Strings in column 1
         // then expect to get the first element
-        MockSQLBuilderProvider.addResultSet("", "first\nsecond\nthird");
+        addResultSet("", "first\nsecond\nthird");
         String s = sqlBuilder.getString(mockConnection, 1, "default");
         assertThat(s, is("first"));
     }
@@ -522,7 +580,7 @@ class SQLBuilderTest {
         // when query returns 1 row
         // with 3 Strings in column 1
         // then expect to get the first element
-        MockSQLBuilderProvider.addResultSet("", "first");
+        addResultSet("", "first");
         String s = sqlBuilder.getString(mockConnection, 1, "default");
         assertThat(s, is("first"));
     }
@@ -531,7 +589,7 @@ class SQLBuilderTest {
     void getString_test3() throws SQLException {
         // when query returns no rows
         // then expect to get the default element
-        MockSQLBuilderProvider.addResultSet(MockResultSet.empty(""));
+        addResultSet(MockResultSet.empty(""));
         String s = sqlBuilder.getString(mockConnection, 1, "default");
         assertThat(s, is("default"));
     }
@@ -540,7 +598,7 @@ class SQLBuilderTest {
     void getString_test4() throws SQLException {
         // when query returns no rows
         // then expect to get the default element even if that is null
-        MockSQLBuilderProvider.addResultSet(MockResultSet.empty(""));
+        addResultSet(MockResultSet.empty(""));
         String s = sqlBuilder.getString(mockConnection, 1, null);
         assertThat(s, nullValue());
     }
@@ -550,7 +608,7 @@ class SQLBuilderTest {
         // when query returns 3 rows
         // with 3 Strings in column "LABEL"
         // then expect to get the first element
-        MockSQLBuilderProvider.addResultSet("", "LABEL", "first\nsecond\nthird");
+        addResultSet("", "LABEL", "first\nsecond\nthird");
         String s = sqlBuilder.getString(mockConnection, "LABEL", "default");
         assertThat(s, is("first"));
     }
@@ -560,7 +618,7 @@ class SQLBuilderTest {
     void getSingle_test2() throws SQLException {
         // when query returns no rows
         // then expect to get an empty optional
-        MockSQLBuilderProvider.addResultSet(MockResultSet.empty(""));
+        addResultSet(MockResultSet.empty(""));
         Optional<Long> l = sqlBuilder.getSingle(mockConnection, (rs) -> rs.getLong(1));
         assertThat(l.isPresent(), is(false));
     }
@@ -568,9 +626,9 @@ class SQLBuilderTest {
     @Test
     void getResultSet_test1() throws Exception {
         // when query returns 3 rows
-        // with 3 ints in column 2
-        // then expect to get a resultset that returns 3 rows in correct order
-        MockSQLBuilderProvider.addResultSet("", "_,3\n_,1\n_,4");
+        // with 3 int values in column 2
+        // then expect to get a ResultSet that returns 3 rows in correct order
+        addResultSet("", "_,3\n_,1\n_,4");
         ResultSet rs = sqlBuilder.getResultSet(mockConnection);
         List<Integer> l = new ArrayList<>();
         while (rs.next()) {
@@ -583,9 +641,9 @@ class SQLBuilderTest {
     @Test
     void getResultSet_test2() throws Exception {
         // when query returns 1 row
-        // with 1 long in column 3
-        // then expect to get a resultset that returns 1 row
-        MockSQLBuilderProvider.addResultSet("", new Object[][] { { "", "", 3L } });
+        // with 1 long value in column 3
+        // then expect to get a ResultSet that returns 1 row
+        addResultSet("", new Object[][] { { "", "", 3L } });
         ResultSet rs = sqlBuilder.getResultSet(mockConnection);
         List<Long> l = new ArrayList<>();
         while (rs.next()) {
@@ -598,8 +656,8 @@ class SQLBuilderTest {
     @Test
     void getResultSet_test3() throws Exception {
         // when query returns no rows
-        // then expect to get a resultset that returns no row
-        MockSQLBuilderProvider.addResultSet(MockResultSet.empty(""));
+        // then expect to get a ResultSet that returns no row
+        addResultSet(MockResultSet.empty(""));
         ResultSet rs = sqlBuilder.getResultSet(mockConnection);
         assertThat(rs.next(), is(false));
     }
@@ -761,42 +819,58 @@ class SQLBuilderTest {
     @Test
     void testFromNumberedParams() {
         QueryParams params = new QueryParamsImpl();
-        assertEquals("select n from t where i=?); args=[a]", SQLBuilder.fromNumberedParameters("select n from t where i=:1)", params).toString());
-        assertEquals("select n from t where i=? or i=?); args=[a, b]", SQLBuilder.fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString());
-        assertEquals("select n from t where i=? or i=?); args=[b, a]", SQLBuilder.fromNumberedParameters("select n from t where i=:2 or i=:1)", params).toString());
-        assertEquals("select n from t where i=? or k=?); args=[b, b]", SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString());
-        assertEquals("select n from t where i=? or k=':4'); args=[b]", SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString());
-        assertEquals("select n from t where i=? or k=':2'); args=[b]", SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString());
+        assertEquals("select n from t where i=?); args=[a]", SQLBuilder
+                .fromNumberedParameters("select n from t where i=:1)", params).toString());
+        assertEquals("select n from t where i=? or i=?); args=[a, b]", SQLBuilder
+                .fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString());
+        assertEquals("select n from t where i=? or i=?); args=[b, a]", SQLBuilder
+                .fromNumberedParameters("select n from t where i=:2 or i=:1)", params).toString());
+        assertEquals("select n from t where i=? or k=?); args=[b, b]", SQLBuilder
+                .fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString());
+        assertEquals("select n from t where i=? or k=':4'); args=[b]", SQLBuilder
+                .fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString());
+        assertEquals("select n from t where i=? or k=':2'); args=[b]", SQLBuilder
+                .fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString());
     }
 
     @Test
     void maskData() {
-        assertEquals("select name from user where secret=?; args=[__masked__:982c0381c279d139fd221fce974916e7]",
-                new SQLBuilder("select name from user where secret=?", SQLBuilder.mask("oops!")).toString());
+        assertEquals(
+                "select name from user where secret=?; args=[__masked__:982c0381c279d139fd221fce974916e7]",
+                new SQLBuilder("select name from user where secret=?", SQLBuilder.mask("oops!")).toString()
+        );
     }
 
     @Test
     void maskDataNull() {
-        assertEquals("select name from user where secret=?; args=[null]",
-                new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(null)).toString());
+        assertEquals(
+                "select name from user where secret=?; args=[null]",
+                new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(null)).toString()
+        );
     }
 
     @Test
     void maskDataEmpty() {
-        assertEquals("select name from user where secret=?; args=[]",
-                new SQLBuilder("select name from user where secret=?", SQLBuilder.mask("")).toString());
+        assertEquals(
+                "select name from user where secret=?; args=[]",
+                new SQLBuilder("select name from user where secret=?", SQLBuilder.mask("")).toString()
+        );
     }
 
     @Test
     void maskDataLong() {
-        assertEquals("select name from user where secret=?; args=[__masked__:a1d0c6e83f027327d8461063f4ac58a6]",
-                new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(42L)).toString());
+        assertEquals(
+                "select name from user where secret=?; args=[__masked__:a1d0c6e83f027327d8461063f4ac58a6]",
+                new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(42L)).toString()
+        );
     }
 
     @Test
     void maskDataMixed() {
-        assertEquals("select name from user where secret=? and public=?; args=[__masked__:982c0381c279d139fd221fce974916e7, ok]",
-                new SQLBuilder("select name from user where secret=? and public=?", SQLBuilder.mask("oops!"), "ok").toString());
+        assertEquals(
+                "select name from user where secret=? and public=?; args=[__masked__:982c0381c279d139fd221fce974916e7, ok]",
+                new SQLBuilder("select name from user where secret=? and public=?", SQLBuilder.mask("oops!"), "ok").toString()
+        );
     }
 
     private String masked(Object value) {
@@ -813,13 +887,13 @@ class SQLBuilderTest {
     @Test
     void mockInt() throws SQLException {
         SQLBuilder sb = new SQLBuilder("select count(*) from foo");
-        MockSQLBuilderProvider.setIntByColumnIndex((c, d) -> { switch (c) {case 1: return 3; default: return d;}});
+        MockSQLBuilderProvider.setIntByColumnIndex((c, d) -> c == 1 ? 3 : d);
         assertEquals(3, sb.getInt(null, 1, 4));
     }
 
     @Test
     void maxRows() throws SQLException {
-        MockSQLBuilderProvider.addResultSet("", "_,3\n_,1\n_,4");
+        addResultSet("", "_,3\n_,1\n_,4");
         // TODO: this just tests that `withMaxRows` is accepted, but not the actual implementation.
         List<Integer> l = sqlBuilder.withMaxRows(1).getList(mockConnection, (rs) -> rs.getInt(2));
         assertThat(l.size(), is(3));
@@ -828,7 +902,7 @@ class SQLBuilderTest {
 
     @Test
     void nameToIndexMapping() throws SQLException {
-        MockSQLBuilderProvider.addResultSet("", "columnA,columnB", "A,B");
+        addResultSet("", "columnA,columnB", "A,B");
         ResultSet rs = sqlBuilder.getResultSet(mockConnection);
         assertEquals(2, rs.findColumn("columnB"));
         assertEquals(2, rs.findColumn("COLUMNB"));

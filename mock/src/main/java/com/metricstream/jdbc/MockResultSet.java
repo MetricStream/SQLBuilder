@@ -54,10 +54,10 @@ public class MockResultSet {
     private final Object[][] data;
     private int rowIndex = -1;
     private boolean wasNull = false;
-    private boolean generateData = true;
     private boolean generated = false;
+    private int remaining;
 
-    private MockResultSet(final String tag, final String[] names, final Object[][] data) {
+    private MockResultSet(final String tag, final String[] names, final Object[][] data, final int usages) {
         if (tag == null || tag.isEmpty()) {
             this.tag = "MockResultSet#" + counter.incrementAndGet();
         } else {
@@ -81,6 +81,11 @@ public class MockResultSet {
                         LinkedHashMap::new
                 ));
         this.data = data;
+        remaining = usages - 1;
+    }
+
+    private MockResultSet(final String tag, final String[] names, final Object[][] data) {
+        this(tag, names, data, 1);
     }
 
     private ResultSet buildMock() throws SQLException {
@@ -88,10 +93,14 @@ public class MockResultSet {
 
         // mock rs.next()
         doAnswer(invocation -> {
-            if (rowIndex == -2) {
+            if (remaining < -1) {
                 throw new SQLException("Forced exception");
             }
             rowIndex++;
+            if (rowIndex == data.length && remaining > 0) {
+                rowIndex = 0;
+                remaining -= 1;
+            }
             return rowIndex < data.length;
         }).when(rs).next();
 
@@ -102,7 +111,7 @@ public class MockResultSet {
         doAnswer(invocation -> {
             final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
             final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
-            if (generateData && (rowIndex >= data.length || columnIndex >= data[rowIndex].length)) {
+            if (rowIndex >= data.length || columnIndex >= data[rowIndex].length) {
                 return "42";
             }
             final Object value = data[rowIndex][columnIndex];
@@ -113,7 +122,7 @@ public class MockResultSet {
         // mock rs.getString(columnIndex)
         doAnswer(invocation -> {
             final int columnIndex = invocation.getArgumentAt(0, Integer.class);
-            if (generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
+            if (rowIndex >= data.length || columnIndex > data[rowIndex].length) {
                 return "42";
             }
             final Object value = data[rowIndex][columnIndex - 1];
@@ -125,7 +134,7 @@ public class MockResultSet {
         doAnswer(invocation -> {
             final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
             final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
-            if (generateData && (rowIndex >= data.length || columnIndex >= data[rowIndex].length)) {
+            if (rowIndex >= data.length || columnIndex >= data[rowIndex].length) {
                 return 42;
             }
             final Object value = data[rowIndex][columnIndex];
@@ -136,7 +145,7 @@ public class MockResultSet {
         // mock rs.getInt(columnIndex)
         doAnswer(invocation -> {
             final int columnIndex = invocation.getArgumentAt(0, Integer.class);
-            if (generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
+            if (rowIndex >= data.length || columnIndex > data[rowIndex].length) {
                 return 42;
             }
             final Object value = data[rowIndex][columnIndex - 1];
@@ -148,7 +157,7 @@ public class MockResultSet {
         doAnswer(invocation -> {
             final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
             final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
-            if (generateData && (rowIndex >= data.length || columnIndex >= data[rowIndex].length)) {
+            if (rowIndex >= data.length || columnIndex >= data[rowIndex].length) {
                 return 42L;
             }
             final Object value = data[rowIndex][columnIndex];
@@ -159,7 +168,7 @@ public class MockResultSet {
         // mock rs.getLong(columnIndex)
         doAnswer(invocation -> {
             final int columnIndex = invocation.getArgumentAt(0, Integer.class);
-            if (generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
+            if (rowIndex >= data.length || columnIndex > data[rowIndex].length) {
                 return 42L;
             }
             final Object value = data[rowIndex][columnIndex - 1];
@@ -171,7 +180,7 @@ public class MockResultSet {
         doAnswer(invocation -> {
             final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
             final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
-            if (generateData && (rowIndex >= data.length || columnIndex >= data[rowIndex].length)) {
+            if (rowIndex >= data.length || columnIndex >= data[rowIndex].length) {
                 return BigDecimal.valueOf(42);
             }
             final Object value = data[rowIndex][columnIndex];
@@ -182,7 +191,7 @@ public class MockResultSet {
         // mock rs.getBigDecimal(columnIndex)
         doAnswer(invocation -> {
             final int columnIndex = invocation.getArgumentAt(0, Integer.class);
-            if (generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
+            if (rowIndex >= data.length || columnIndex > data[rowIndex].length) {
                 return BigDecimal.valueOf(42);
             }
             final Object value = data[rowIndex][columnIndex - 1];
@@ -193,7 +202,7 @@ public class MockResultSet {
         // mock rs.getTimestamp(columnIndex)
         doAnswer(invocation -> {
             final int columnIndex = invocation.getArgumentAt(0, Integer.class);
-            if (generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
+            if (rowIndex >= data.length || columnIndex > data[rowIndex].length) {
                 return new Timestamp(42);
             }
             final Object value = data[rowIndex][columnIndex - 1];
@@ -208,7 +217,7 @@ public class MockResultSet {
         doAnswer(invocation -> {
             final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
             final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
-            if (generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
+            if (rowIndex >= data.length || columnIndex > data[rowIndex].length) {
                 return new Timestamp(42);
             }
             final Object value = data[rowIndex][columnIndex];
@@ -223,7 +232,7 @@ public class MockResultSet {
         doAnswer(invocation -> {
             final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
             final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
-            if (generateData && (rowIndex >= data.length || columnIndex >= data[rowIndex].length)) {
+            if (rowIndex >= data.length || columnIndex >= data[rowIndex].length) {
                 return "42";
             }
             final Object value = data[rowIndex][columnIndex];
@@ -234,7 +243,7 @@ public class MockResultSet {
         // mock rs.getObject(columnIndex)
         doAnswer(invocation -> {
             final int columnIndex = invocation.getArgumentAt(0, Integer.class);
-            if (generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
+            if (rowIndex >= data.length || columnIndex > data[rowIndex].length) {
                 return "42";
             }
             final Object value = data[rowIndex][columnIndex - 1];
@@ -246,7 +255,7 @@ public class MockResultSet {
         doAnswer(invocation -> {
             final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
             final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
-            if (generated || generateData && (rowIndex >= data.length || columnIndex >= data[rowIndex].length)) {
+            if (generated || rowIndex >= data.length || columnIndex >= data[rowIndex].length) {
                 return OffsetDateTime.of(4242, 4, 2, 4, 2, 4, 2, ZoneOffset.UTC);
             }
             final OffsetDateTime value = (OffsetDateTime) data[rowIndex][columnIndex];
@@ -257,7 +266,7 @@ public class MockResultSet {
         // mock rs.getObject(columnIndex, OffsetDateTime.class)
         doAnswer(invocation -> {
             final int columnIndex = invocation.getArgumentAt(0, Integer.class);
-            if (generated || generateData && (rowIndex >= data.length || columnIndex > data[rowIndex].length)) {
+            if (generated || rowIndex >= data.length || columnIndex > data[rowIndex].length) {
                 return OffsetDateTime.of(4242, 4, 2, 4, 2, 4, 2, ZoneOffset.UTC);
             }
             final OffsetDateTime value = (OffsetDateTime) data[rowIndex][columnIndex - 1];
@@ -277,19 +286,19 @@ public class MockResultSet {
         }).when(rsmd).getColumnName(anyInt());
 
         // mock rs.findColumn(String)
-        doAnswer((invocation -> {
+        doAnswer(invocation -> {
             final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
             final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
             if (columnIndex != Integer.MAX_VALUE) {
                 return columnIndex + 1;
             }
             throw new SQLException("Invalid column name");
-        })).when(rs).findColumn(anyString());
+        }).when(rs).findColumn(anyString());
 
         // mock rs.toString()
         doReturn(tag).when(rs).toString();
 
-        // mock rs.getMetaData()
+        // mock rsmd.getMetaData()
         doReturn(rsmd).when(rs).getMetaData();
 
         // mock rs.getType()
@@ -306,8 +315,20 @@ public class MockResultSet {
      * @return a mocked ResultSet
      * @throws SQLException if building the mocked ResultSet fails
      */
+    public static ResultSet create(final String tag, final String[] columnNames, final Object[][] data, final int usages) throws SQLException {
+        return new MockResultSet(tag, columnNames, data, usages).buildMock();
+    }
+
+    /**
+     * Creates the mock ResultSet.
+     *
+     * @param columnNames the names of the columns
+     * @param data the data to be returned from the mocked ResultSet
+     * @return a mocked ResultSet
+     * @throws SQLException if building the mocked ResultSet fails
+     */
     public static ResultSet create(final String tag, final String[] columnNames, final Object[][] data) throws SQLException {
-        return new MockResultSet(tag, columnNames, data).buildMock();
+        return new MockResultSet(tag, columnNames, data, 1).buildMock();
     }
 
     /**
@@ -318,7 +339,7 @@ public class MockResultSet {
      * @throws SQLException if building the mocked ResultSet fails
      */
     public static ResultSet create(String tag, final Object[][] data) throws SQLException {
-        return new MockResultSet(tag, null, data).buildMock();
+        return new MockResultSet(tag, null, data, 1).buildMock();
     }
 
     /**
@@ -343,7 +364,7 @@ public class MockResultSet {
         try (CSVReader csvReader = new CSVReader(new StringReader(csv))) {
             List<String[]> data = csvReader.readAll();
             final String[] columnNames = withLabels ? data.remove(0) : null;
-            final MockResultSet mockResultSet = new MockResultSet(tag, columnNames, data.toArray(new Object[0][0]));
+            final MockResultSet mockResultSet = new MockResultSet(tag, columnNames, data.toArray(new Object[0][0]), 1);
             mockResultSet.generated = generated;
             return mockResultSet.buildMock();
         } catch (IOException | CsvException ex) {
@@ -363,7 +384,7 @@ public class MockResultSet {
         try (CSVReader csvReader = new CSVReader(new InputStreamReader(csv))) {
             List<String[]> data = csvReader.readAll();
             final String[] columnNames = withLabels ? data.remove(0) : null;
-            return new MockResultSet(tag, columnNames, data.toArray(new Object[0][0])).buildMock();
+            return new MockResultSet(tag, columnNames, data.toArray(new Object[0][0]), 1).buildMock();
         } catch (Exception ex) {
             logger.error("Cannot parse CSV {}", csv);
             throw new SQLException("Invalid data");
@@ -386,7 +407,7 @@ public class MockResultSet {
                     data.addAll(csvReader2.readAll());
                 }
             }
-            return new MockResultSet(tag, columnNames, data.toArray(new Object[0][0])).buildMock();
+            return new MockResultSet(tag, columnNames, data.toArray(new Object[0][0]), 1).buildMock();
         } catch (IOException | CsvException ex) {
             logger.error("Cannot parse CSV {}", Arrays.asList(csvs));
             throw new SQLException("Invalid data");
@@ -400,13 +421,12 @@ public class MockResultSet {
      * @throws SQLException if building the mocked ResultSet fails
      */
     public static ResultSet empty(final String tag) throws SQLException {
-        return new MockResultSet(tag, new String[]{}, new Object[][]{}).buildMock();
+        return new MockResultSet(tag, new String[]{}, new Object[][]{}, 0).buildMock();
     }
 
     public static ResultSet broken(final String tag) throws SQLException {
-        final MockResultSet mockResultSet = new MockResultSet(tag, new String[]{}, new Object[][]{});
-        mockResultSet.generateData = false;
-        mockResultSet.rowIndex = -2;
+        final MockResultSet mockResultSet = new MockResultSet(tag, new String[]{}, new Object[][]{}, -1);
+        // mockResultSet.generateData = false;
         return mockResultSet.buildMock();
     }
 
