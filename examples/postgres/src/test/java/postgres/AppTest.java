@@ -5,7 +5,6 @@ package postgres;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.sql.Connection;
 import java.sql.SQLException;
