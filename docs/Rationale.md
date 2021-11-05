@@ -530,6 +530,17 @@ following steps (all examples are given for [Junit5], adapt for your test framew
 
 # Release Notes #
 
+- Version 2.4.0, released 2021-11-04
+  - minimal Java version set to 11
+  - return ResultSet.TYPE_FORWARD_ONLY for ResultSet::getType of MockResultSet objects
+  - implement ResultSet::findColumn for MockResultSet objects
+  - disable collecting validation data for MockResultSet objects. We normally do not use this and disabling it
+    drastically decreases the memory overhead of MockSQLBuilderProvider
+  - upgraded external dependencies
+    - `gradle` from `7.1.1` to `7.2`
+    - `org.junit.jupiter:junit-jupiter-api` from `5.7.2` to `5.8.1`
+    - `org.junit.jupiter:junit-jupiter-engine` from `5.7.2` to `5.8.1`
+
 - Version 2.3.0, released 2021-08-06
   - added missing ResultSet wrapping in `JdbcSQLBuilderProvider#execute(SQLBuilder, Connection, String...)`
   - upgraded external dependencies

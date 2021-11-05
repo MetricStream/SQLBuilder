@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Clock;
@@ -823,6 +824,16 @@ class SQLBuilderTest {
         List<Integer> l = sqlBuilder.withMaxRows(1).getList(mockConnection, (rs) -> rs.getInt(2));
         assertThat(l.size(), is(3));
         assertThat(l, is(Arrays.asList(3, 1, 4)));
+    }
+
+    @Test
+    void nameToIndexMapping() throws SQLException {
+        MockSQLBuilderProvider.addResultSet("", "columnA,columnB", "A,B");
+        ResultSet rs = sqlBuilder.getResultSet(mockConnection);
+        assertEquals(2, rs.findColumn("columnB"));
+        assertEquals(2, rs.findColumn("COLUMNB"));
+        ResultSetMetaData rsmd = rs.getMetaData();
+        assertEquals("COLUMNB", rsmd.getColumnName(2));
     }
 
     static class QueryParamsImpl implements QueryParams {

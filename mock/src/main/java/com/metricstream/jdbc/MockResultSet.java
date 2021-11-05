@@ -9,6 +9,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.withSettings;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -83,7 +84,7 @@ public class MockResultSet {
     }
 
     private ResultSet buildMock() throws SQLException {
-        final ResultSet rs = mock(ResultSet.class);
+        final ResultSet rs = mock(ResultSet.class, withSettings().stubOnly());
 
         // mock rs.next()
         doAnswer(invocation -> {
@@ -264,7 +265,7 @@ public class MockResultSet {
             return value;
         }).when(rs).getObject(anyInt(), eq(OffsetDateTime.class));
 
-        final ResultSetMetaData rsmd = mock(ResultSetMetaData.class);
+        final ResultSetMetaData rsmd = mock(ResultSetMetaData.class, withSettings().stubOnly());
 
         // mock rsmd.getColumnCount()
         doReturn(columnIndices.size()).when(rsmd).getColumnCount();
@@ -275,11 +276,24 @@ public class MockResultSet {
             return columnIndices.keySet().stream().skip(columnIndex - 1).findFirst().orElse(null);
         }).when(rsmd).getColumnName(anyInt());
 
+        // mock rs.findColumn(String)
+        doAnswer((invocation -> {
+            final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
+            final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
+            if (columnIndex != Integer.MAX_VALUE) {
+                return columnIndex + 1;
+            }
+            throw new SQLException("Invalid column name");
+        })).when(rs).findColumn(anyString());
+
         // mock rs.toString()
         doReturn(tag).when(rs).toString();
 
         // mock rs.getMetaData()
         doReturn(rsmd).when(rs).getMetaData();
+
+        // mock rs.getType()
+        doReturn(ResultSet.TYPE_FORWARD_ONLY).when(rs).getType();
 
         return rs;
     }
