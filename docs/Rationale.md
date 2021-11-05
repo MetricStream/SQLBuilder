@@ -538,6 +538,9 @@ following steps (all examples are given for [Junit5], adapt for your test framew
     drastically decreases the memory overhead of MockSQLBuilderProvider
   - upgraded external dependencies
     - `gradle` from `7.1.1` to `7.2`
+    - `com.opencsv:opencsv` from `5.5.1` to `5.5.2`
+    - `org.postgresql:postgresql` from `42.2.23` to `42.3.1`
+    - `com.oracle.database.jdbc:ojdbc8` from `21.1.0.0` to `21.3.0.0`
     - `org.junit.jupiter:junit-jupiter-api` from `5.7.2` to `5.8.1`
     - `org.junit.jupiter:junit-jupiter-engine` from `5.7.2` to `5.8.1`
 
