@@ -53,12 +53,6 @@ class Invocations {
     val getRsObject: Int
         @JvmName("getRsObject") get() = invocationCount(rsGetObject)
 
-    val getRsDateTime: Int
-        @JvmName("getRsDateTime") get() = invocationCount(rsGetDateTime)
-
-    val getRsInstant: Int
-        @JvmName("getRsInstant") get() = invocationCount(rsGetInstant)
-
     val getRsTimestamp: Int
         @JvmName("getRsTimestamp") get() = invocationCount(rsGetTimestamp)
 
@@ -89,8 +83,6 @@ class Invocations {
         private val rsGetString = rsGet("String")
         private val rsGetBigDecimal = rsGet("BigDecimal")
         private val rsGetObject = rsGet("Object")
-        private val rsGetDateTime = rsGet("DateTime")
-        private val rsGetInstant = rsGet("Instant")
         private val rsGetTimestamp = rsGet("Timestamp")
         private val rsGetDate = rsGet("Date")
 
