@@ -530,6 +530,9 @@ following steps (all examples are given for [Junit5], adapt for your test framew
 
 # Release Notes #
 
+- Version 2.5.0, released 2021-11-05
+  - added support for re-using data in a MockResultSet
+
 - Version 2.4.0, released 2021-11-04
   - minimal Java version set to 11
   - return ResultSet.TYPE_FORWARD_ONLY for ResultSet::getType of MockResultSet objects
