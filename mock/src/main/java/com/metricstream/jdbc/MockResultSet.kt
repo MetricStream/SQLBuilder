@@ -3,30 +3,26 @@
  */
 package com.metricstream.jdbc
 
-import kotlin.Throws
-import java.sql.SQLException
-import java.sql.ResultSet
-import org.mockito.Mockito
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.ArgumentMatchers
-import org.mockito.kotlin.mock
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
-import java.sql.ResultSetMetaData
-import java.util.concurrent.atomic.AtomicLong
-import kotlin.jvm.JvmOverloads
-import com.opencsv.CSVReader
-import java.io.StringReader
 import java.io.IOException
 import java.io.InputStream
-import com.opencsv.exceptions.CsvException
 import java.io.InputStreamReader
-import java.lang.Exception
+import java.io.StringReader
 import java.sql.Date
+import java.sql.ResultSet
+import java.sql.ResultSetMetaData
+import java.sql.SQLException
 import java.sql.Timestamp
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.util.concurrent.atomic.AtomicLong
+import com.opencsv.CSVReader
+import com.opencsv.exceptions.CsvException
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.lenient
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.slf4j.LoggerFactory
 
@@ -35,13 +31,13 @@ import org.slf4j.LoggerFactory
  * Initially copied from https://github.com/sharfah/java-utils/blob/master/src/test/java/com/sharfah/util/sql/MockResultSet.java
  * https://github.com/sharfah/java-utils/commit/0e930cbf74134e4d1cb71b0c4ca0602250e4f6fc
  */
-class MockResultSet private constructor(tag: String, names: Array<String>?, private val data: Array<Array<Any?>>) {
+class MockResultSet private constructor(tag: String, names: Array<String>?, private val data: Array<Array<Any?>>, usages: Int = 1) {
     private val tag: String
     private val columnIndices: Map<String, Int>
     private var rowIndex = -1
     private var wasNull = false
-    private var generateData = true
     private var generated = false
+    private var remaining = usages - 1
 
     // We could use this method to unify the "by name" and "by number" mocks if we can somehow handle an union type of String and Int
     // Something like `whenever(rs).getLong(anyString() | anyInt())` or `whenever(rs).or(getLong(anyString()), getLong(anyInt()))`
@@ -55,7 +51,7 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
 
     private fun InvocationOnMock.indexByName(): Int = columnIndices[getArgument<String>(0).uppercase()] ?: Int.MAX_VALUE
 
-    private fun outOfRange(columnIndex: Int) = generated || generateData && (rowIndex >= data.size || columnIndex >= data[rowIndex].size)
+    private fun outOfRange(columnIndex: Int) = generated || (rowIndex >= data.size || columnIndex >= data[rowIndex].size)
 
     private fun answer(columnIndex: Int): Any? = when {
         outOfRange(columnIndex) -> THE_ANSWER_TO_THE_ULTIMATE_QUESTION.toString()
@@ -70,10 +66,14 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
 
         // mock rs.next()
         lenient().doAnswer {
-            if (rowIndex == FORCE_EXCEPTION) {
+            if (remaining < -1) {
                 throw SQLException("Forced exception")
             }
             rowIndex++
+            if (rowIndex == data.size && remaining > 0) {
+                rowIndex = 0
+                remaining--
+            }
             rowIndex < data.size
         }.whenever(rs).next()
 
@@ -210,10 +210,17 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
             }
         }.whenever(rs).getObject(anyInt(), ArgumentMatchers.eq(OffsetDateTime::class.java))
 
-        val rsmd = Mockito.mock(ResultSetMetaData::class.java)
+        val rsmd: ResultSetMetaData = mock()
 
         // mock rsmd.getColumnCount()
         lenient().doReturn(columnIndices.size).whenever(rsmd).columnCount
+
+        // mock rs.findColumn(String)
+        lenient().doAnswer { invocation ->
+            val columnIndex = invocation.indexByName()
+            if (columnIndex == Int.MAX_VALUE) throw SQLException("Invalid column name")
+            columnIndex + 1
+        }.whenever(rs).findColumn(anyString())
 
         // mock rsmd.getColumnName(int)
         lenient().doAnswer { invocation ->
@@ -224,15 +231,18 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
         // mock rs.toString()
         lenient().doReturn(tag).whenever(rs).toString()
 
-        // mock rs.getMetaData()
+        // mock rsmd.getMetaData()
         lenient().doReturn(rsmd).whenever(rs).metaData
+
+        // mock rs.getType()
+        lenient().doReturn(ResultSet.TYPE_FORWARD_ONLY).whenever(rs).type
+
         return rs
     }
 
     companion object {
         private val logger = LoggerFactory.getLogger(MockResultSet::class.java)
         private val counter = AtomicLong(0)
-        private const val FORCE_EXCEPTION = -2
         internal const val THE_ANSWER_TO_THE_ULTIMATE_QUESTION = 42
 
         /**
@@ -240,13 +250,15 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
          *
          * @param columnNames the names of the columns
          * @param data the data to be returned from the mocked ResultSet
+         * @param usages the number of times this resultset is used, defaults to 1
          * @return a mocked ResultSet
          * @throws SQLException if building the mocked ResultSet fails
          */
         @JvmStatic
+        @JvmOverloads
         @Throws(SQLException::class)
-        fun create(tag: String, columnNames: Array<String>?, data: Array<Array<Any?>>): ResultSet {
-            return MockResultSet(tag, columnNames, data).buildMock()
+        fun create(tag: String, columnNames: Array<String>?, data: Array<Array<Any?>>, usages: Int = 1): ResultSet {
+            return MockResultSet(tag, columnNames, data, usages).buildMock()
         }
 
         /**
@@ -349,16 +361,13 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
         @JvmStatic
         @Throws(SQLException::class)
         fun empty(tag: String): ResultSet {
-            return MockResultSet(tag, arrayOf(), arrayOf()).buildMock()
+            return MockResultSet(tag, arrayOf(), arrayOf(), 0).buildMock()
         }
 
         @JvmStatic
         @Throws(SQLException::class)
         fun broken(tag: String): ResultSet {
-            val mockResultSet = MockResultSet(tag, arrayOf(), arrayOf())
-            mockResultSet.generateData = false
-            mockResultSet.rowIndex = FORCE_EXCEPTION
-            return mockResultSet.buildMock()
+            return MockResultSet(tag, arrayOf(), arrayOf(), -1).buildMock()
         }
     }
 
