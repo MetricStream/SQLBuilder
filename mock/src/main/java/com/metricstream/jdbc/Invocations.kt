@@ -11,6 +11,8 @@ class Invocations {
 
     @get:JvmName("getLong") var getLong: Int = 0
 
+    @get:JvmName("getDouble") var getDouble: Int = 0
+
     @get:JvmName("getString") var getString: Int = 0
 
     @get:JvmName("getBigDecimal") var getBigDecimal: Int = 0
@@ -44,6 +46,9 @@ class Invocations {
     val getRsLong: Int
         @JvmName("getRsLong") get() = invocationCount(rsGetLong)
 
+    val getRsDouble: Int
+        @JvmName("getRsDouble") get() = invocationCount(rsGetDouble)
+
     val getRsString: Int
         @JvmName("getRsString") get() = invocationCount(rsGetString)
 
@@ -68,6 +73,7 @@ class Invocations {
     val getAnyColumn: Int
         @JvmName("getAnyColumn") get() = getInt +
                 getLong +
+                getDouble +
                 getString +
                 getBigDecimal +
                 getObject +
@@ -80,6 +86,7 @@ class Invocations {
         private val rsNext = setOf(ResultSet::class.java.getDeclaredMethod("next"))
         private val rsGetInt = rsGet("Int")
         private val rsGetLong = rsGet("Long")
+        private val rsGetDouble = rsGet("Double")
         private val rsGetString = rsGet("String")
         private val rsGetBigDecimal = rsGet("BigDecimal")
         private val rsGetObject = rsGet("Object")

@@ -29,10 +29,13 @@ import io.kotest.matchers.string.shouldEndWith
 import io.kotest.matchers.throwable.shouldHaveMessage
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.mockito.Mockito
+import com.metricstream.jdbc.MockResultSet.Companion.create
 import com.metricstream.jdbc.MockSQLBuilderProvider.Companion.addResultSet
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -430,6 +433,43 @@ internal class SQLBuilderTest {
             rs.next() shouldBe true
             rs.next() shouldBe false
         }
+    }
+
+    @Test
+    @Throws(SQLException::class)
+    fun getDouble1() {
+        addResultSet(create("getDouble1", "A", "123"))
+        sqlBuilder.getResultSet(mockConnection).use { rs ->
+            rs.next() shouldBe true
+            rs.getDouble(1) shouldBe 123.0
+        }
+    }
+
+    @Test
+    @Throws(SQLException::class)
+    fun getDouble2() {
+        addResultSet(create("getDouble2", "A", "123.456"))
+        sqlBuilder.getResultSet(mockConnection).use { rs ->
+            rs.next() shouldBe true
+            rs.getDouble(1) shouldBe 123.456
+        }
+    }
+
+    @Test
+    @Throws(SQLException::class)
+    fun getDouble3() {
+        addResultSet(create("getDouble3", arrayOf("A"), arrayOf(arrayOf(123.456))))
+        sqlBuilder.getResultSet(mockConnection).use { rs ->
+            rs.next() shouldBe true
+            rs.getDouble(1) shouldBe 123.456
+        }
+    }
+
+    @Test
+    @Throws(SQLException::class)
+    fun getDouble4() {
+        addResultSet(create("getDouble4", arrayOf("A"), arrayOf(arrayOf(123.456))))
+        sqlBuilder.getDouble(mockConnection, 1, -1.0) shouldBe 123.456
     }
 
     @Test

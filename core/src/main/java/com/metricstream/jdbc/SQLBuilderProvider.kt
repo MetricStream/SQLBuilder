@@ -56,6 +56,22 @@ interface SQLBuilderProvider {
     ): Long
 
     @Throws(SQLException::class)
+    fun getDouble(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: Double
+    ): Double
+
+    @Throws(SQLException::class)
+    fun getDouble(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: Double
+    ): Double
+
+    @Throws(SQLException::class)
     fun getString(
         sqlBuilder: SQLBuilder,
         connection: Connection,

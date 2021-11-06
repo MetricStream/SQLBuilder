@@ -159,14 +159,16 @@ class SQLBuilderTestJava {
         addResultSet("testMock:read from CSV file", getClass().getResourceAsStream("sb11.csv"));
         SQLBuilder sb11 = new SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t");
         int rsCount1 = MockSQLBuilderProvider.invocations.getNext();
-        assertThat(sb11.getList(mockConnection, rs -> rs.getLong("USER_ID")).toString()).isEqualTo("[100000, 100001, 100002, 100003]");
+        assertThat(sb11.getList(mockConnection, rs -> rs.getLong("USER_ID"))
+                .toString()).isEqualTo("[100000, 100001, 100002, 100003]");
         int rsCount2 = MockSQLBuilderProvider.invocations.getNext();
         assertThat(rsCount2 - rsCount1).isEqualTo(5);
 
         // SI_USERS_T.csv was produced via SQLDeveloper using "Export as csv" from right-click on the table
         addResultSet("testMock:read from sqldeveloper export file", getClass().getResourceAsStream("SI_USERS_T.csv"));
         SQLBuilder sb12 = new SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t");
-        assertThat(sb12.getList(mockConnection, rs -> rs.getLong("USER_ID")).toString()).isEqualTo("[100000, 100001, 100002, 100003]");
+        assertThat(sb12.getList(mockConnection, rs -> rs.getLong("USER_ID"))
+                .toString()).isEqualTo("[100000, 100001, 100002, 100003]");
 
         Timestamp ts = Timestamp.from(Instant.now());
         addResultSet(MockResultSet.create("testMock:sb13", new Object[][] { { ts } }));
@@ -450,6 +452,39 @@ class SQLBuilderTestJava {
             assertThat(rs.next()).isTrue();
             assertThat(rs.next()).isFalse();
         }
+    }
+
+    @Test
+    void getDouble1() throws SQLException {
+        addResultSet(MockResultSet.create("getDouble1", "A", "123"));
+        try (ResultSet rs = sqlBuilder.getResultSet(mockConnection)) {
+            assertThat(rs.next()).isTrue();
+            assertThat(rs.getDouble(1)).isEqualTo(123.0);
+        }
+    }
+
+    @Test
+    void getDouble2() throws SQLException {
+        addResultSet(MockResultSet.create("getDouble2", "A", "123.456"));
+        try (ResultSet rs = sqlBuilder.getResultSet(mockConnection)) {
+            assertThat(rs.next()).isTrue();
+            assertThat(rs.getDouble(1)).isEqualTo(123.456);
+        }
+    }
+
+    @Test
+    void getDouble3() throws SQLException {
+        addResultSet(MockResultSet.create("getDouble3", new String[] { "A" }, new Object[][] { { 123.456 } }));
+        try (ResultSet rs = sqlBuilder.getResultSet(mockConnection)) {
+            assertThat(rs.next()).isTrue();
+            assertThat(rs.getDouble(1)).isEqualTo(123.456);
+        }
+    }
+
+    @Test
+    void getDouble4() throws SQLException {
+        addResultSet(MockResultSet.create("getDouble4", new String[] { "A" }, new Object[][] { { 123.456 } }));
+        assertThat(sqlBuilder.getDouble(mockConnection, 1, -1.0)).isEqualTo(123.456);
     }
 
     @Test

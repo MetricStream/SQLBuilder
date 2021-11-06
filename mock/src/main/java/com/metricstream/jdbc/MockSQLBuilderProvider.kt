@@ -105,6 +105,36 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         return if (rs.next()) rs.getLong(columnName) else defaultValue
     }
 
+    override fun getDouble(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnNumber: Int,
+        defaultValue: Double
+    ): Double {
+        invocations.getDouble++
+        logger.debug("{}", sqlBuilder)
+        if (doubleByColumnIndex != null) {
+            return doubleByColumnIndex!!.apply(columnNumber, defaultValue)
+        }
+        val rs = getRs()
+        return if (rs.next()) rs.getDouble(columnNumber) else defaultValue
+    }
+
+    override fun getDouble(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        columnName: String,
+        defaultValue: Double
+    ): Double {
+        invocations.getDouble++
+        logger.debug("{}", sqlBuilder)
+        if (doubleByColumnLabel != null) {
+            return doubleByColumnLabel!!.apply(columnName, defaultValue)
+        }
+        val rs = getRs()
+        return if (rs.next()) rs.getDouble(columnName) else defaultValue
+    }
+
     override fun getString(
         sqlBuilder: SQLBuilder,
         connection: Connection,
@@ -403,6 +433,8 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         private var intByColumnLabel: BiFunction<String, Int, Int>? = null
         private var longByColumnIndex: BiFunction<Int, Long, Long>? = null
         private var longByColumnLabel: BiFunction<String, Long, Long>? = null
+        private var doubleByColumnIndex: BiFunction<Int, Double, Double>? = null
+        private var doubleByColumnLabel: BiFunction<String, Double, Double>? = null
         private var stringByColumnIndex: BiFunction<Int, String?, String?>? = null
         private var stringByColumnLabel: BiFunction<String, String?, String?>? = null
         private var bigDecimalByColumnIndex: BiFunction<Int, BigDecimal?, BigDecimal?>? = null

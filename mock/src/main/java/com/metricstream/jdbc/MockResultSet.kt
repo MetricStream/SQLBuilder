@@ -122,6 +122,22 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
             }
         }.whenever(rs).getLong(anyInt())
 
+        // mock rs.getDouble(columnName)
+        lenient().doAnswer { invocation ->
+            when (val value = answer(invocation.indexByName())) {
+                is String -> value.toDouble()
+                else -> value
+            }
+        }.whenever(rs).getDouble(anyString())
+
+        // mock rs.getDouble(columnIndex)
+        lenient().doAnswer { invocation ->
+            when (val value = answer(invocation.indexByNumber())) {
+                is String -> value.toDouble()
+                else -> value
+            }
+        }.whenever(rs).getDouble(anyInt())
+
         // mock rs.getBigDecimal(columnName)
         lenient().doAnswer { invocation ->
             when (val value = answer(invocation.indexByName())) {
