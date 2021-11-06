@@ -23,6 +23,8 @@ public interface SQLBuilderProvider {
     int getInt(SQLBuilder sqlBuilder, Connection connection, String columnName, int defaultValue) throws SQLException;
     long getLong(SQLBuilder sqlBuilder, Connection connection, int columnNumber, long defaultValue) throws SQLException;
     long getLong(SQLBuilder sqlBuilder, Connection connection, String columnName, long defaultValue) throws SQLException;
+    double getDouble(SQLBuilder sqlBuilder, Connection connection, int columnNumber, double defaultValue) throws SQLException;
+    double getDouble(SQLBuilder sqlBuilder, Connection connection, String columnName, double defaultValue) throws SQLException;
     String getString(SQLBuilder sqlBuilder, Connection connection, int columnNumber, String defaultValue) throws SQLException;
     String getString(SQLBuilder sqlBuilder, Connection connection, String columnName, String defaultValue) throws SQLException;
     BigDecimal getBigDecimal(SQLBuilder sqlBuilder, Connection connection, int columnNumber, BigDecimal defaultValue) throws SQLException;

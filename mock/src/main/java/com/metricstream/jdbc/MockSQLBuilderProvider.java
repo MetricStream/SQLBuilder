@@ -35,6 +35,8 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
     private static BiFunction<String, Integer, Integer> intByColumnLabel;
     private static BiFunction<Integer, Long, Long> longByColumnIndex;
     private static BiFunction<String, Long, Long> longByColumnLabel;
+    private static BiFunction<Integer, Double, Double> doubleByColumnIndex;
+    private static BiFunction<String, Double, Double> doubleByColumnLabel;
     private static BiFunction<Integer, String, String> stringByColumnIndex;
     private static BiFunction<String, String, String> stringByColumnLabel;
     private static BiFunction<Integer, BigDecimal, BigDecimal> bigDecimalByColumnIndex;
@@ -102,6 +104,14 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
 
     public static void setLongByColumnLabel(BiFunction<String, Long, Long> longByColumnLabel) {
         MockSQLBuilderProvider.longByColumnLabel = longByColumnLabel;
+    }
+
+    public static void setDoubleByColumnIndex(BiFunction<Integer, Double, Double> doubleByColumnIndex) {
+        MockSQLBuilderProvider.doubleByColumnIndex = doubleByColumnIndex;
+    }
+
+    public static void setDoubleByColumnLabel(BiFunction<String, Double, Double> doubleByColumnLabel) {
+        MockSQLBuilderProvider.doubleByColumnLabel = doubleByColumnLabel;
     }
 
     public static void setStringByColumnIndex(BiFunction<Integer, String, String> stringByColumnIndex) {
@@ -178,6 +188,24 @@ public final class MockSQLBuilderProvider implements SQLBuilderProvider {
         }
         final ResultSet rs = getRs();
         return rs.next() ? rs.getLong(columnName) : defaultValue;
+    }
+
+    @Override
+    public double getDouble(SQLBuilder sqlBuilder, Connection connection, int columnNumber, double defaultValue) throws SQLException {
+        if (doubleByColumnIndex != null) {
+            return doubleByColumnIndex.apply(columnNumber, defaultValue);
+        }
+        final ResultSet rs = getRs();
+        return rs.next() ? rs.getDouble(columnNumber) : defaultValue;
+    }
+
+    @Override
+    public double getDouble(SQLBuilder sqlBuilder, Connection connection, String columnName, double defaultValue) throws SQLException {
+        if (doubleByColumnLabel != null) {
+            return doubleByColumnLabel.apply(columnName, defaultValue);
+        }
+        final ResultSet rs = getRs();
+        return rs.next() ? rs.getDouble(columnName) : defaultValue;
     }
 
     @Override

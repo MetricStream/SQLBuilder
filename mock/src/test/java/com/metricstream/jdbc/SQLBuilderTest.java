@@ -414,6 +414,40 @@ class SQLBuilderTest {
     }
 
     @Test
+    void getDouble1() throws SQLException {
+        addResultSet(MockResultSet.create("getDouble1", "A", "123"));
+        try (ResultSet rs = sqlBuilder.getResultSet(mockConnection)) {
+            assertTrue(rs.next());
+            assertEquals(123.0, rs.getDouble(1));
+        }
+    }
+
+    @Test
+    void getDouble2() throws SQLException {
+        addResultSet(MockResultSet.create("getDouble2", "A", "123.456"));
+        try (ResultSet rs = sqlBuilder.getResultSet(mockConnection)) {
+            assertTrue(rs.next());
+            assertEquals(123.456, rs.getDouble(1));
+        }
+    }
+
+    @Test
+    void getDouble3() throws SQLException {
+        addResultSet(MockResultSet.create("getDouble3", new String[] { "A" }, new Object[][] { { 123.456 } }));
+        try (ResultSet rs = sqlBuilder.getResultSet(mockConnection)) {
+            assertTrue(rs.next());
+            assertEquals(123.456, rs.getDouble(1));
+        }
+    }
+
+    @Test
+    void getDouble4() throws SQLException {
+        addResultSet(MockResultSet.create("getDouble4", new String[] { "A" }, new Object[][] { { 123.456 } }));
+        assertEquals(123.456, sqlBuilder.getDouble(mockConnection, 1, -1.0));
+    }
+
+
+    @Test
     void getList_test1() throws Exception {
         // This is not so nice: `getList` only really works with resultsets and not with provider functions because these do not
         // participate in the `while (rs.next())` looping around the RowMapper that `getList` uses.  What could be nicer is a

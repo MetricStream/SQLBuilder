@@ -176,6 +176,36 @@ final class JdbcSQLBuilderProvider implements SQLBuilderProvider {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet
      */
     @Override
+    public double getDouble(SQLBuilder sqlBuilder, Connection connection, int columnNumber, double defaultValue) throws SQLException {
+        try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getDouble(columnNumber) : defaultValue;
+        }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param connection The Connection from which the PreparedStatement is created
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     */
+    @Override
+    public double getDouble(SQLBuilder sqlBuilder, Connection connection, String columnName, double defaultValue) throws SQLException {
+        try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getDouble(columnName) : defaultValue;
+        }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param connection The Connection from which the PreparedStatement is created
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet
+     */
+    @Override
     public String getString(SQLBuilder sqlBuilder, Connection connection, int columnNumber, String defaultValue) throws SQLException {
         try (PreparedStatement ps = build(sqlBuilder, connection); ResultSet rs = ps.executeQuery()) {
             return rs.next() ? rs.getString(columnNumber) : defaultValue;

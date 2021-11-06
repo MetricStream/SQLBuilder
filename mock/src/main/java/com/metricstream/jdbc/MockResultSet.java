@@ -176,6 +176,29 @@ public class MockResultSet {
             return value instanceof String ? Long.valueOf((String) value) : value;
         }).when(rs).getLong(anyInt());
 
+        // mock rs.getDouble(columnName)
+        doAnswer(invocation -> {
+            final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
+            final int columnIndex = columnIndices.getOrDefault(columnName, Integer.MAX_VALUE);
+            if (rowIndex >= data.length || columnIndex >= data[rowIndex].length) {
+                return 42L;
+            }
+            final Object value = data[rowIndex][columnIndex];
+            wasNull = value == null;
+            return value instanceof String ? Double.valueOf((String) value) : value;
+        }).when(rs).getDouble(anyString());
+
+        // mock rs.getDouble(columnIndex)
+        doAnswer(invocation -> {
+            final int columnIndex = invocation.getArgumentAt(0, Integer.class);
+            if (rowIndex >= data.length || columnIndex > data[rowIndex].length) {
+                return 42L;
+            }
+            final Object value = data[rowIndex][columnIndex - 1];
+            wasNull = value == null;
+            return value instanceof String ? Double.valueOf((String) value) : value;
+        }).when(rs).getDouble(anyInt());
+
         // mock rs.getBigDecimal(columnName)
         doAnswer(invocation -> {
             final String columnName = invocation.getArgumentAt(0, String.class).toUpperCase();
