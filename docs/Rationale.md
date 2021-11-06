@@ -530,6 +530,11 @@ following steps (all examples are given for [Junit5], adapt for your test framew
 
 # Release Notes #
 
+- Version 2.6.0, released 2021-11-06
+  - added support for getDouble
+  - upgraded external dependencies
+    - `ch.qos.logback:logback-classic` from `1.2.5` to `1.2.6`
+
 - Version 2.5.0, released 2021-11-05
   - added support for re-using data in a MockResultSet
 
