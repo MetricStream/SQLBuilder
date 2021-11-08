@@ -794,6 +794,9 @@ following steps (all examples are given for [Junit5], adapt for your test framew
      `when(rs.getLong("ID")).thenReturn(1L);`
 
 # Release Notes #
+- Version 3.2.2, released 2021-11-08
+  - added `SQLBuilder.getDouble` and mocking support for `ResultSet.getDouble`
+
 - Version 3.1.0, released 2021-10-15
   - allows to change ResultSet concurrency from default `CONCUR_READ_ONLY` to `CONCUR_UPDATABLE`
   - upgraded to Gradle 7.2
@@ -809,12 +812,15 @@ following steps (all examples are given for [Junit5], adapt for your test framew
     - `org.postgresql:postgresql` from `42.2.19` to `42.2.24` (only used for "examples" module)
     - `com.oracle.database.jdbc:ojdbc8` from `21.1.0.0` to `21.3.0.0` (only used for "examples" module)
     - `org.jlleitschuh.gradle.ktlint` from `10.1.0` to `20.2.0` (only used for build)
+
 - Version 3.0.2, released 2021-08-18
   - switched implementation language from Java to Kotlin (public API unchanged)
   - uses Kotest assertions instead of JUnit+Hamcrest assertions for Kotlin tests
   - uses AssertJ assertions instead of JUnit+Hamcrest for Java tests
+
 - Version 3.0.1, released 2021-06-26
   - switched to Gradle 7.1
+
 - Version 3.0.0, released 2021-06-26
   - switched to Mockito 3
   - upgraded external dependencies
