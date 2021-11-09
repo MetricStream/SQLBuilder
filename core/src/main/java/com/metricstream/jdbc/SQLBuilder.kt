@@ -868,6 +868,7 @@ class SQLBuilder {
          * @throws IllegalArgumentException if the name cannot be properly quoted or quoting would be required
          */
         @JvmOverloads
+        @JvmStatic
         @Throws(IllegalArgumentException::class)
         fun nameQuote(name: String?, noQuotes: Boolean = true): String {
             requireNotNull(name) { "Object name is null" }
