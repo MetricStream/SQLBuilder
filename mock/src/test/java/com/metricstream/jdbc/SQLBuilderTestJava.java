@@ -6,6 +6,8 @@ package com.metricstream.jdbc;
 import static com.metricstream.jdbc.MockSQLBuilderProvider.addResultSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -19,7 +21,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.assertj.core.api.ThrowableTypeAssert;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterAll;
@@ -50,6 +52,10 @@ class SQLBuilderTestJava {
     @AfterAll
     static void afterAll() {
         MockSQLBuilderProvider.disable();
+    }
+
+    private static ThrowableTypeAssert<SQLException> assertThatSQLException() {
+        return assertThatExceptionOfType(SQLException.class);
     }
 
     @AfterEach
@@ -223,7 +229,7 @@ class SQLBuilderTestJava {
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(2);
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(2);
 
-        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
+        assertThatIllegalStateException().isThrownBy(() -> {
             MockSQLBuilderProvider.setExecute("abc", 1);
             updateFoo.execute(mockConnection);
         }).withMessage("Trying to use abc for method testMock");
@@ -233,16 +239,16 @@ class SQLBuilderTestJava {
     void expandTest() {
         assertThat(new SQLBuilder("select a from foo where a in (?)", 3).toSQL()).endsWith("a in (?)");
         assertThat(new SQLBuilder("select a from foo where a in (?)", Collections.singletonList(3)).toSQL()).endsWith("a in (?)");
-        assertThat(new SQLBuilder("select a from foo where a in (?)", Arrays.asList(3, 1, 4)).toSQL()).endsWith("a in (?,?,?)");
-        assertThat(new SQLBuilder("select a from foo where a in (?) and b in (?)", Arrays.asList(3, 1, 4), Arrays.asList(2, 1)).toSQL()).endsWith("a in (?,?,?) and b in (?,?)");
-        assertThatExceptionOfType(SQLException.class).isThrownBy(() ->
-                new SQLBuilder("select a from foo where a in (?)", Collections.emptyList()).toSQL()
-        ).withMessage("Collection parameters must contain at least one element");
+        assertThat(new SQLBuilder("select a from foo where a in (?)", List.of(3, 1, 4)).toSQL()).endsWith("a in (?,?,?)");
+        assertThat(new SQLBuilder("select a from foo where a in (?) and b in (?)", List.of(3, 1, 4), List.of(2, 1)).toSQL()).endsWith("a in (?,?,?) and b in (?,?)");
+        assertThatSQLException()
+                .isThrownBy(() -> new SQLBuilder("select a from foo where a in (?)", Collections.emptyList()).toSQL())
+                .withMessage("Collection parameters must contain at least one element");
     }
 
     @Test
     void expandRepeatedTest() {
-        List<Integer> args = new ArrayList<>(Arrays.asList(3, 1, 4));
+        List<Integer> args = new ArrayList<>(List.of(3, 1, 4));
         SQLBuilder sb = new SQLBuilder("select a from foo where a in (?)", args);
         assertThat(sb.toSQL()).endsWith("a in (?,?,?)");
         assertThat(sb.toString()).endsWith("a in (?,?,?); args=[3, 1, 4]");
@@ -340,7 +346,7 @@ class SQLBuilderTestJava {
     @Test
     void brokenTest() throws SQLException {
         addResultSet(MockResultSet.broken(""));
-        assertThatExceptionOfType(SQLException.class).isThrownBy(() -> new SQLBuilder("select A from T").getInt(mockConnection, 1, -1));
+        assertThatSQLException().isThrownBy(() -> new SQLBuilder("select A from T").getInt(mockConnection, 1, -1));
     }
 
     @Test
@@ -585,7 +591,7 @@ class SQLBuilderTestJava {
         // when query returns 3 rows with duplicate keys
         // then expect to get an IllegalStateException
         addResultSet("", "3,Three\n1,One\n3,Four");
-        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getInt(1), rs.getString(2))));
+        assertThatIllegalStateException().isThrownBy(() -> sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getInt(1), rs.getString(2))));
     }
 
     @Test
@@ -594,7 +600,7 @@ class SQLBuilderTestJava {
         // then expect to get an IllegalStateException
         addResultSet("", new Object[][] { { 3, "Three" }, { null, "Zero" } });
         // Note: we cannot use `getInt` for the key here because that would automatically convert `null` to `0` and thus not throw the expected exception
-        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getObject(1), rs.getString(2))));
+        assertThatIllegalStateException().isThrownBy(() -> sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getObject(1), rs.getString(2))));
     }
 
     @Test
@@ -798,7 +804,7 @@ class SQLBuilderTestJava {
     void multiPlaceholder_dollar() {
         SQLBuilder sb = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
         assertThat(sb.toString()).isEqualTo("select a, ${b} from ${t} where x > ?; args=[5]");
-        sb.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
+        sb.bind("b", List.of("BCOL", "CCOL")).bind("t", "table1");
         assertThat(sb.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
     }
 
@@ -806,7 +812,7 @@ class SQLBuilderTestJava {
     void multiPlaceholder_colon() {
         SQLBuilder sb = new SQLBuilder("select a, :{b} from :{t} where x > ?", 5);
         assertThat(sb.toString()).isEqualTo("select a, :{b} from :{t} where x > ?; args=[5]");
-        sb.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
+        sb.bind("b", List.of("BCOL", "CCOL")).bind("t", "table1");
         assertThat(sb.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
     }
 
@@ -814,26 +820,25 @@ class SQLBuilderTestJava {
     void invalidPlaceholder_dollar() {
         SQLBuilder sb = new SQLBuilder("select a, ${b+} from ${t} where x > ?", 5);
         assertThat(sb.toString()).isEqualTo("select a, ${b+} from ${t} where x > ?; args=[5]");
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> sb.bind("b+", "BCOL"));
+        assertThatIllegalArgumentException().isThrownBy(() -> sb.bind("b+", "BCOL"));
     }
 
     @Test
     void invalidPlaceholder_colon() {
         SQLBuilder sb = new SQLBuilder("select a, :{b+} from :{t} where x > ?", 5);
         assertThat(sb.toString()).isEqualTo("select a, :{b+} from :{t} where x > ?; args=[5]");
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> sb.bind("b+", "BCOL"));
+        assertThatIllegalArgumentException().isThrownBy(() -> sb.bind("b+", "BCOL"));
     }
 
     @Test
     void repeatedPlaceholder() {
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> new SQLBuilder("").bind("a", "first")
-                .bind("a", "second"));
+        assertThatIllegalArgumentException().isThrownBy(() -> new SQLBuilder("").bind("a", "first").bind("a", "second"));
     }
 
     @Test
     void multiBuilder_dollar() {
         SQLBuilder sb1 = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
-        sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
+        sb1.bind("b", List.of("BCOL", "CCOL")).bind("t", "table1");
         SQLBuilder sb2 = new SQLBuilder(sb1);
         assertThat(sb2.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
     }
@@ -841,7 +846,7 @@ class SQLBuilderTestJava {
     @Test
     void multiBuilder_colon() {
         SQLBuilder sb1 = new SQLBuilder("select a, :{b} from :{t} where x > ?", 5);
-        sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
+        sb1.bind("b", List.of("BCOL", "CCOL")).bind("t", "table1");
         SQLBuilder sb2 = new SQLBuilder(sb1);
         assertThat(sb2.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
     }
@@ -850,13 +855,13 @@ class SQLBuilderTestJava {
     void repeatedPlaceholder2() {
         SQLBuilder sb1 = new SQLBuilder("").bind("a", "first");
         SQLBuilder sb2 = new SQLBuilder("").bind("a", "first");
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> sb1.append(sb2));
+        assertThatIllegalArgumentException().isThrownBy(() -> sb1.append(sb2));
     }
 
     @Test
     void repeatedPlaceholder3_dollar() {
         SQLBuilder sb1 = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
-        sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
+        sb1.bind("b", List.of("BCOL", "CCOL")).bind("t", "table1");
         assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         SQLBuilder sb2 = new SQLBuilder("select ${b} from (").append(sb1).append(")");
         assertThat(sb2.toString()).isEqualTo("select BCOL, CCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]");
@@ -865,7 +870,7 @@ class SQLBuilderTestJava {
     @Test
     void repeatedPlaceholder3_colon() {
         SQLBuilder sb1 = new SQLBuilder("select a, :{b} from :{t} where x > ?", 5);
-        sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
+        sb1.bind("b", List.of("BCOL", "CCOL")).bind("t", "table1");
         assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         SQLBuilder sb2 = new SQLBuilder("select :{b} from (").append(sb1).append(")");
         assertThat(sb2.toString()).isEqualTo("select BCOL, CCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]");
@@ -874,25 +879,25 @@ class SQLBuilderTestJava {
     @Test
     void repeatedPlaceholder4_dollar() {
         SQLBuilder sb1 = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
-        sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
+        sb1.bind("b", List.of("BCOL", "CCOL")).bind("t", "table1");
         assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         SQLBuilder sb2 = new SQLBuilder("select ${b} from (").append(sb1).append(")");
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> sb2.bind("b", "BCOL"));
+        assertThatIllegalArgumentException().isThrownBy(() -> sb2.bind("b", "BCOL"));
     }
 
     @Test
     void repeatedPlaceholder4_colon() {
         SQLBuilder sb1 = new SQLBuilder("select a, :{b} from :{t} where x > ?", 5);
-        sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
+        sb1.bind("b", List.of("BCOL", "CCOL")).bind("t", "table1");
         assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         SQLBuilder sb2 = new SQLBuilder("select :{b} from (").append(sb1).append(")");
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> sb2.bind("b", "BCOL"));
+        assertThatIllegalArgumentException().isThrownBy(() -> sb2.bind("b", "BCOL"));
     }
 
     @Test
     void repeatedPlaceholder5_dollar() {
         SQLBuilder sb1 = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
-        sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
+        sb1.bind("b", List.of("BCOL", "CCOL")).bind("t", "table1");
         assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         SQLBuilder sb2 = new SQLBuilder("select ${b} from (").append(sb1.applyBindings()).append(")").bind("b", "BCOL");
         assertThat(sb2.toString()).isEqualTo("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]");
@@ -901,7 +906,7 @@ class SQLBuilderTestJava {
     @Test
     void repeatedPlaceholder5_colon() {
         SQLBuilder sb1 = new SQLBuilder("select a, :{b} from :{t} where x > ?", 5);
-        sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
+        sb1.bind("b", List.of("BCOL", "CCOL")).bind("t", "table1");
         assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         SQLBuilder sb2 = new SQLBuilder("select :{b} from (").append(sb1.applyBindings()).append(")").bind("b", "BCOL");
         assertThat(sb2.toString()).isEqualTo("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]");
@@ -910,7 +915,7 @@ class SQLBuilderTestJava {
     @Test
     void repeatedPlaceholder6_dollar() {
         SQLBuilder sb1 = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
-        sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
+        sb1.bind("b", List.of("BCOL", "CCOL")).bind("t", "table1");
         String sb1s = sb1.toString();
         assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
@@ -923,7 +928,7 @@ class SQLBuilderTestJava {
     @Test
     void repeatedPlaceholder6_colon() {
         SQLBuilder sb1 = new SQLBuilder("select a, :{b} from :{t} where x > ?", 5);
-        sb1.bind("b", Arrays.asList("BCOL", "CCOL")).bind("t", "table1");
+        sb1.bind("b", List.of("BCOL", "CCOL")).bind("t", "table1");
         String sb1s = sb1.toString();
         assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         assertThat(sb1.toString()).isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
@@ -931,6 +936,16 @@ class SQLBuilderTestJava {
         assertThat(sb1.toString()).isEqualTo(sb1s);
         SQLBuilder sb2 = new SQLBuilder("select :{b} from (").append(sb1).append(")").bind("b", "BCOL");
         assertThat(sb2.toString()).isEqualTo("select BCOL from ( select a, BCOL, CCOL from table1 where x > ? ); args=[5]");
+    }
+
+    @Test
+    void partialPlaceHolder() {
+        SQLBuilder sb1 = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
+        sb1.bind("b", List.of("BCOL", "CCOL")).applyBindings();
+        assertThat(new SQLBuilder(sb1).bind("t", "table1").toString())
+                .isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
+        assertThat(new SQLBuilder(sb1).bind("t", "table2").toString())
+                .isEqualTo("select a, BCOL, CCOL from table2 where x > ?; args=[5]");
     }
 
     @Test
@@ -1025,6 +1040,31 @@ class SQLBuilderTestJava {
         assertThat(rsmd.getColumnName(2)).isEqualTo("COLUMNB");
     }
 
+    @Test
+    void nameQuote1() {
+        assertThat(SQLBuilder.nameQuote("columnA")).isEqualTo("columnA");
+        assertThat(SQLBuilder.nameQuote("column_A")).isEqualTo("column_A");
+        assertThat(SQLBuilder.nameQuote("COL1")).isEqualTo("COL1");
+    }
+
+    @Test
+    void nameQuote2() {
+        assertThatIllegalArgumentException().isThrownBy(() -> SQLBuilder.nameQuote("column\"A"));
+    }
+
+    @Test
+    void nameQuote3() {
+        assertThatIllegalArgumentException().isThrownBy(() -> SQLBuilder.nameQuote("column+A"));
+        assertThat(SQLBuilder.nameQuote("column+A", false)).isEqualTo("\"column+A\"");
+        assertThat(SQLBuilder.nameQuote("column;A", false)).isEqualTo("\"column;A\"");
+    }
+
+    @Test
+    void nameQuote4() {
+        assertThat(SQLBuilder.nameQuote("columnA A", false)).isEqualTo("columnA A");
+        assertThat(SQLBuilder.nameQuote("column;A A", false)).isEqualTo("\"column;A\" A");
+        assertThat(SQLBuilder.nameQuote("column;A A+B", false)).isEqualTo("\"column;A\" \"A+B\"");
+    }
 
     static class QueryParamsImpl implements QueryParams {
 
@@ -1044,12 +1084,7 @@ class SQLBuilderTestJava {
         @Override
         public Object getParameterValue(@NotNull String name, boolean isMulti) {
             final String value = values[Integer.parseInt(name) - 1];
-            if (isMulti) {
-                String[] values = new String[4];
-                Arrays.fill(values, value);
-                return Arrays.asList(values);
-            }
-            return value;
+            return isMulti ? List.of(value, value, value, value) : value;
         }
 
         @Nullable

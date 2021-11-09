@@ -29,14 +29,13 @@ import io.kotest.matchers.string.shouldEndWith
 import io.kotest.matchers.throwable.shouldHaveMessage
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.mockito.Mockito
 import com.metricstream.jdbc.MockResultSet.Companion.create
 import com.metricstream.jdbc.MockSQLBuilderProvider.Companion.addResultSet
+import com.metricstream.jdbc.SQLBuilder.Companion.nameQuote
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class SQLBuilderTest {
@@ -62,15 +61,15 @@ internal class SQLBuilderTest {
     @Test
     @Throws(SQLException::class)
     fun testMock() {
-        val mrs: ResultSet = MockResultSet.create(
+        val mrs: ResultSet = create(
             "testMock:sb1",
             arrayOf("name", "age"),
             arrayOf(arrayOf("Alice", 20), arrayOf("Bob", 35), arrayOf("Charles", 50))
         )
         addResultSet(mrs)
-        addResultSet(MockResultSet.create("testMock:sb2", arrayOf("key", "value"), arrayOf()))
+        addResultSet(create("testMock:sb2", arrayOf("key", "value"), arrayOf()))
         addResultSet(MockResultSet.empty("testMock:sb3"))
-        addResultSet(MockResultSet.create("testMock:sb4", arrayOf(arrayOf("a"), arrayOf("b"))))
+        addResultSet(create("testMock:sb4", arrayOf(arrayOf("a"), arrayOf("b"))))
         val sb1 = SQLBuilder("select name, age from friends where age > 18")
         sb1.getResultSet(mockConnection).use { rs ->
             var total = 0
@@ -110,7 +109,7 @@ internal class SQLBuilderTest {
         sb5.getInt(mockConnection, 1, 0) shouldBe 10
         val sb6 = SQLBuilder("select count(*) from lookup")
         sb6.getInt(mockConnection, 1, 0) shouldBe 10
-        addResultSet(MockResultSet.create("testMock:sb7", arrayOf(arrayOf("a"), arrayOf("b"))))
+        addResultSet(create("testMock:sb7", arrayOf(arrayOf("a"), arrayOf("b"))))
         val sb7 = SQLBuilder("select value from lookup where key = ?", 42)
         sb7.getString(mockConnection, 1, "default") shouldBe "a"
         addResultSet("testMock:sb8", "Alice,20\nBob,35\nCharles,50")
@@ -161,10 +160,10 @@ internal class SQLBuilderTest {
         val sb12 = SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t")
         sb12.getList(mockConnection, { it.getLong("USER_ID") }).toString() shouldBe "[100000, 100001, 100002, 100003]"
         val ts = Timestamp.from(Instant.now())
-        addResultSet(MockResultSet.create("testMock:sb13", arrayOf(arrayOf(ts))))
+        addResultSet(create("testMock:sb13", arrayOf(arrayOf(ts))))
         val sb13 = SQLBuilder("select value from lookup where key = ?", 42)
         sb13.getTimestamp(mockConnection, 1, null) shouldBe ts
-        addResultSet(MockResultSet.create("testMock:sb14", arrayOf(arrayOf(ts))))
+        addResultSet(create("testMock:sb14", arrayOf(arrayOf(ts))))
         val sb14 = SQLBuilder("select value from lookup where key = ?", 42)
         sb14.getResultSet(mockConnection).use { rs14 ->
             var ts14: Timestamp? = null
@@ -173,7 +172,7 @@ internal class SQLBuilderTest {
             }
             ts14 shouldBe ts
         }
-        addResultSet(MockResultSet.create("testMock:sb15", arrayOf("value"), arrayOf(arrayOf(ts))))
+        addResultSet(create("testMock:sb15", arrayOf("value"), arrayOf(arrayOf(ts))))
         val sb15 = SQLBuilder("select value from lookup where key = ?", 42)
         sb15.getResultSet(mockConnection).use { rs15 ->
             var ts15: Timestamp? = null
@@ -183,7 +182,7 @@ internal class SQLBuilderTest {
             ts15 shouldBe ts
         }
         val date = Date(Instant.now().toEpochMilli())
-        addResultSet(MockResultSet.create("testMock:sb16", arrayOf(arrayOf(date))))
+        addResultSet(create("testMock:sb16", arrayOf(arrayOf(date))))
         val sb16 = SQLBuilder("select value from lookup where key = ?", 42)
         sb16.getDate(mockConnection, 1, null) shouldBe date
 
@@ -246,7 +245,7 @@ internal class SQLBuilderTest {
     @Test
     fun reuseResultSetData1() {
         addResultSet(
-            MockResultSet.create(
+            create(
                 "reuseResultSetData1",
                 arrayOf("A", "B"),
                 arrayOf(arrayOf(1, "hello")),
@@ -261,7 +260,7 @@ internal class SQLBuilderTest {
     @Test
     fun reuseResultSetData2() {
         addResultSet(
-            MockResultSet.create(
+            create(
                 "reuseResultSetData2",
                 arrayOf("A", "B"),
                 arrayOf(arrayOf(1, "hello")),
@@ -276,7 +275,7 @@ internal class SQLBuilderTest {
     @Test
     fun reuseResultSetData3() {
         addResultSet(
-            MockResultSet.create(
+            create(
                 "reuseResultSetData3",
                 arrayOf("A", "B"),
                 arrayOf(arrayOf(1, "hello"))
@@ -290,7 +289,7 @@ internal class SQLBuilderTest {
     @Test
     fun reuseResultSetData4() {
         addResultSet(
-            MockResultSet.create(
+            create(
                 "reuseResultSetData4",
                 arrayOf("A", "B"),
                 arrayOf(
@@ -311,7 +310,7 @@ internal class SQLBuilderTest {
         // A resultset is consumed by a SQLBuilder `getResultSet` (or higher level callers like `getInt`). Therefore,
         // adding it once but trying to use it twice will not work.  Instead, the next usage will create a new
         // default mocked resultset
-        val rs = MockResultSet.create("copyTest1", "A", "3")
+        val rs = create("copyTest1", "A", "3")
         addResultSet(rs)
         sqlBuilder.getInt(mockConnection, 1, -1) shouldBe 3
         sqlBuilder.getInt(mockConnection, 1, -1) shouldBe 42
@@ -322,7 +321,7 @@ internal class SQLBuilderTest {
     fun copyTest2() {
         // A resultset has an internal state which keeps track of the consumed rows.  Therefore, adding the same
         // resultset twice will not produce the same result.
-        val rs = MockResultSet.create("copyTest2", "A", "3")
+        val rs = create("copyTest2", "A", "3")
         addResultSet(rs)
         sqlBuilder.getInt(mockConnection, 1, -1) shouldBe 3
         addResultSet(rs)
@@ -359,7 +358,7 @@ internal class SQLBuilderTest {
     @Throws(SQLException::class)
     fun testDateTime() {
         val now = OffsetDateTime.now()
-        addResultSet(MockResultSet.create("testDateTime", arrayOf(arrayOf(now))))
+        addResultSet(create("testDateTime", arrayOf(arrayOf(now))))
         val sb1 = SQLBuilder("select created from lookup where key = ?", 42)
         sb1.getDateTime(mockConnection, 1, null) shouldBe now
         val sb2 = SQLBuilder("select created from lookup where key = ?", 42)
@@ -379,7 +378,7 @@ internal class SQLBuilderTest {
     fun testInstant() {
         val now = Clock.systemUTC().instant()
         val oNow = now.atOffset(ZoneOffset.UTC)
-        addResultSet(MockResultSet.create("testInstant", arrayOf(arrayOf(oNow))))
+        addResultSet(create("testInstant", arrayOf(arrayOf(oNow))))
         val sb1 = SQLBuilder("select created from lookup where key = ?", 42)
         sb1.getInstant(mockConnection, 1, null) shouldBe now
         val sb2 = SQLBuilder("select created from lookup where key = ?", 42)
@@ -923,7 +922,7 @@ internal class SQLBuilderTest {
 
     @Test
     fun testFromNumberedParams() {
-        val params: QueryParams = SQLBuilderTestJava.QueryParamsImpl()
+        val params: QueryParams = QueryParamsImpl()
         SQLBuilder.fromNumberedParameters("select n from t where i=:1)", params).toString() shouldBe
                 "select n from t where i=?); args=[a]"
         SQLBuilder.fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString() shouldBe
@@ -938,6 +937,14 @@ internal class SQLBuilderTest {
                 "select n from t where i=? or k=':2'); args=[b]"
         SQLBuilder.fromNumberedParameters("select n from t where i=:11 or i=:2)", params).toString() shouldBe
                 "select n from t where i=:11 or i=?); args=[b]"
+    }
+
+    @Test
+    fun partialPlaceHolder() {
+        val sb1 = SQLBuilder("select a, :{b} from :{t} where x > ?", 5)
+        sb1.bind("b", listOf("BCOL", "CCOL")).applyBindings()
+        SQLBuilder(sb1).bind("t", "table1").toString() shouldBe "select a, BCOL, CCOL from table1 where x > ?; args=[5]"
+        SQLBuilder(sb1).bind("t", "table2").toString() shouldBe "select a, BCOL, CCOL from table2 where x > ?; args=[5]"
     }
 
     @Test
@@ -1014,6 +1021,32 @@ internal class SQLBuilderTest {
         rsmd.getColumnName(2) shouldBe "COLUMNB"
     }
 
+    @Test
+    fun nameQuote1() {
+        nameQuote("columnA") shouldBe "columnA"
+        nameQuote("column_A") shouldBe "column_A"
+        nameQuote("COL1") shouldBe "COL1"
+    }
+
+    @Test
+    fun nameQuote2() {
+        shouldThrow<IllegalArgumentException> { nameQuote("column\"A") }
+    }
+
+    @Test
+    fun nameQuote3() {
+        shouldThrow<IllegalArgumentException> { nameQuote("column+A") }
+        nameQuote("column+A", noQuotes = false) shouldBe "\"column+A\""
+        nameQuote("column;A", noQuotes = false) shouldBe "\"column;A\""
+    }
+
+    @Test
+    fun nameQuote4() {
+        nameQuote("columnA A", noQuotes = false) shouldBe "columnA A"
+        nameQuote("column;A A", noQuotes = false) shouldBe "\"column;A\" A"
+        nameQuote("column;A A+B", noQuotes = false) shouldBe """"column;A" "A+B""""
+    }
+
 
     internal class QueryParamsImpl : QueryParams {
         // some arbitrary param values for testing
@@ -1026,12 +1059,7 @@ internal class SQLBuilderTest {
 
         override fun getParameterValue(name: String, isMulti: Boolean): Any? {
             val value = values.getOrNull(name.toInt() - 1)
-            if (isMulti) {
-                val values = arrayOfNulls<String>(4)
-                Arrays.fill(values, value)
-                return listOf(*values)
-            }
-            return value
+            return if (isMulti) List(4) { value } else value
         }
 
         override fun getParameterValue(name: String, isMulti: Boolean, dateAsString: Boolean): Any? {
