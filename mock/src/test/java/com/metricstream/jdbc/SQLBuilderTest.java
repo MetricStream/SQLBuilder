@@ -851,6 +851,14 @@ class SQLBuilderTest {
     }
 
     @Test
+    void partialPlaceHolder() {
+        SQLBuilder sb1 = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
+        sb1.bind("b", List.of("BCOL", "CCOL")).applyBindings();
+        assertEquals("select a, BCOL, CCOL from table1 where x > ?; args=[5]", new SQLBuilder(sb1).bind("t", "table1").toString());
+        assertEquals("select a, BCOL, CCOL from table2 where x > ?; args=[5]", new SQLBuilder(sb1).bind("t", "table2").toString());
+    }
+
+    @Test
     void testFromNumberedParams() {
         QueryParams params = new QueryParamsImpl();
         assertEquals("select n from t where i=?); args=[a]", SQLBuilder
@@ -942,6 +950,33 @@ class SQLBuilderTest {
         assertEquals(2, rs.findColumn("COLUMNB"));
         ResultSetMetaData rsmd = rs.getMetaData();
         assertEquals("COLUMNB", rsmd.getColumnName(2));
+    }
+
+    @Test
+    void nameQuote1() {
+        assertEquals("columnA", SQLBuilder.nameQuote("columnA"));
+        assertEquals("column_A", SQLBuilder.nameQuote("column_A"));
+        assertEquals("COL_A", SQLBuilder.nameQuote("COL_A"));
+        assertEquals("COL1", SQLBuilder.nameQuote("COL1"));
+    }
+
+    @Test
+    void nameQuote2() {
+        assertThrows(IllegalArgumentException.class, () -> SQLBuilder.nameQuote("column\"A"));
+    }
+
+    @Test
+    void nameQuote3() {
+        assertThrows(IllegalArgumentException.class, () -> SQLBuilder.nameQuote("column+A"));
+        assertEquals("\"column+A\"", SQLBuilder.nameQuote("column+A", false));
+        assertEquals("\"column;A\"", SQLBuilder.nameQuote("column;A", false));
+    }
+
+    @Test
+    void nameQuote4() {
+        assertEquals("columnA A", SQLBuilder.nameQuote("columnA A", false));
+        assertEquals("\"column;A\" A", SQLBuilder.nameQuote("column;A A", false));
+        assertEquals("\"column;A\" \"A+B\"", SQLBuilder.nameQuote("column;A A+B", false));
     }
 
     static class QueryParamsImpl implements QueryParams {
