@@ -278,6 +278,19 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
         }
 
         /**
+         * Adds a mock ResultSet object to the queue.
+         *
+         * @param columnNames the names of the columns
+         * @param data the data to be returned from the mocked ResultSet
+         * @param usages the number of times this resultset is used, defaults to 1
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun add(tag: String, columnNames: Array<String>?, data: Array<Array<Any?>>, usages: Int = 1) {
+            MockSQLBuilderProvider.addResultSet(create(tag, columnNames, data, usages))
+        }
+
+        /**
          * Creates the mock ResultSet.
          *
          * @param data the data to be returned from the mocked ResultSet
@@ -288,6 +301,16 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
         @Throws(SQLException::class)
         fun create(tag: String, data: Array<Array<Any?>>): ResultSet {
             return MockResultSet(tag, null, data).buildMock()
+        }
+
+        /**
+         * Adds a mock ResultSet object to the queue.
+         *
+         * @param data the data to be returned from the mocked ResultSet
+         */
+        @JvmStatic
+        fun add(tag: String, data: Array<Array<Any?>>) {
+            MockSQLBuilderProvider.addResultSet(create(tag, data))
         }
 
         /**
@@ -319,6 +342,16 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
         }
 
         /**
+         * Adds a mock ResultSet object to the queue.
+         *
+         * @param csv the data to be returned from the mocked ResultSet
+         */
+        @JvmStatic
+        fun add(tag: String, csv: String, withLabels: Boolean) {
+            MockSQLBuilderProvider.addResultSet(create(tag, csv, withLabels, false))
+        }
+
+        /**
          * Creates the mock ResultSet.
          *
          * @param csv A CSV file containing the data, optionally with a header line
@@ -338,6 +371,17 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
                 logger.error("Cannot parse CSV {}", csv)
                 throw SQLException("Invalid data")
             }
+        }
+
+        /**
+         * Adds a mock ResultSet object to the queue.
+         *
+         * @param csv A CSV file containing the data, optionally with a header line
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun add(tag: String, csv: InputStream, withLabels: Boolean = true) {
+            MockSQLBuilderProvider.addResultSet(create(tag, csv, withLabels))
         }
 
         /**
@@ -369,6 +413,16 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
         }
 
         /**
+         * Adds a mock ResultSet object to the queue.
+         *
+         * @param csvs the data to be returned from the mocked ResultSet
+         */
+        @JvmStatic
+        fun add(tag: String, labels: String, vararg csvs: String) {
+            MockSQLBuilderProvider.addResultSet(create(tag, labels, *csvs))
+        }
+
+        /**
          * Creates an empty mock ResultSet.
          *
          * @return a mocked ResultSet
@@ -380,10 +434,25 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
             return MockResultSet(tag, arrayOf(), arrayOf(), 0).buildMock()
         }
 
+        /**
+         * Creates an empty mock ResultSet.
+         *
+         * @return a mocked ResultSet
+         */
+        @JvmStatic
+        fun addEmpty(tag: String) {
+            MockSQLBuilderProvider.addResultSet(empty(tag))
+        }
+
         @JvmStatic
         @Throws(SQLException::class)
         fun broken(tag: String): ResultSet {
             return MockResultSet(tag, arrayOf(), arrayOf(), -1).buildMock()
+        }
+
+        @JvmStatic
+        fun addBroken(tag: String) {
+            MockSQLBuilderProvider.addResultSet(broken(tag))
         }
     }
 

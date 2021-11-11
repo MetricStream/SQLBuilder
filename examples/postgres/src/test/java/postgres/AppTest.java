@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.metricstream.jdbc.MockResultSet;
 import com.metricstream.jdbc.MockSQLBuilderProvider;
 
 
@@ -53,7 +54,7 @@ class AppTest {
     }
 
     @Test void isAnneInvited() throws SQLException {
-        MockSQLBuilderProvider.addResultSet("invite", "firstname,age,sex", "Anne,33,F");
+        MockResultSet.add("invite", "firstname,age,sex", "Anne,33,F");
         List<String> actual = classUnderTest.invite(30, true);
         assertTrue(actual.contains("Anne"));
     }

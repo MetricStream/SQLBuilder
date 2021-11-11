@@ -462,24 +462,28 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
 
         @Throws(SQLException::class)
         @JvmStatic
+        @Deprecated("Use MockResultSet.add", replaceWith = ReplaceWith("MockResultSet.add(tag, data)"))
         fun addResultSet(tag: String, data: Array<Array<Any?>>) {
             mockResultSets.add(MockResultSet.create(tag, data))
         }
 
         @Throws(SQLException::class)
         @JvmStatic
+        @Deprecated("Use MockResultSet.add", replaceWith = ReplaceWith("MockResultSet.add(tag, labels, csvs)"))
         fun addResultSet(tag: String, labels: String, vararg csvs: String) {
             mockResultSets.add(MockResultSet.create(tag, labels, *csvs))
         }
 
         @Throws(SQLException::class)
         @JvmStatic
+        @Deprecated("Use MockResultSet.add", replaceWith = ReplaceWith("MockResultSet.add(tag, csv, withLabels)"))
         fun addResultSet(tag: String, csv: String, withLabels: Boolean) {
             mockResultSets.add(MockResultSet.create(tag, csv, withLabels))
         }
 
         @Throws(SQLException::class)
         @JvmStatic
+        @Deprecated("Use MockResultSet.add", replaceWith = ReplaceWith("MockResultSet.add(tag, csv, false)"))
         fun addResultSet(tag: String, csv: String) {
             mockResultSets.add(MockResultSet.create(tag, csv, false))
         }
@@ -487,6 +491,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         @Throws(SQLException::class)
         @JvmOverloads
         @JvmStatic
+        @Deprecated("Use MockResultSet.add", replaceWith = ReplaceWith("MockResultSet.add(tag, csv, withLabels)"))
         fun addResultSet(tag: String, csv: InputStream, withLabels: Boolean = true) {
             mockResultSets.add(MockResultSet.create(tag, csv, withLabels))
         }
