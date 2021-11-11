@@ -7,6 +7,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.StringReader
+import java.math.BigDecimal
 import java.sql.Date
 import java.sql.ResultSet
 import java.sql.ResultSetMetaData
@@ -17,13 +18,10 @@ import java.time.ZoneOffset
 import java.util.concurrent.atomic.AtomicLong
 import com.opencsv.CSVReader
 import com.opencsv.exceptions.CsvException
-import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito.lenient
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
 import org.slf4j.LoggerFactory
 
 /**
@@ -39,33 +37,105 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
     private var generated = false
     private var remaining = usages - 1
 
-    // We could use this method to unify the "by name" and "by number" mocks if we can somehow handle an union type of String and Int
-    // Something like `whenever(rs).getLong(anyString() | anyInt())` or `whenever(rs).or(getLong(anyString()), getLong(anyInt()))`
-    private fun InvocationOnMock.index() = when (val arg: Any = getArgument(0)) {
-        is Int -> arg - 1
-        is String -> columnIndices[arg.uppercase()] ?: Int.MAX_VALUE
-        else -> Int.MAX_VALUE
-    }
 
-    private fun InvocationOnMock.indexByNumber(): Int = getArgument<Int>(0) - 1
-
-    private fun InvocationOnMock.indexByName(): Int = columnIndices[getArgument<String>(0).uppercase()] ?: Int.MAX_VALUE
+    private fun index(columnName: String) = columnIndices[columnName.uppercase()] ?: Int.MAX_VALUE
 
     private fun outOfRange(columnIndex: Int) = generated || (rowIndex >= data.size || columnIndex >= data[rowIndex].size)
 
-    private fun answer(columnIndex: Int): Any? = when {
+    private fun answerObject(columnIndex: Int): Any? = when {
         outOfRange(columnIndex) -> THE_ANSWER_TO_THE_ULTIMATE_QUESTION.toString()
         else -> data[rowIndex][columnIndex]
     }.also {
         wasNull = it == null
     }
 
+    private fun answerDouble(columnIndex: Int) = when {
+        outOfRange(columnIndex) -> THE_ANSWER_TO_THE_ULTIMATE_QUESTION.toDouble()
+        else -> when (val value = data[rowIndex][columnIndex]) {
+            is Double? -> value
+            is String -> value.toDouble()
+            else -> throw SQLException()
+        }
+    }.also {
+        wasNull = it == null
+    } ?: 0.0
+
+    private fun answerTimestamp(columnIndex: Int) = when {
+        outOfRange(columnIndex) -> Timestamp(THE_ANSWER_TO_THE_ULTIMATE_QUESTION.toLong())
+        else -> when (val value = data[rowIndex][columnIndex]) {
+            is Timestamp? -> value
+            is String -> Timestamp.valueOf(value)
+            is Long -> Timestamp(value)
+            else -> throw SQLException()
+        }
+    }.also {
+        wasNull = it == null
+    }
+
+    private fun answerDate(columnIndex: Int) = when {
+        outOfRange(columnIndex) -> Date(THE_ANSWER_TO_THE_ULTIMATE_QUESTION.toLong())
+        else -> when (val value = data[rowIndex][columnIndex]) {
+            is Date? -> value
+            is String -> Date.valueOf(value)
+            is Long -> Date(value)
+            else -> throw SQLException()
+        }
+    }.also {
+        wasNull = it == null
+    }
+
+    private fun answerOffsetDateTime(columnIndex: Int) = when {
+        outOfRange(columnIndex) -> OffsetDateTime.of(4242, 4, 2, 4, 2, 4, 2, ZoneOffset.UTC)
+        else -> when (val value = data[rowIndex][columnIndex]) {
+            is OffsetDateTime? -> value
+            is String -> OffsetDateTime.parse(value)
+            else -> throw SQLException()
+        }
+    }.also {
+        wasNull = it == null
+    }
+
+    private fun answerLong(columnIndex: Int) = when {
+        outOfRange(columnIndex) -> THE_ANSWER_TO_THE_ULTIMATE_QUESTION.toLong()
+        else -> when (val value = data[rowIndex][columnIndex]) {
+            is Long? -> value
+            is String -> value.toLong()
+            else -> throw SQLException()
+        }
+    }.also {
+        wasNull = it == null
+    } ?: 0L
+
+    private fun answerInt(columnIndex: Int) = when {
+        outOfRange(columnIndex) -> THE_ANSWER_TO_THE_ULTIMATE_QUESTION
+        else -> when (val value = data[rowIndex][columnIndex]) {
+            is Int? -> value
+            is String -> value.toInt()
+            else -> throw SQLException()
+        }
+    }.also {
+        wasNull = it == null
+    } ?: 0
+
+    private fun answerString(columnIndex: Int) = when {
+        outOfRange(columnIndex) -> THE_ANSWER_TO_THE_ULTIMATE_QUESTION.toString()
+        else -> data[rowIndex][columnIndex] as String?
+    }.also {
+        wasNull = it == null
+    }
+
+    private fun answerBigDecimal(columnIndex: Int) = when {
+        outOfRange(columnIndex) -> THE_ANSWER_TO_THE_ULTIMATE_QUESTION.toBigDecimal()
+        else -> data[rowIndex][columnIndex] as BigDecimal?
+    }.also {
+        wasNull = it == null
+    }
+
     @Throws(SQLException::class)
     private fun buildMock(): ResultSet {
-        val rs: ResultSet = mock()
+        val rs: ResultSet = mockk()
 
-        // mock rs.next()
-        lenient().doAnswer {
+        every { rs.next() } answers {
             if (remaining < -1) {
                 throw SQLException("Forced exception")
             }
@@ -75,183 +145,59 @@ class MockResultSet private constructor(tag: String, names: Array<String>?, priv
                 remaining--
             }
             rowIndex < data.size
-        }.whenever(rs).next()
+        }
 
-        // mock rs.wasNull()
-        lenient().doAnswer { wasNull }.whenever(rs).wasNull()
+        every { rs.wasNull() } answers { wasNull }
 
-        // mock rs.getString(columnName)
-        lenient().doAnswer { invocation ->
-            answer(invocation.indexByName())
-        }.whenever(rs).getString(anyString())
+        every { rs.getString(any<String>()) } answers { answerString(index(firstArg())) }
+        every { rs.getString(any<Int>()) } answers { answerString(firstArg<Int>() - 1) }
 
-        // mock rs.getString(columnIndex)
-        lenient().doAnswer { invocation ->
-            answer(invocation.indexByNumber())
-        }.whenever(rs).getString(anyInt())
+        every { rs.getInt(any<String>()) } answers { answerInt(index(firstArg())) }
+        every { rs.getInt(any<Int>()) } answers { answerInt(firstArg<Int>() - 1) }
 
-        // mock rs.getInt(columnName)
-        lenient().doAnswer { invocation ->
-            when (val value = answer(invocation.indexByName())) {
-                is String -> value.toInt()
-                else -> value
-            }
-        }.whenever(rs).getInt(anyString())
+        every { rs.getLong(any<String>()) } answers { answerLong(index(firstArg())) }
+        every { rs.getLong(any<Int>()) } answers { answerLong(firstArg<Int>() - 1) }
 
-        // mock rs.getInt(columnIndex)
-        lenient().doAnswer { invocation ->
-            when (val value = answer(invocation.indexByNumber())) {
-                is String -> value.toInt()
-                else -> value
-            }
-        }.whenever(rs).getInt(anyInt())
+        every { rs.getDouble(any<String>()) } answers { answerDouble(index(firstArg())) }
+        every { rs.getDouble(any<Int>()) } answers { answerDouble(firstArg<Int>() - 1) }
 
-        // mock rs.getLong(columnName)
-        lenient().doAnswer { invocation ->
-            when (val value = answer(invocation.indexByName())) {
-                is String -> value.toLong()
-                else -> value
-            }
-        }.whenever(rs).getLong(anyString())
+        every { rs.getDate(any<String>()) } answers { answerDate(index(firstArg())) }
+        every { rs.getDate(any<Int>()) } answers { answerDate(firstArg<Int>() - 1) }
 
-        // mock rs.getLong(columnIndex)
-        lenient().doAnswer { invocation ->
-            when (val value = answer(invocation.indexByNumber())) {
-                is String -> value.toLong()
-                else -> value
-            }
-        }.whenever(rs).getLong(anyInt())
+        every { rs.getTimestamp(any<String>()) } answers { answerTimestamp(index(firstArg())) }
+        every { rs.getTimestamp(any<Int>()) } answers { answerTimestamp(firstArg<Int>() - 1) }
 
-        // mock rs.getDouble(columnName)
-        lenient().doAnswer { invocation ->
-            when (val value = answer(invocation.indexByName())) {
-                is String -> value.toDouble()
-                else -> value
-            }
-        }.whenever(rs).getDouble(anyString())
+        every { rs.getBigDecimal(any<String>()) } answers { answerBigDecimal(index(firstArg())) }
+        every { rs.getBigDecimal(any<Int>()) } answers { answerBigDecimal(firstArg<Int>() - 1) }
 
-        // mock rs.getDouble(columnIndex)
-        lenient().doAnswer { invocation ->
-            when (val value = answer(invocation.indexByNumber())) {
-                is String -> value.toDouble()
-                else -> value
-            }
-        }.whenever(rs).getDouble(anyInt())
+        every { rs.getObject(any<String>()) } answers { answerObject(index(firstArg())) }
+        every { rs.getObject(any<Int>()) } answers { answerObject(firstArg<Int>() - 1) }
 
-        // mock rs.getBigDecimal(columnName)
-        lenient().doAnswer { invocation ->
-            when (val value = answer(invocation.indexByName())) {
-                is String -> value.toBigDecimal()
-                else -> value
-            }
-        }.whenever(rs).getBigDecimal(anyString())
+        every { rs.getObject(any<String>(), eq(OffsetDateTime::class.java, false)) } answers { answerOffsetDateTime(index(firstArg())) }
+        every { rs.getObject(any<Int>(), eq(OffsetDateTime::class.java, false)) } answers { answerOffsetDateTime(firstArg<Int>() - 1) }
 
-        // mock rs.getBigDecimal(columnIndex)
-        lenient().doAnswer { invocation ->
-            when (val value = answer(invocation.indexByNumber())) {
-                is String -> value.toBigDecimal()
-                else -> value
-            }
-        }.whenever(rs).getBigDecimal(anyInt())
+        val rsmd: ResultSetMetaData = mockk()
 
-        // mock rs.getTimestamp(columnIndex)
-        lenient().doAnswer { invocation ->
-            when (val value = answer(invocation.indexByNumber())) {
-                is Timestamp -> value
-                is String -> Timestamp.valueOf(value)
-                is Long -> Timestamp(value)
-                else -> value
-            }
-        }.whenever(rs).getTimestamp(anyInt())
+        every { rsmd.columnCount } answers { columnIndices.size }
 
-        // mock rs.getTimestamp(columnName)
-        lenient().doAnswer { invocation ->
-            when (val value = answer(invocation.indexByName())) {
-                is Timestamp -> value
-                is String -> Timestamp.valueOf(value)
-                is Long -> Timestamp(value)
-                else -> value
-            }
-        }.whenever(rs).getTimestamp(anyString())
-
-        // mock rs.getDate(columnIndex)
-        lenient().doAnswer { invocation ->
-            when (val value = answer(invocation.indexByNumber())) {
-                is Date -> value
-                is String -> Date.valueOf(value)
-                is Long -> Date(value)
-                else -> value
-            }
-        }.whenever(rs).getDate(anyInt())
-
-        // mock rs.getDate(columnName)
-        lenient().doAnswer { invocation ->
-            when (val value = answer(invocation.indexByName())) {
-                is Date -> value
-                is String -> Date.valueOf(value)
-                is Long -> Date(value)
-                else -> value
-            }
-        }.whenever(rs).getDate(anyString())
-
-        // mock rs.getObject(columnName)
-        lenient().doAnswer { invocation ->
-            answer(invocation.indexByName())
-        }.whenever(rs).getObject(anyString())
-
-        // mock rs.getObject(columnIndex)
-        lenient().doAnswer { invocation ->
-            answer(invocation.indexByNumber())
-        }.whenever(rs).getObject(anyInt())
-
-        // mock rs.getObject(columnName, OffsetDateTime.class)
-        lenient().doAnswer { invocation ->
-            val columnIndex = invocation.indexByName()
-            when {
-                outOfRange(columnIndex) -> OffsetDateTime.of(4242, 4, 2, 4, 2, 4, 2, ZoneOffset.UTC)
-                else -> data[rowIndex][columnIndex] as OffsetDateTime?
-            }.also {
-                wasNull = it == null
-            }
-        }.whenever(rs).getObject(anyString(), ArgumentMatchers.eq(OffsetDateTime::class.java))
-
-        // mock rs.getObject(columnIndex, OffsetDateTime.class)
-        lenient().doAnswer { invocation ->
-            val columnIndex = invocation.indexByNumber()
-            when {
-                outOfRange(columnIndex) -> OffsetDateTime.of(4242, 4, 2, 4, 2, 4, 2, ZoneOffset.UTC)
-                else -> data[rowIndex][columnIndex] as OffsetDateTime?
-            }.also {
-                wasNull = it == null
-            }
-        }.whenever(rs).getObject(anyInt(), ArgumentMatchers.eq(OffsetDateTime::class.java))
-
-        val rsmd: ResultSetMetaData = mock()
-
-        // mock rsmd.getColumnCount()
-        lenient().doReturn(columnIndices.size).whenever(rsmd).columnCount
-
-        // mock rs.findColumn(String)
-        lenient().doAnswer { invocation ->
-            val columnIndex = invocation.indexByName()
+        every { rs.findColumn(any()) } answers {
+            val columnIndex = index(firstArg())
             if (columnIndex == Int.MAX_VALUE) throw SQLException("Invalid column name")
             columnIndex + 1
-        }.whenever(rs).findColumn(anyString())
+        }
 
-        // mock rsmd.getColumnName(int)
-        lenient().doAnswer { invocation ->
-            val columnIndex = invocation.indexByNumber()
+        every { rsmd.getColumnName(any()) } answers {
+            val columnIndex = firstArg<Int>() - 1
             columnIndices.filter { columnIndex == it.value }.keys.firstOrNull()
-        }.whenever(rsmd).getColumnName(anyInt())
+        }
 
-        // mock rs.toString()
-        lenient().doReturn(tag).whenever(rs).toString()
+        every { rs.toString() } answers { tag }
 
-        // mock rsmd.getMetaData()
-        lenient().doReturn(rsmd).whenever(rs).metaData
+        every { rs.metaData } returns rsmd
 
-        // mock rs.getType()
-        lenient().doReturn(ResultSet.TYPE_FORWARD_ONLY).whenever(rs).type
+        every { rs.type } returns ResultSet.TYPE_FORWARD_ONLY
+
+        every { rs.close() } just runs
 
         return rs
     }

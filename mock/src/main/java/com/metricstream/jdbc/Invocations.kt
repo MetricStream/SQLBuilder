@@ -1,8 +1,11 @@
 package com.metricstream.jdbc
 
-import java.lang.reflect.Method
 import java.sql.ResultSet
-import org.mockito.kotlin.mockingDetails
+import io.mockk.MockKGateway
+import io.mockk.MockKStubScope
+import io.mockk.MockKVerificationScope
+import io.mockk.impl.stub.MockKStub
+import io.mockk.impl.stub.Stub
 
 class Invocations {
     @get:JvmName("getResultSet") var getResultSet: Int = 0
@@ -64,8 +67,9 @@ class Invocations {
     val getRsDate: Int
         @JvmName("getRsDate") get() = invocationCount(rsGetDate)
 
-    private fun invocationCount(methods: Set<Method>): Int {
-        return returnedResultSets.flatMap { mockingDetails(it).invocations }.count { it.method in methods }
+    private fun invocationCount(name: String): Int {
+        val c = MockKGateway.implementation()
+        return MockKGateway.implementation().callRecorder.calls.count { it.matcher.method.name == name }
     }
 
     val returnedResultSets: MutableList<ResultSet> = mutableListOf()
@@ -83,7 +87,7 @@ class Invocations {
                 getDate
 
     companion object {
-        private val rsNext = setOf(ResultSet::class.java.getDeclaredMethod("next"))
+        private val rsNext = "next"
         private val rsGetInt = rsGet("Int")
         private val rsGetLong = rsGet("Long")
         private val rsGetDouble = rsGet("Double")
@@ -93,8 +97,6 @@ class Invocations {
         private val rsGetTimestamp = rsGet("Timestamp")
         private val rsGetDate = rsGet("Date")
 
-        private fun rsGet(name: String) = listOf(Integer.TYPE, String::class.java)
-            .map { ResultSet::class.java.getDeclaredMethod("get$name", it) }
-            .toSet()
+        private fun rsGet(name: String) = "get$name"
     }
 }

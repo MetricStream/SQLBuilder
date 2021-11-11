@@ -1,8 +1,6 @@
 package oracle;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.doAnswer;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -22,7 +20,6 @@ import org.mockito.quality.Strictness;
 
 import com.metricstream.jdbc.MockResultSet;
 import com.metricstream.jdbc.MockSQLBuilderProvider;
-import com.metricstream.jdbc.SQLBuilder;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -54,13 +51,6 @@ class TestTimestampTest {
 
     @Test
     public void testGetTimeStamp() throws SQLException {
-        MockSQLBuilderProvider.addResultSet(rs);
-        assertEquals(time, new TestTimestamp().getTimestamp(connection));
-    }
-
-    @Test
-    public void testGetTimeStamp_working() throws SQLException {
-        doAnswer(invocation -> time).when(rs).getTimestamp(anyInt());
         MockSQLBuilderProvider.addResultSet(rs);
         assertEquals(time, new TestTimestamp().getTimestamp(connection));
     }

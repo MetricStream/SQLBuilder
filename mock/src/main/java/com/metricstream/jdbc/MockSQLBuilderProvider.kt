@@ -18,8 +18,6 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.BiFunction
 import java.util.function.Supplier
-import org.mockito.MockingDetails
-import org.mockito.kotlin.mockingDetails
 import org.slf4j.LoggerFactory
 import com.metricstream.jdbc.MockResultSet.Companion.THE_ANSWER_TO_THE_ULTIMATE_QUESTION
 import com.metricstream.jdbc.SQLBuilder.Companion.resetDelegate

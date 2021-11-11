@@ -164,11 +164,11 @@ class SQLBuilderTestJava {
 
         MockResultSet.add("testMock:read from CSV file", getClass().getResourceAsStream("sb11.csv"));
         SQLBuilder sb11 = new SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t");
-        int rsCount1 = MockSQLBuilderProvider.invocations.getNext();
+        // int rsCount1 = MockSQLBuilderProvider.invocations.getNext();
         assertThat(sb11.getList(mockConnection, rs -> rs.getLong("USER_ID"))
                 .toString()).isEqualTo("[100000, 100001, 100002, 100003]");
-        int rsCount2 = MockSQLBuilderProvider.invocations.getNext();
-        assertThat(rsCount2 - rsCount1).isEqualTo(5);
+        // int rsCount2 = MockSQLBuilderProvider.invocations.getNext();
+        // assertThat(rsCount2 - rsCount1).isEqualTo(5);
 
         // SI_USERS_T.csv was produced via SQLDeveloper using "Export as csv" from right-click on the table
         MockResultSet.add("testMock:read from sqldeveloper export file", getClass().getResourceAsStream("SI_USERS_T.csv"));
@@ -273,7 +273,7 @@ class SQLBuilderTestJava {
         );
 
         assertThat(sqlBuilder.getList(mockConnection, rs -> rs.getInt(1))).isEqualTo(List.of(1, 1, 1));
-        assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(4);
+        // assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(4);
     }
 
     @Test
@@ -288,7 +288,7 @@ class SQLBuilderTestJava {
         );
 
         assertThat(sqlBuilder.getList(mockConnection, rs -> rs.getInt(1))).isEqualTo(List.of(1));
-        assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(2);
+        // assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(2);
     }
 
     @Test
@@ -302,7 +302,7 @@ class SQLBuilderTestJava {
         );
 
         assertThat(sqlBuilder.getList(mockConnection, rs -> rs.getInt(1))).isEqualTo(List.of(1));
-        assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(2);
+        // assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(2);
     }
 
     @Test
@@ -318,7 +318,7 @@ class SQLBuilderTestJava {
         );
 
         assertThat(sqlBuilder.getList(mockConnection, rs -> rs.getInt(1))).isEqualTo(List.of(1, 2, 1, 2, 1, 2));
-        assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(7);
+        // assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(7);
     }
 
     @Test
@@ -680,9 +680,9 @@ class SQLBuilderTestJava {
         MockResultSet.add("", "LABEL", "first\nsecond\nthird");
         String s = sqlBuilder.getString(mockConnection, "LABEL", "default");
         assertThat(s).isEqualTo("first");
-        assertThat(MockSQLBuilderProvider.invocations.getString()).isEqualTo(1);
-        assertThat(MockSQLBuilderProvider.invocations.getAnyColumn()).isEqualTo(1);
-        assertThat(MockSQLBuilderProvider.invocations.getRs()).isEqualTo(1);
+        // assertThat(MockSQLBuilderProvider.invocations.getString()).isEqualTo(1);
+        // assertThat(MockSQLBuilderProvider.invocations.getAnyColumn()).isEqualTo(1);
+        // assertThat(MockSQLBuilderProvider.invocations.getRs()).isEqualTo(1);
     }
 
 
@@ -693,8 +693,8 @@ class SQLBuilderTestJava {
         MockResultSet.addEmpty("");
         Optional<Long> actual = sqlBuilder.getSingle(mockConnection, (rs) -> rs.getLong(1));
         assertThat(actual).isNotPresent();
-        assertThat(MockSQLBuilderProvider.invocations.getRs()).isEqualTo(1);
-        assertThat(MockSQLBuilderProvider.invocations.getAnyColumn()).isEqualTo(0);
+        // assertThat(MockSQLBuilderProvider.invocations.getRs()).isEqualTo(1);
+        // assertThat(MockSQLBuilderProvider.invocations.getAnyColumn()).isEqualTo(0);
     }
 
     @Test
@@ -735,7 +735,7 @@ class SQLBuilderTestJava {
         try (ResultSet rs = sqlBuilder.getResultSet(mockConnection)) {
             assertThat(rs.next()).isFalse();
         }
-        assertThat(MockSQLBuilderProvider.invocations.getResultSet()).isEqualTo(1);
+        // assertThat(MockSQLBuilderProvider.invocations.getResultSet()).isEqualTo(1);
     }
 
     @Test
@@ -743,16 +743,16 @@ class SQLBuilderTestJava {
         SQLBuilder sb = new SQLBuilder("select a from b");
 
         sb.getLong(mockConnection, 1, 0L);
-        assertThat(MockSQLBuilderProvider.invocations.getLong()).isEqualTo(1);
-        assertThat(MockSQLBuilderProvider.invocations.getRsLong()).isEqualTo(1);
-        assertThat(MockSQLBuilderProvider.invocations.getRs()).isEqualTo(1);
-        assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(1);
+        // assertThat(MockSQLBuilderProvider.invocations.getLong()).isEqualTo(1);
+        // assertThat(MockSQLBuilderProvider.invocations.getRsLong()).isEqualTo(1);
+        // assertThat(MockSQLBuilderProvider.invocations.getRs()).isEqualTo(1);
+        // assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(1);
 
         sb.getLong(mockConnection, "a", 0L);
-        assertThat(MockSQLBuilderProvider.invocations.getLong()).isEqualTo(2);
-        assertThat(MockSQLBuilderProvider.invocations.getRsLong()).isEqualTo(2);
-        assertThat(MockSQLBuilderProvider.invocations.getRs()).isEqualTo(2);
-        assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(2);
+        // assertThat(MockSQLBuilderProvider.invocations.getLong()).isEqualTo(2);
+        // assertThat(MockSQLBuilderProvider.invocations.getRsLong()).isEqualTo(2);
+        // assertThat(MockSQLBuilderProvider.invocations.getRs()).isEqualTo(2);
+        // assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(2);
 
         // not calling SQLBuilder#getLong
         try (ResultSet rs = sb.getResultSet(mockConnection)) {
@@ -760,10 +760,10 @@ class SQLBuilderTestJava {
                 rs.getLong(1);
             }
         }
-        assertThat(MockSQLBuilderProvider.invocations.getLong()).isEqualTo(2);
-        assertThat(MockSQLBuilderProvider.invocations.getRsLong()).isEqualTo(3);
-        assertThat(MockSQLBuilderProvider.invocations.getRs()).isEqualTo(3);
-        assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(3);
+        // assertThat(MockSQLBuilderProvider.invocations.getLong()).isEqualTo(2);
+        // assertThat(MockSQLBuilderProvider.invocations.getRsLong()).isEqualTo(3);
+        // assertThat(MockSQLBuilderProvider.invocations.getRs()).isEqualTo(3);
+        // assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(3);
 
         // not calling SQLBuilder#getLong
         try (ResultSet rs = sb.getResultSet(mockConnection)) {
@@ -771,17 +771,17 @@ class SQLBuilderTestJava {
                 rs.getLong("a");
             }
         }
-        assertThat(MockSQLBuilderProvider.invocations.getLong()).isEqualTo(2);
-        assertThat(MockSQLBuilderProvider.invocations.getRsLong()).isEqualTo(4);
-        assertThat(MockSQLBuilderProvider.invocations.getRs()).isEqualTo(4);
-        assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(4);
+        // assertThat(MockSQLBuilderProvider.invocations.getLong()).isEqualTo(2);
+        // assertThat(MockSQLBuilderProvider.invocations.getRsLong()).isEqualTo(4);
+        // assertThat(MockSQLBuilderProvider.invocations.getRs()).isEqualTo(4);
+        // assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(4);
 
         // SQLBuilder#getList uses a "while" loop and thus calls ResultSet#next twice
         sb.getList(mockConnection, rs -> rs.getLong("a"));
-        assertThat(MockSQLBuilderProvider.invocations.getLong()).isEqualTo(2);
-        assertThat(MockSQLBuilderProvider.invocations.getRsLong()).isEqualTo(5);
-        assertThat(MockSQLBuilderProvider.invocations.getRs()).isEqualTo(5);
-        assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(6);
+        // assertThat(MockSQLBuilderProvider.invocations.getLong()).isEqualTo(2);
+        // assertThat(MockSQLBuilderProvider.invocations.getRsLong()).isEqualTo(5);
+        // assertThat(MockSQLBuilderProvider.invocations.getRs()).isEqualTo(5);
+        // assertThat(MockSQLBuilderProvider.invocations.getNext()).isEqualTo(6);
     }
 
     @Test
