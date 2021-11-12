@@ -2,10 +2,6 @@ package com.metricstream.jdbc
 
 import java.sql.ResultSet
 import io.mockk.MockKGateway
-import io.mockk.MockKStubScope
-import io.mockk.MockKVerificationScope
-import io.mockk.impl.stub.MockKStub
-import io.mockk.impl.stub.Stub
 
 class Invocations {
     @get:JvmName("getResultSet") var getResultSet: Int = 0
@@ -67,9 +63,9 @@ class Invocations {
     val getRsDate: Int
         @JvmName("getRsDate") get() = invocationCount(rsGetDate)
 
-    private fun invocationCount(name: String): Int {
-        val c = MockKGateway.implementation()
-        return MockKGateway.implementation().callRecorder.calls.count { it.matcher.method.name == name }
+    private fun invocationCount(unused: String): Int {
+//        return MockKGateway.implementation().callRecorder.calls.count { it.matcher.method.name == name }
+        return 0
     }
 
     val returnedResultSets: MutableList<ResultSet> = mutableListOf()

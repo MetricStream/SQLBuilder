@@ -26,15 +26,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldEndWith
 import io.kotest.matchers.throwable.shouldHaveMessage
-import io.mockk.MockK
-import io.mockk.MockKDsl
-import io.mockk.MockKGateway
-import io.mockk.MockKSettings
-import io.mockk.MockKVerificationScope
-import io.mockk.impl.stub.MockKStub
-import io.mockk.proxy.MockKInvocationHandler
 import io.mockk.spyk
-import io.mockk.verify
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
@@ -156,10 +148,10 @@ internal class SQLBuilderTest {
         }
         add("testMock:read from CSV file", javaClass.getResourceAsStream("sb11.csv")!!)
         val sb11 = SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t")
-//        val rsCount1 = MockSQLBuilderProvider.invocations.getNext
-//        val rsCount2 = MockSQLBuilderProvider.invocations.getNext
-//        rsCount2 - rsCount1 shouldBe 5
+        //        val rsCount1 = MockSQLBuilderProvider.invocations.getNext
         sb11.getList(mockConnection) { rs -> rs.getLong("USER_ID") }.toString() shouldBe "[100000, 100001, 100002, 100003]"
+        //        val rsCount2 = MockSQLBuilderProvider.invocations.getNext
+        //        rsCount2 - rsCount1 shouldBe 5
 
         // SI_USERS_T.csv was produced via SQLDeveloper using "Export as csv" from right-click on the table
         add(
@@ -260,8 +252,8 @@ internal class SQLBuilderTest {
             3
         )
 
-//        MockSQLBuilderProvider.invocations.getNext shouldBe 4
         sqlBuilder.getList(mockConnection) { rs -> rs.getInt(1) } shouldBe listOf(1, 1, 1)
+        //        MockSQLBuilderProvider.invocations.getNext shouldBe 4
     }
 
     @Test
@@ -273,8 +265,8 @@ internal class SQLBuilderTest {
             1
         )
 
-//        MockSQLBuilderProvider.invocations.getNext shouldBe 2
         sqlBuilder.getList(mockConnection) { rs -> rs.getInt(1) } shouldBe listOf(1)
+        //        MockSQLBuilderProvider.invocations.getNext shouldBe 2
     }
 
     @Test
@@ -285,8 +277,8 @@ internal class SQLBuilderTest {
             arrayOf(arrayOf(1, "hello"))
         )
 
-//        MockSQLBuilderProvider.invocations.getNext shouldBe 2
         sqlBuilder.getList(mockConnection) { rs -> rs.getInt(1) } shouldBe listOf(1)
+        //        MockSQLBuilderProvider.invocations.getNext shouldBe 2
     }
 
     @Test
@@ -301,8 +293,8 @@ internal class SQLBuilderTest {
             3
         )
 
-//        MockSQLBuilderProvider.invocations.getNext shouldBe 7
         sqlBuilder.getList(mockConnection) { rs -> rs.getInt(1) } shouldBe listOf(1, 2, 1, 2, 1, 2)
+        //        MockSQLBuilderProvider.invocations.getNext shouldBe 7
     }
 
     @Test
@@ -315,8 +307,6 @@ internal class SQLBuilderTest {
         addResultSet(rs)
         sqlBuilder.getInt(mockConnection, 1, -1) shouldBe 3
         sqlBuilder.getInt(mockConnection, 1, -1) shouldBe 42
-        val n2 = MockK
-        verify { rs.getInt(4) }
     }
 
     @Test
@@ -712,9 +702,9 @@ internal class SQLBuilderTest {
         add("", "LABEL", "first\nsecond\nthird")
         val s = sqlBuilder.getString(mockConnection, "LABEL", "default")
         s shouldBe "first"
-//        MockSQLBuilderProvider.invocations.getString shouldBe 1
-//        MockSQLBuilderProvider.invocations.getAnyColumn shouldBe 1
-//        MockSQLBuilderProvider.invocations.getRs shouldBe 1
+        //        MockSQLBuilderProvider.invocations.getString shouldBe 1
+        //        MockSQLBuilderProvider.invocations.getAnyColumn shouldBe 1
+        //        MockSQLBuilderProvider.invocations.getRs shouldBe 1
     }
 
     @Test
@@ -724,8 +714,8 @@ internal class SQLBuilderTest {
         addEmpty("")
         val actual = sqlBuilder.getSingle(mockConnection) { rs: ResultSet -> rs.getLong(1) }
         actual.shouldNotBePresent()
-//        MockSQLBuilderProvider.invocations.getRs shouldBe 1
-//        MockSQLBuilderProvider.invocations.getAnyColumn shouldBe 0
+        //        MockSQLBuilderProvider.invocations.getRs shouldBe 1
+        //        MockSQLBuilderProvider.invocations.getAnyColumn shouldBe 0
     }
 
     @Test
@@ -766,7 +756,7 @@ internal class SQLBuilderTest {
         sqlBuilder.getResultSet(mockConnection).use { rs ->
             rs.next() shouldBe false
         }
-//        MockSQLBuilderProvider.invocations.getResultSet shouldBe 1
+        //        MockSQLBuilderProvider.invocations.getResultSet shouldBe 1
     }
 
     @Test
@@ -774,37 +764,37 @@ internal class SQLBuilderTest {
         val sb = SQLBuilder("select a from b")
 
         sb.getLong(mockConnection, 1, 0L)
-//        MockSQLBuilderProvider.invocations.getLong shouldBe 1
-//        MockSQLBuilderProvider.invocations.getRsLong shouldBe 1
-//        MockSQLBuilderProvider.invocations.getRs shouldBe 1
-//        MockSQLBuilderProvider.invocations.getNext shouldBe 1
+        //        MockSQLBuilderProvider.invocations.getLong shouldBe 1
+        //        MockSQLBuilderProvider.invocations.getRsLong shouldBe 1
+        //        MockSQLBuilderProvider.invocations.getRs shouldBe 1
+        //        MockSQLBuilderProvider.invocations.getNext shouldBe 1
 
         sb.getLong(mockConnection, "a", 0L)
-//        MockSQLBuilderProvider.invocations.getLong shouldBe 2
-//        MockSQLBuilderProvider.invocations.getRsLong shouldBe 2
-//        MockSQLBuilderProvider.invocations.getRs shouldBe 2
-//        MockSQLBuilderProvider.invocations.getNext shouldBe 2
+        //        MockSQLBuilderProvider.invocations.getLong shouldBe 2
+        //        MockSQLBuilderProvider.invocations.getRsLong shouldBe 2
+        //        MockSQLBuilderProvider.invocations.getRs shouldBe 2
+        //        MockSQLBuilderProvider.invocations.getNext shouldBe 2
 
         // not calling SQLBuilder#getLong
         sb.getResultSet(mockConnection).use { rs -> if (rs.next()) rs.getLong(1) }
-//        MockSQLBuilderProvider.invocations.getLong shouldBe 2
-//        MockSQLBuilderProvider.invocations.getRsLong shouldBe 3
-//        MockSQLBuilderProvider.invocations.getRs shouldBe 3
-//        MockSQLBuilderProvider.invocations.getNext shouldBe 3
+        //        MockSQLBuilderProvider.invocations.getLong shouldBe 2
+        //        MockSQLBuilderProvider.invocations.getRsLong shouldBe 3
+        //        MockSQLBuilderProvider.invocations.getRs shouldBe 3
+        //        MockSQLBuilderProvider.invocations.getNext shouldBe 3
 
         // not calling SQLBuilder#getLong
         sb.getResultSet(mockConnection).use { rs -> if (rs.next()) rs.getLong("a") }
-//        MockSQLBuilderProvider.invocations.getLong shouldBe 2
-//        MockSQLBuilderProvider.invocations.getRsLong shouldBe 4
-//        MockSQLBuilderProvider.invocations.getRs shouldBe 4
-//        MockSQLBuilderProvider.invocations.getNext shouldBe 4
+        //        MockSQLBuilderProvider.invocations.getLong shouldBe 2
+        //        MockSQLBuilderProvider.invocations.getRsLong shouldBe 4
+        //        MockSQLBuilderProvider.invocations.getRs shouldBe 4
+        //        MockSQLBuilderProvider.invocations.getNext shouldBe 4
 
         // SQLBuilder#getList uses a "while" loop and thus calls ResultSet#next twice
-        sb.getList(mockConnection, { rs -> rs.getLong("a") })
-//        MockSQLBuilderProvider.invocations.getLong shouldBe 2
-//        MockSQLBuilderProvider.invocations.getRsLong shouldBe 5
-//        MockSQLBuilderProvider.invocations.getRs shouldBe 5
-//        MockSQLBuilderProvider.invocations.getNext shouldBe 6
+        sb.getList(mockConnection) { rs -> rs.getLong("a") }
+        //        MockSQLBuilderProvider.invocations.getLong shouldBe 2
+        //        MockSQLBuilderProvider.invocations.getRsLong shouldBe 5
+        //        MockSQLBuilderProvider.invocations.getRs shouldBe 5
+        //        MockSQLBuilderProvider.invocations.getNext shouldBe 6
     }
 
     @Test
@@ -969,7 +959,7 @@ internal class SQLBuilderTest {
 
     @Test
     fun testFromNumberedParams() {
-        val params: QueryParams = SQLBuilderTestJava.QueryParamsImpl()
+        val params: QueryParams = QueryParamsImpl()
         SQLBuilder.fromNumberedParameters("select n from t where i=:1)", params).toString() shouldBe
                 "select n from t where i=?); args=[a]"
         SQLBuilder.fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString() shouldBe
