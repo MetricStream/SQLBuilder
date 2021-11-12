@@ -816,6 +816,7 @@ class SQLBuilder {
          * @param params the values for the query template
          * @return the SQLBuilder generated from evaluating the template
          */
+        @JvmStatic
         @Deprecated("use fromNumberedParameters", ReplaceWith("fromNumberedParameters(sql, params)"))
         fun fromNamedParams(sql: String, params: QueryParams): SQLBuilder {
             return fromNumberedParameters(sql, params)
