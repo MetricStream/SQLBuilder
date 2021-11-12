@@ -39,6 +39,8 @@ class Invocations {
 
     @get:JvmName("getRsLong") var getRsLong: Int = 0
 
+    @get:JvmName("getRsBoolean") var getRsBoolean: Int = 0
+
     @get:JvmName("getRsDouble") var getRsDouble: Int = 0
 
     @get:JvmName("getRsString") var getRsString: Int = 0

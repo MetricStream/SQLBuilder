@@ -7,7 +7,6 @@ import java.io.Reader
 import java.io.StringReader
 import java.math.BigDecimal
 import java.net.URL
-import java.sql.Array as SQLArray
 import java.sql.Blob
 import java.sql.Clob
 import java.sql.Date
@@ -17,6 +16,7 @@ import java.sql.ResultSet
 import java.sql.ResultSetMetaData
 import java.sql.RowId
 import java.sql.SQLException
+import java.sql.SQLFeatureNotSupportedException
 import java.sql.SQLWarning
 import java.sql.SQLXML
 import java.sql.Statement
@@ -26,6 +26,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.Calendar
 import java.util.concurrent.atomic.AtomicLong
+import java.sql.Array as SQLArray
 import com.opencsv.CSVReader
 import com.opencsv.exceptions.CsvException
 import org.slf4j.LoggerFactory
@@ -42,6 +43,8 @@ class MockResultSet private constructor(
     private var wasNull = false
     private var generated = false
     private var remaining = usages - 1
+    private var rowId = 0
+    private var closed: Boolean = false
 
     private fun index(columnName: String) = columnIndices[columnName.uppercase()] ?: Int.MAX_VALUE
 
@@ -129,6 +132,19 @@ class MockResultSet private constructor(
         wasNull = it == null
     } ?: 0
 
+    private fun answerBoolean(columnIndex: Int) = when {
+        outOfRange(columnIndex) -> true
+        else -> when (val value = data[rowIndex][columnIndex]) {
+            null -> null
+            is Int -> value != 0
+            is String -> value != "0"
+            else -> throw SQLException()
+        }
+    }.also {
+        MockSQLBuilderProvider.invocations.getRsBoolean++
+        wasNull = it == null
+    } ?: false
+
     private fun answerString(columnIndex: Int) = when {
         outOfRange(columnIndex) -> THE_ANSWER_TO_THE_ULTIMATE_QUESTION.toString()
         else -> data[rowIndex][columnIndex] as String?
@@ -145,22 +161,20 @@ class MockResultSet private constructor(
         wasNull = it == null
     }
 
-    override fun <T : Any?> unwrap(p0: Class<T>?): T {
-        TODO("Not yet implemented")
-    }
+    override fun <T : Any?> unwrap(iface: Class<T>): T = throw SQLException("Not a wrapper")
 
-    override fun isWrapperFor(p0: Class<*>?): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun isWrapperFor(iface: Class<*>): Boolean = false
 
     override fun close() {
+        closed = true
     }
 
     override fun next(): Boolean {
-        MockSQLBuilderProvider.invocations.next++
         if (remaining < -1) {
             throw SQLException("Forced exception")
         }
+        MockSQLBuilderProvider.invocations.next++
+        rowId++
         rowIndex++
         if (rowIndex == data.size && remaining > 0) {
             rowIndex = 0
@@ -169,39 +183,25 @@ class MockResultSet private constructor(
         return rowIndex < data.size
     }
 
-    override fun wasNull(): Boolean {
-        return wasNull
-    }
+    override fun wasNull(): Boolean = wasNull
 
     override fun getString(columnIndex: Int): String? = answerString(columnIndex - 1)
 
     override fun getString(columnLabel: String): String? = answerString(index(columnLabel))
 
-    override fun getBoolean(columnIndex: Int): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun getBoolean(columnIndex: Int): Boolean = answerBoolean(columnIndex - 1)
 
-    override fun getBoolean(columnLabel: String): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun getBoolean(columnLabel: String): Boolean = answerBoolean(index(columnLabel))
 
-    override fun getByte(columnIndex: Int): Byte {
-        TODO("Not yet implemented")
-    }
+    override fun getByte(columnIndex: Int): Byte = answerInt(columnIndex - 1).toByte()
 
-    override fun getByte(columnLabel: String): Byte {
-        TODO("Not yet implemented")
-    }
+    override fun getByte(columnLabel: String): Byte = answerInt(index(columnLabel)).toByte()
 
-    override fun getShort(columnIndex: Int): Short {
-        TODO("Not yet implemented")
-    }
+    override fun getShort(columnIndex: Int): Short = answerInt(columnIndex - 1).toShort()
 
-    override fun getShort(columnLabel: String): Short {
-        TODO("Not yet implemented")
-    }
+    override fun getShort(columnLabel: String): Short = answerInt(index(columnLabel)).toShort()
 
-    override fun getInt(columnIndex: Int): Int = answerInt(columnIndex -1)
+    override fun getInt(columnIndex: Int): Int = answerInt(columnIndex - 1)
 
     override fun getInt(columnLabel: String): Int = answerInt(index(columnLabel))
 
@@ -209,13 +209,9 @@ class MockResultSet private constructor(
 
     override fun getLong(columnLabel: String): Long = answerLong(index(columnLabel))
 
-    override fun getFloat(columnIndex: Int): Float {
-        TODO("Not yet implemented")
-    }
+    override fun getFloat(columnIndex: Int): Float = answerDouble(columnIndex - 1).toFloat()
 
-    override fun getFloat(columnLabel: String): Float {
-        TODO("Not yet implemented")
-    }
+    override fun getFloat(columnLabel: String): Float = answerDouble(index(columnLabel)).toFloat()
 
     override fun getDouble(columnIndex: Int): Double = answerDouble(columnIndex - 1)
 
@@ -241,91 +237,56 @@ class MockResultSet private constructor(
 
     override fun getDate(columnLabel: String): Date? = answerDate(index(columnLabel))
 
-    override fun getDate(columnIndex: Int, p1: Calendar?): Date {
-        TODO("Not yet implemented")
-    }
+    override fun getDate(columnIndex: Int, p1: Calendar?): Date? = answerDate(columnIndex - 1)
 
-    override fun getDate(columnLabel: String, p1: Calendar?): Date {
-        TODO("Not yet implemented")
-    }
+    override fun getDate(columnLabel: String, p1: Calendar?): Date? = answerDate(index(columnLabel))
 
-    override fun getTime(columnIndex: Int): Time {
-        TODO("Not yet implemented")
-    }
+    override fun getTime(columnIndex: Int): Time = TODO("Not yet implemented")
 
-    override fun getTime(columnLabel: String): Time {
-        TODO("Not yet implemented")
-    }
+    override fun getTime(columnLabel: String): Time = TODO("Not yet implemented")
 
-    override fun getTime(columnIndex: Int, p1: Calendar?): Time {
-        TODO("Not yet implemented")
-    }
+    override fun getTime(columnIndex: Int, p1: Calendar?): Time = TODO("Not yet implemented")
 
-    override fun getTime(columnLabel: String, p1: Calendar?): Time {
-        TODO("Not yet implemented")
-    }
+    override fun getTime(columnLabel: String, p1: Calendar?): Time = TODO("Not yet implemented")
 
     override fun getTimestamp(columnIndex: Int): Timestamp? = answerTimestamp(columnIndex - 1)
 
     override fun getTimestamp(columnLabel: String): Timestamp? = answerTimestamp(index(columnLabel))
 
-    override fun getTimestamp(columnIndex: Int, p1: Calendar?): Timestamp {
-        TODO("Not yet implemented")
-    }
+    override fun getTimestamp(columnIndex: Int, p1: Calendar?): Timestamp? = answerTimestamp(columnIndex - 1)
 
-    override fun getTimestamp(columnLabel: String, p1: Calendar?): Timestamp {
-        TODO("Not yet implemented")
-    }
+    override fun getTimestamp(columnLabel: String, p1: Calendar?): Timestamp? = answerTimestamp(index(columnLabel))
 
-    override fun getAsciiStream(columnIndex: Int): InputStream {
-        TODO("Not yet implemented")
-    }
+    override fun getAsciiStream(columnIndex: Int): InputStream = TODO("Not yet implemented")
 
-    override fun getAsciiStream(columnLabel: String): InputStream {
-        TODO("Not yet implemented")
-    }
+    override fun getAsciiStream(columnLabel: String): InputStream = TODO("Not yet implemented")
 
-    override fun getUnicodeStream(columnIndex: Int): InputStream {
-        TODO("Not yet implemented")
-    }
+    override fun getUnicodeStream(columnIndex: Int): InputStream = TODO("Not yet implemented")
 
-    override fun getUnicodeStream(columnLabel: String): InputStream {
-        TODO("Not yet implemented")
-    }
+    override fun getUnicodeStream(columnLabel: String): InputStream = TODO("Not yet implemented")
 
-    override fun getBinaryStream(columnIndex: Int): InputStream {
-        TODO("Not yet implemented")
-    }
+    override fun getBinaryStream(columnIndex: Int): InputStream = TODO("Not yet implemented")
 
-    override fun getBinaryStream(columnLabel: String): InputStream {
-        TODO("Not yet implemented")
-    }
+    override fun getBinaryStream(columnLabel: String): InputStream = TODO("Not yet implemented")
 
-    override fun getWarnings(): SQLWarning {
-        TODO("Not yet implemented")
-    }
+    override fun getWarnings(): SQLWarning? = null
 
     override fun clearWarnings() {
-        TODO("Not yet implemented")
     }
 
-    override fun getCursorName(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getCursorName(): String = TODO("Not yet implemented")
 
-    override fun getMetaData(): ResultSetMetaData {
-        return MockResultSetMetaData(this.columnIndices)
-    }
+    override fun getMetaData(): ResultSetMetaData = MockResultSetMetaData(this.columnIndices)
 
     override fun getObject(columnIndex: Int): Any? = answerObject(columnIndex - 1)
 
     override fun getObject(columnLabel: String): Any? = answerObject(index(columnLabel))
 
-    override fun getObject(columnIndex: Int, p1: MutableMap<String, Class<*>>?): Any {
+    override fun getObject(columnIndex: Int, p1: MutableMap<String, Class<*>>?): Any? {
         TODO("Not yet implemented")
     }
 
-    override fun getObject(columnLabel: String, p1: MutableMap<String, Class<*>>?): Any {
+    override fun getObject(columnLabel: String, p1: MutableMap<String, Class<*>>?): Any? {
         TODO("Not yet implemented")
     }
 
@@ -351,430 +312,412 @@ class MockResultSet private constructor(
         return columnIndex + 1
     }
 
-    override fun getCharacterStream(columnIndex: Int): Reader {
+    override fun getCharacterStream(columnIndex: Int): Reader? {
         TODO("Not yet implemented")
     }
 
-    override fun getCharacterStream(columnLabel: String): Reader {
+    override fun getCharacterStream(columnLabel: String): Reader? {
         TODO("Not yet implemented")
     }
 
-    override fun isBeforeFirst(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun isBeforeFirst(): Boolean = rowId == 0
 
-    override fun isAfterLast(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun isAfterLast(): Boolean = rowIndex >= data.size - 1 && remaining <= 0
 
-    override fun isFirst(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun isFirst(): Boolean = rowId == 1
 
-    override fun isLast(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun isLast(): Boolean = rowIndex == data.size - 1 && remaining <= 0
 
     override fun beforeFirst() {
-        TODO("Not yet implemented")
+        throw SQLException("The result set type is TYPE_FORWARD_ONLY")
     }
 
     override fun afterLast() {
-        TODO("Not yet implemented")
+        throw SQLException("The result set type is TYPE_FORWARD_ONLY")
     }
 
     override fun first(): Boolean {
-        TODO("Not yet implemented")
+        throw SQLException("The result set type is TYPE_FORWARD_ONLY")
     }
 
     override fun last(): Boolean {
-        TODO("Not yet implemented")
+        throw SQLException("The result set type is TYPE_FORWARD_ONLY")
     }
 
     override fun getRow(): Int {
-        TODO("Not yet implemented")
+        return rowId
     }
 
     override fun absolute(columnIndex: Int): Boolean {
-        TODO("Not yet implemented")
+        throw SQLException("The result set type is TYPE_FORWARD_ONLY")
     }
 
     override fun relative(columnIndex: Int): Boolean {
-        TODO("Not yet implemented")
+        throw SQLException("The result set type is TYPE_FORWARD_ONLY")
     }
 
     override fun previous(): Boolean {
-        TODO("Not yet implemented")
+        throw SQLException("The result set type is TYPE_FORWARD_ONLY")
     }
 
-    override fun setFetchDirection(columnIndex: Int) {
-        TODO("Not yet implemented")
+    override fun setFetchDirection(direction: Int) {
+        if (direction != ResultSet.FETCH_FORWARD) {
+            throw SQLException("The result set type is TYPE_FORWARD_ONLY")
+        }
     }
 
-    override fun getFetchDirection(): Int {
-        TODO("Not yet implemented")
+    override fun getFetchDirection(): Int = ResultSet.FETCH_FORWARD
+
+    override fun setFetchSize(rows: Int) {
+        if (rows < 0) {
+            throw SQLException("Invalid fetch size")
+        }
     }
 
-    override fun setFetchSize(columnIndex: Int) {
-        TODO("Not yet implemented")
-    }
-
-    override fun getFetchSize(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getFetchSize(): Int = 100
 
     override fun getType(): Int = ResultSet.TYPE_FORWARD_ONLY
 
-    override fun getConcurrency(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getConcurrency(): Int = ResultSet.CONCUR_READ_ONLY
 
-    override fun rowUpdated(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun rowUpdated(): Boolean = false
 
-    override fun rowInserted(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun rowInserted(): Boolean = false
 
-    override fun rowDeleted(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun rowDeleted(): Boolean = false
 
     override fun updateNull(columnIndex: Int) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateNull(columnLabel: String) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBoolean(columnIndex: Int, p1: Boolean) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBoolean(columnLabel: String, p1: Boolean) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateByte(columnIndex: Int, p1: Byte) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateByte(columnLabel: String, p1: Byte) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateShort(columnIndex: Int, p1: Short) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateShort(columnLabel: String, p1: Short) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateInt(columnIndex: Int, p1: Int) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateInt(columnLabel: String, p1: Int) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateLong(columnIndex: Int, p1: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateLong(columnLabel: String, p1: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateFloat(columnIndex: Int, p1: Float) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateFloat(columnLabel: String, p1: Float) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateDouble(columnIndex: Int, p1: Double) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateDouble(columnLabel: String, p1: Double) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBigDecimal(columnIndex: Int, p1: BigDecimal?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBigDecimal(columnLabel: String, p1: BigDecimal?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateString(columnIndex: Int, p1: String?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateString(columnLabel: String, p1: String?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBytes(columnIndex: Int, p1: ByteArray?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBytes(columnLabel: String, p1: ByteArray?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateDate(columnIndex: Int, p1: Date?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateDate(columnLabel: String, p1: Date?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateTime(columnIndex: Int, p1: Time?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateTime(columnLabel: String, p1: Time?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateTimestamp(columnIndex: Int, p1: Timestamp?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateTimestamp(columnLabel: String, p1: Timestamp?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateAsciiStream(columnIndex: Int, p1: InputStream?, p2: Int) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateAsciiStream(columnLabel: String, p1: InputStream?, p2: Int) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateAsciiStream(columnIndex: Int, p1: InputStream?, p2: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateAsciiStream(columnLabel: String, p1: InputStream?, p2: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateAsciiStream(columnIndex: Int, p1: InputStream?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateAsciiStream(columnLabel: String, p1: InputStream?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBinaryStream(columnIndex: Int, p1: InputStream?, p2: Int) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBinaryStream(columnLabel: String, p1: InputStream?, p2: Int) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBinaryStream(columnIndex: Int, p1: InputStream?, p2: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBinaryStream(columnLabel: String, p1: InputStream?, p2: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBinaryStream(columnIndex: Int, p1: InputStream?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBinaryStream(columnLabel: String, p1: InputStream?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateCharacterStream(columnIndex: Int, p1: Reader?, p2: Int) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateCharacterStream(columnLabel: String, p1: Reader?, p2: Int) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateCharacterStream(columnIndex: Int, p1: Reader?, p2: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateCharacterStream(columnLabel: String, p1: Reader?, p2: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateCharacterStream(columnIndex: Int, p1: Reader?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateCharacterStream(columnLabel: String, p1: Reader?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateObject(columnIndex: Int, p1: Any?, p2: Int) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateObject(columnIndex: Int, p1: Any?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateObject(columnLabel: String, p1: Any?, p2: Int) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateObject(columnLabel: String, p1: Any?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun insertRow() {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateRow() {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun deleteRow() {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun refreshRow() {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is TYPE_FORWARD_ONLY")
     }
 
     override fun cancelRowUpdates() {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun moveToInsertRow() {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun moveToCurrentRow() {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
-    override fun getStatement(): Statement {
-        TODO("Not yet implemented")
-    }
+    override fun getStatement(): Statement? = null
 
     override fun getRef(columnIndex: Int): Ref {
         TODO("Not yet implemented")
     }
 
     override fun getRef(columnLabel: String): Ref {
-        TODO("Not yet implemented")
+        throw SQLFeatureNotSupportedException()
     }
 
     override fun getBlob(columnIndex: Int): Blob {
-        TODO("Not yet implemented")
+        throw SQLFeatureNotSupportedException()
     }
 
     override fun getBlob(columnLabel: String): Blob {
-        TODO("Not yet implemented")
+        throw SQLFeatureNotSupportedException()
     }
 
     override fun getClob(columnIndex: Int): Clob {
-        TODO("Not yet implemented")
+        throw SQLFeatureNotSupportedException()
     }
 
     override fun getClob(columnLabel: String): Clob {
-        TODO("Not yet implemented")
+        throw SQLFeatureNotSupportedException()
     }
 
     override fun getArray(columnIndex: Int): SQLArray {
-        TODO("Not yet implemented")
+        throw SQLFeatureNotSupportedException()
     }
 
     override fun getArray(columnLabel: String): SQLArray {
-        TODO("Not yet implemented")
+        throw SQLFeatureNotSupportedException()
     }
 
     override fun getURL(columnIndex: Int): URL {
-        TODO("Not yet implemented")
+        throw SQLFeatureNotSupportedException()
     }
 
     override fun getURL(columnLabel: String): URL {
-        TODO("Not yet implemented")
+        throw SQLFeatureNotSupportedException()
     }
 
     override fun updateRef(columnIndex: Int, p1: Ref?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateRef(columnLabel: String, p1: Ref?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBlob(columnIndex: Int, p1: Blob?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBlob(columnLabel: String, p1: Blob?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBlob(columnIndex: Int, p1: InputStream?, p2: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBlob(columnLabel: String, p1: InputStream?, p2: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBlob(columnIndex: Int, p1: InputStream?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateBlob(columnLabel: String, p1: InputStream?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateClob(columnIndex: Int, p1: Clob?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateClob(columnLabel: String, p1: Clob?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateClob(columnIndex: Int, p1: Reader?, p2: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateClob(columnLabel: String, p1: Reader?, p2: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateClob(columnIndex: Int, p1: Reader?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateClob(columnLabel: String, p1: Reader?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
-    override fun updateArray(columnIndex: Int, p1: Array?) {
-        TODO("Not yet implemented")
+    override fun updateArray(columnIndex: Int, p1: SQLArray?) {
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
-    override fun updateArray(columnLabel: String, p1: Array?) {
-        TODO("Not yet implemented")
+    override fun updateArray(columnLabel: String, p1: SQLArray?) {
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun getRowId(columnIndex: Int): RowId {
@@ -786,51 +729,47 @@ class MockResultSet private constructor(
     }
 
     override fun updateRowId(columnIndex: Int, p1: RowId?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateRowId(columnLabel: String, p1: RowId?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
-    override fun getHoldability(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getHoldability(): Int = ResultSet.CLOSE_CURSORS_AT_COMMIT
 
-    override fun isClosed(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun isClosed(): Boolean = closed
 
     override fun updateNString(columnIndex: Int, p1: String?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateNString(columnLabel: String, p1: String?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateNClob(columnIndex: Int, p1: NClob?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateNClob(columnLabel: String, p1: NClob?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateNClob(columnIndex: Int, p1: Reader?, p2: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateNClob(columnLabel: String, p1: Reader?, p2: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateNClob(columnIndex: Int, p1: Reader?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateNClob(columnLabel: String, p1: Reader?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun getNClob(columnIndex: Int): NClob {
@@ -850,20 +789,16 @@ class MockResultSet private constructor(
     }
 
     override fun updateSQLXML(columnIndex: Int, p1: SQLXML?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateSQLXML(columnLabel: String, p1: SQLXML?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
-    override fun getNString(columnIndex: Int): String {
-        TODO("Not yet implemented")
-    }
+    override fun getNString(columnIndex: Int): String? = answerString(columnIndex - 1)
 
-    override fun getNString(columnLabel: String): String {
-        TODO("Not yet implemented")
-    }
+    override fun getNString(columnLabel: String): String? = answerString(index(columnLabel))
 
     override fun getNCharacterStream(columnIndex: Int): Reader {
         TODO("Not yet implemented")
@@ -878,15 +813,15 @@ class MockResultSet private constructor(
     }
 
     override fun updateNCharacterStream(columnLabel: String, p1: Reader?, p2: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateNCharacterStream(columnIndex: Int, p1: Reader?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateNCharacterStream(columnLabel: String, p1: Reader?) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun toString(): String = tag
