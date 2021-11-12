@@ -1,8 +1,5 @@
 package com.metricstream.jdbc
 
-import java.sql.ResultSet
-import io.mockk.MockKGateway
-
 class Invocations {
     @get:JvmName("getResultSet") var getResultSet: Int = 0
 
@@ -36,39 +33,23 @@ class Invocations {
 
     @get:JvmName("getRs") var getRs: Int = 0
 
-    val getNext: Int
-        @JvmName("getNext") get() = invocationCount(rsNext)
+    @get:JvmName("next") var next: Int = 0
 
-    val getRsInt: Int
-        @JvmName("getRsInt") get() = invocationCount(rsGetInt)
+    @get:JvmName("getRsInt") var getRsInt: Int = 0
 
-    val getRsLong: Int
-        @JvmName("getRsLong") get() = invocationCount(rsGetLong)
+    @get:JvmName("getRsLong") var getRsLong: Int = 0
 
-    val getRsDouble: Int
-        @JvmName("getRsDouble") get() = invocationCount(rsGetDouble)
+    @get:JvmName("getRsDouble") var getRsDouble: Int = 0
 
-    val getRsString: Int
-        @JvmName("getRsString") get() = invocationCount(rsGetString)
+    @get:JvmName("getRsString") var getRsString: Int = 0
 
-    val getRsBigDecimal: Int
-        @JvmName("getRsBigDecimal") get() = invocationCount(rsGetBigDecimal)
+    @get:JvmName("getRsBigDecimal") var getRsBigDecimal: Int = 0
 
-    val getRsObject: Int
-        @JvmName("getRsObject") get() = invocationCount(rsGetObject)
+    @get:JvmName("getRsObject") var getRsObject: Int = 0
 
-    val getRsTimestamp: Int
-        @JvmName("getRsTimestamp") get() = invocationCount(rsGetTimestamp)
+    @get:JvmName("getRsTimestamp") var getRsTimestamp: Int = 0
 
-    val getRsDate: Int
-        @JvmName("getRsDate") get() = invocationCount(rsGetDate)
-
-    private fun invocationCount(unused: String): Int {
-//        return MockKGateway.implementation().callRecorder.calls.count { it.matcher.method.name == name }
-        return 0
-    }
-
-    val returnedResultSets: MutableList<ResultSet> = mutableListOf()
+    @get:JvmName("getRsDate") var getRsDate: Int = 0
 
     val getAnyColumn: Int
         @JvmName("getAnyColumn") get() = getInt +
@@ -81,18 +62,4 @@ class Invocations {
                 getInstant +
                 getTimestamp +
                 getDate
-
-    companion object {
-        private val rsNext = "next"
-        private val rsGetInt = rsGet("Int")
-        private val rsGetLong = rsGet("Long")
-        private val rsGetDouble = rsGet("Double")
-        private val rsGetString = rsGet("String")
-        private val rsGetBigDecimal = rsGet("BigDecimal")
-        private val rsGetObject = rsGet("Object")
-        private val rsGetTimestamp = rsGet("Timestamp")
-        private val rsGetDate = rsGet("Date")
-
-        private fun rsGet(name: String) = "get$name"
-    }
 }

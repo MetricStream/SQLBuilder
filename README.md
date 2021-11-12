@@ -6,7 +6,7 @@ sourcing this library is an attempt to give a tiny bit back to the community. Ho
 Feedback of any kind is definitely appreciated!
 
 The [MavenCentral] coordinates are
-[com.metricstream.jdbc:sqlbuilder-core:3.2,0](https://search.maven.org/artifact/com.metricstream.jdbc/sqlbuilder-core/3.2.2/jar)
+[com.metricstream.jdbc:sqlbuilder-core:3.2.0](https://search.maven.org/artifact/com.metricstream.jdbc/sqlbuilder-core/3.2.2/jar)
 for production usage and
 [com.metricstream.jdbc:sqlbuilder-mock:3.2.2](https://search.maven.org/artifact/com.metricstream.jdbc/sqlbuilder-mock/3.2.2/jar)
 for unit testing.

@@ -85,7 +85,8 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             return longByColumnIndex!!.apply(columnNumber, defaultValue)
         }
         val rs = getRs()
-        return if (rs.next()) rs.getLong(columnNumber) else defaultValue
+        val next = rs.next()
+        return if (next) rs.getLong(columnNumber) else defaultValue
     }
 
     override fun getLong(
@@ -408,7 +409,6 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             else -> rs = MockResultSet.empty("")
         }
         logger.debug("Using mock ResultSet {}", rs)
-        invocations.returnedResultSets += rs
         return rs
     }
 

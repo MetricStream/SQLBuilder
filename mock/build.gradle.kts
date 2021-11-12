@@ -3,7 +3,7 @@ dependencies {
     implementation("org.slf4j:slf4j-api:1.7.32")
     implementation("ch.qos.logback:logback-classic:1.2.6")
     implementation("com.opencsv:opencsv:5.5.2")
-    implementation("io.mockk:mockk:1.12.0")
+    testImplementation("io.mockk:mockk:1.12.0")
     testImplementation("org.mockito:mockito-core:4.0.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
     testImplementation("io.kotest:kotest-assertions-core:4.6.3")
