@@ -157,9 +157,9 @@ internal class SQLBuilderTest {
         add("testMock:read from CSV file", javaClass.getResourceAsStream("sb11.csv")!!)
         val sb11 = SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t")
 //        val rsCount1 = MockSQLBuilderProvider.invocations.getNext
-        sb11.getList(mockConnection, { rs -> rs.getLong("USER_ID") }).toString() shouldBe "[100000, 100001, 100002, 100003]"
 //        val rsCount2 = MockSQLBuilderProvider.invocations.getNext
 //        rsCount2 - rsCount1 shouldBe 5
+        sb11.getList(mockConnection) { rs -> rs.getLong("USER_ID") }.toString() shouldBe "[100000, 100001, 100002, 100003]"
 
         // SI_USERS_T.csv was produced via SQLDeveloper using "Export as csv" from right-click on the table
         add(
@@ -167,7 +167,7 @@ internal class SQLBuilderTest {
             javaClass.getResourceAsStream("SI_USERS_T.csv")!!
         )
         val sb12 = SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t")
-        sb12.getList(mockConnection, { it.getLong("USER_ID") }).toString() shouldBe "[100000, 100001, 100002, 100003]"
+        sb12.getList(mockConnection) { it.getLong("USER_ID") }.toString() shouldBe "[100000, 100001, 100002, 100003]"
         val ts = Timestamp.from(Instant.now())
         add("testMock:sb13", arrayOf(arrayOf(ts)))
         val sb13 = SQLBuilder("select value from lookup where key = ?", 42)
@@ -260,8 +260,8 @@ internal class SQLBuilderTest {
             3
         )
 
-        sqlBuilder.getList(mockConnection, { rs -> rs.getInt(1) }) shouldBe listOf(1, 1, 1)
 //        MockSQLBuilderProvider.invocations.getNext shouldBe 4
+        sqlBuilder.getList(mockConnection) { rs -> rs.getInt(1) } shouldBe listOf(1, 1, 1)
     }
 
     @Test
@@ -273,8 +273,8 @@ internal class SQLBuilderTest {
             1
         )
 
-        sqlBuilder.getList(mockConnection, { rs -> rs.getInt(1) }) shouldBe listOf(1)
 //        MockSQLBuilderProvider.invocations.getNext shouldBe 2
+        sqlBuilder.getList(mockConnection) { rs -> rs.getInt(1) } shouldBe listOf(1)
     }
 
     @Test
@@ -285,8 +285,8 @@ internal class SQLBuilderTest {
             arrayOf(arrayOf(1, "hello"))
         )
 
-        sqlBuilder.getList(mockConnection, { rs -> rs.getInt(1) }) shouldBe listOf(1)
 //        MockSQLBuilderProvider.invocations.getNext shouldBe 2
+        sqlBuilder.getList(mockConnection) { rs -> rs.getInt(1) } shouldBe listOf(1)
     }
 
     @Test
@@ -301,8 +301,8 @@ internal class SQLBuilderTest {
             3
         )
 
-        sqlBuilder.getList(mockConnection, { rs -> rs.getInt(1) }) shouldBe listOf(1, 2, 1, 2, 1, 2)
 //        MockSQLBuilderProvider.invocations.getNext shouldBe 7
+        sqlBuilder.getList(mockConnection) { rs -> rs.getInt(1) } shouldBe listOf(1, 2, 1, 2, 1, 2)
     }
 
     @Test
@@ -486,7 +486,7 @@ internal class SQLBuilderTest {
         // with 3 ints in column 2
         // then expect to get a list with 3 elements in the correct order
         add("", "_,3\n_,1\n_,4", false)
-        val actual = sqlBuilder.getList(mockConnection, { rs -> rs.getInt(2) })
+        val actual = sqlBuilder.getList(mockConnection) { rs -> rs.getInt(2) }
         actual shouldBe listOf(3, 1, 4)
     }
 
@@ -496,7 +496,7 @@ internal class SQLBuilderTest {
         // with 2 ints and a null in column 2
         // then expect to get a list with 3 elements in the correct order
         add("", arrayOf(arrayOf("", 3), arrayOf("", null), arrayOf("", 4)))
-        val actual = sqlBuilder.getList(mockConnection, { rs: ResultSet -> rs.getInt(2) })
+        val actual = sqlBuilder.getList(mockConnection) { rs: ResultSet -> rs.getInt(2) }
         actual shouldBe listOf(3, 0, 4)
     }
 
@@ -506,7 +506,7 @@ internal class SQLBuilderTest {
         // with 2 Strings and a null in column 2
         // then expect to get a list with 2 elements in the correct order
         add("", arrayOf(arrayOf("", "first"), arrayOf("", null), arrayOf("", "third")))
-        val actual = sqlBuilder.getList(mockConnection, { rs: ResultSet -> rs.getString(2) })
+        val actual = sqlBuilder.getList(mockConnection) { rs: ResultSet -> rs.getString(2) }
         actual shouldBe listOf("first", "third")
     }
 
@@ -516,7 +516,7 @@ internal class SQLBuilderTest {
         // with 2 Strings and a null in column 2
         // then expect to get a list with 3 elements in the correct order
         add("", arrayOf(arrayOf("", "first"), arrayOf("", null), arrayOf("", "third")))
-        val actual = sqlBuilder.getList(mockConnection, { rs: ResultSet -> rs.getString(2) }, true)
+        val actual = sqlBuilder.getListWithNull(mockConnection) { rs: ResultSet -> rs.getString(2) }
         actual shouldBe listOf("first", null, "third")
     }
 
@@ -526,15 +526,10 @@ internal class SQLBuilderTest {
         // with 2 ints and a null (converted to 0 by getInt()) in column 2
         // then expect to get a list with 3 elements in the correct order
         add("", arrayOf(arrayOf("", 1), arrayOf("", null), arrayOf("", 3)))
-        val actual = sqlBuilder.getList(
-            mockConnection,
-            { rs: ResultSet ->
-                val i = rs.getInt(2)
-                val n = rs.wasNull()
-                println("NKNK $rs $i $n")
-                if (rs.wasNull()) -1 else i
-            }
-        )
+        val actual = sqlBuilder.getList(mockConnection) { rs: ResultSet ->
+            val i = rs.getInt(2)
+            if (rs.wasNull()) -1 else i
+        }
         actual shouldBe listOf(1, -1, 3)
     }
 
@@ -545,7 +540,7 @@ internal class SQLBuilderTest {
         // then expect to get a list with 2 elements in the correct order.  We must avoid
         // calling `getInt` here because that automatically converts null to 0.
         add("", arrayOf(arrayOf("", 1), arrayOf("", null), arrayOf("", 3)))
-        val actual = sqlBuilder.getList<Any?>(mockConnection, { rs -> rs.getObject(2) }).map { it as Int }
+        val actual = sqlBuilder.getList<Any?>(mockConnection) { rs -> rs.getObject(2) }.map { it as Int }
         actual shouldBe listOf(1, 3)
     }
 
@@ -555,8 +550,55 @@ internal class SQLBuilderTest {
         // with 2 ints and a null in column 2
         // then expect to get 3 elements with null mapped to null
         add("", arrayOf(arrayOf("", 1), arrayOf("", null), arrayOf("", 3)))
-        val actual = sqlBuilder.getList<Any?>(mockConnection, { rs -> rs.getObject(2) }, true).map { it as Int? }
+        val actual = sqlBuilder.getListWithNull<Any?>(mockConnection) { rs -> rs.getObject(2) }.map { it as Int? }
         actual shouldBe listOf(1, null, 3)
+    }
+
+    data class ListSample(val name: String, val age: Int)
+
+    @Test
+    fun list_test9() {
+        add("", arrayOf(arrayOf("a", 1), arrayOf("b", 2), arrayOf("c", 3)))
+        val actual = sqlBuilder.getList(mockConnection) { rs -> ListSample(rs.getString(1), rs.getInt(2)) }
+        actual shouldNotBe emptyList<ListSample>()
+        actual.sumOf { it.age } shouldBe 6
+    }
+
+    @Test
+    fun list_test10() {
+        add("", arrayOf(arrayOf("a", 1), arrayOf("b", 2), arrayOf("c", 3)))
+        val actual = sqlBuilder.getList(mockConnection) { rs -> rs.getInt(2).let { i -> if (i == 1) null else ListSample(rs.getString(1), i) } }
+        actual shouldNotBe emptyList<ListSample>()
+        actual.sumOf { it?.age ?: 0 } shouldBe 5
+    }
+
+    @Test
+    fun list_test11() {
+        add("", arrayOf(arrayOf("a", 1), arrayOf("b", null), arrayOf("c", 3)))
+        val actual = sqlBuilder.getList(mockConnection) { rs -> ListSample(rs.getString(1), rs.getInt(2)) }
+        actual shouldNotBe emptyList<ListSample>()
+        actual.sumOf { it.age } shouldBe 4
+    }
+
+    @Test
+    fun list_test12() {
+        add("", arrayOf(arrayOf("a", 1), arrayOf("b", null), arrayOf("c", 3)))
+        val actual = sqlBuilder.getList(mockConnection) { rs -> rs.getString(1) }
+        actual.reduce { a, s -> a + s } shouldBe "abc"
+    }
+
+    @Test
+    fun list_test13() {
+        add("", arrayOf(arrayOf("a", 1), arrayOf(null, null), arrayOf("c", 3)))
+        val actual: List<String> = sqlBuilder.getList(mockConnection) { rs -> rs.getString(1) }
+        actual.reduce { a, s -> a + s } shouldBe "ac"
+    }
+
+    @Test
+    fun list_test14() {
+        add("", arrayOf(arrayOf("a", 1), arrayOf(null, null), arrayOf("c", 3)))
+        val actual: List<String?> = sqlBuilder.getListWithNull(mockConnection) { rs -> rs.getString(1) }
+        actual.reduce { a, s -> a + s } shouldBe "anullc"
     }
 
     @Test
@@ -1011,7 +1053,7 @@ internal class SQLBuilderTest {
     fun maxRows() {
         add("", "_,3\n_,1\n_,4", false)
         // TODO: this just tests that `withMaxRows` is accepted, but not the actual implementation.
-        val actual = sqlBuilder.withMaxRows(1).getList(mockConnection, { rs: ResultSet -> rs.getInt(2) })
+        val actual = sqlBuilder.withMaxRows(1).getList(mockConnection) { rs: ResultSet -> rs.getInt(2) }
         actual shouldBe listOf(3, 1, 4)
     }
 

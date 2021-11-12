@@ -588,12 +588,24 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
     override fun <T> getList(
         sqlBuilder: SQLBuilder,
         connection: Connection,
+        rowMapper: SQLBuilder.RowMapper<T>
+    ): List<T> {
+        build(sqlBuilder, connection).use { ps ->
+            ps.executeQuery().use { rs ->
+                return getList(rs, rowMapper, false)
+            }
+        }
+    }
+
+    @Throws(SQLException::class)
+    override fun <T> getListWithNull(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
         rowMapper: SQLBuilder.RowMapper<T?>,
-        withNull: Boolean
     ): List<T?> {
         build(sqlBuilder, connection).use { ps ->
             ps.executeQuery().use { rs ->
-                return getList(rs, rowMapper, withNull)
+                return getList(rs, rowMapper, true)
             }
         }
     }

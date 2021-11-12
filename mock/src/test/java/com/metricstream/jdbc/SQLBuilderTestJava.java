@@ -535,7 +535,7 @@ class SQLBuilderTestJava {
         // with 2 Strings and a null in column 2
         // then expect to get a list with 3 elements in the correct order
         MockResultSet.add("", new Object[][] { { "", "first" }, { "", null }, { "", "third" } });
-        List<String> actual = sqlBuilder.getList(mockConnection, (rs) -> rs.getString(2), true);
+        List<String> actual = sqlBuilder.getListWithNull(mockConnection, (rs) -> rs.getString(2));
         assertThat(actual).containsExactly("first", null, "third");
     }
 
@@ -570,7 +570,7 @@ class SQLBuilderTestJava {
         // with 2 ints and a null in column 2
         // then expect to get 3 elements with null mapped to null
         MockResultSet.add("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
-        List<Integer> actual = sqlBuilder.getList(mockConnection, (rs) -> rs.getObject(2), true)
+        List<Integer> actual = sqlBuilder.getListWithNull(mockConnection, (rs) -> rs.getObject(2))
                 .stream().map(i -> (Integer) i).collect(Collectors.toList());
         assertThat(actual).containsExactly(1, null, 3);
     }

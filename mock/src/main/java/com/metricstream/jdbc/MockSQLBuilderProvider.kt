@@ -342,12 +342,21 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
     override fun <T> getList(
         sqlBuilder: SQLBuilder,
         connection: Connection,
-        rowMapper: SQLBuilder.RowMapper<T?>,
-        withNull: Boolean
+        rowMapper: SQLBuilder.RowMapper<T>
+    ): List<T> {
+        invocations.getList++
+        logger.debug("{}", sqlBuilder)
+        return getList(getRs(), rowMapper, false)
+    }
+
+    override fun <T> getListWithNull(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        rowMapper: SQLBuilder.RowMapper<T?>
     ): List<T?> {
         invocations.getList++
         logger.debug("{}", sqlBuilder)
-        return getList(getRs(), rowMapper, withNull)
+        return getList(getRs(), rowMapper, true)
     }
 
     override fun <K, V> getMap(

@@ -647,7 +647,7 @@ class SQLBuilder {
 
     fun interface RowMapper<T> {
         @Throws(SQLException::class)
-        fun map(rs: ResultSet): T?
+        fun map(rs: ResultSet): T
     }
 
     /**
@@ -660,9 +660,22 @@ class SQLBuilder {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     @Throws(SQLException::class)
-    @JvmOverloads
-    fun <T> getList(connection: Connection, rowMapper: RowMapper<T?>, withNull: Boolean = false): List<T?> {
-        return delegate.getList(this, connection, rowMapper, withNull)
+    fun <T> getList(connection: Connection, rowMapper: RowMapper<T>): List<T> {
+        return delegate.getList(this, connection, rowMapper)
+    }
+
+    /**
+     * Returns a list of objects generated from the ResultSet
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @param rowMapper The lambda called per row to produce a matching list item.
+     * @param withNull If false, null values returned from the lambda are ignored.  Otherwise they
+     * are added to the returned list
+     * @return The list of generated items
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun <T> getListWithNull(connection: Connection, rowMapper: RowMapper<T?>): List<T?> {
+        return delegate.getListWithNull(this, connection, rowMapper)
     }
 
     /**
@@ -777,6 +790,7 @@ class SQLBuilder {
         private val logger = LoggerFactory.getLogger(SQLBuilder::class.java)
         private val jdbcProvider: SQLBuilderProvider = JdbcSQLBuilderProvider()
         private var delegate = jdbcProvider
+
         @JvmStatic
         fun setDelegate(delegate: SQLBuilderProvider) {
             Companion.delegate = delegate

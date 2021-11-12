@@ -177,8 +177,14 @@ interface SQLBuilderProvider {
     fun <T> getList(
         sqlBuilder: SQLBuilder,
         connection: Connection,
-        rowMapper: SQLBuilder.RowMapper<T?>,
-        withNull: Boolean = false
+        rowMapper: SQLBuilder.RowMapper<T>,
+    ): List<T>
+
+    @Throws(SQLException::class)
+    fun <T> getListWithNull(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        rowMapper: SQLBuilder.RowMapper<T?>
     ): List<T?>
 
     @Throws(SQLException::class)
@@ -225,10 +231,10 @@ interface SQLBuilderProvider {
         rs: ResultSet,
         rowMapper: SQLBuilder.RowMapper<T>,
         withNull: Boolean
-    ): List<T?> {
-        val list = mutableListOf<T?>()
+    ): List<T> {
+        val list = mutableListOf<T>()
         while (rs.next()) {
-            val item: T? = rowMapper.map(rs)
+            val item: T = rowMapper.map(rs)
             if (withNull || item != null) {
                 list.add(item)
             }
