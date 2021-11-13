@@ -225,13 +225,9 @@ class MockResultSet private constructor(
 
     override fun getBigDecimal(columnLabel: String): BigDecimal? = answerBigDecimal(index(columnLabel))
 
-    override fun getBytes(columnIndex: Int): ByteArray {
-        TODO("Not yet implemented")
-    }
+    override fun getBytes(columnIndex: Int): ByteArray? = null
 
-    override fun getBytes(columnLabel: String): ByteArray {
-        TODO("Not yet implemented")
-    }
+    override fun getBytes(columnLabel: String): ByteArray? = null
 
     override fun getDate(columnIndex: Int): Date? = answerDate(columnIndex - 1)
 
@@ -241,13 +237,13 @@ class MockResultSet private constructor(
 
     override fun getDate(columnLabel: String, p1: Calendar?): Date? = answerDate(index(columnLabel))
 
-    override fun getTime(columnIndex: Int): Time = TODO("Not yet implemented")
+    override fun getTime(columnIndex: Int): Time? = null
 
-    override fun getTime(columnLabel: String): Time = TODO("Not yet implemented")
+    override fun getTime(columnLabel: String): Time? = null
 
-    override fun getTime(columnIndex: Int, p1: Calendar?): Time = TODO("Not yet implemented")
+    override fun getTime(columnIndex: Int, p1: Calendar?): Time? = null
 
-    override fun getTime(columnLabel: String, p1: Calendar?): Time = TODO("Not yet implemented")
+    override fun getTime(columnLabel: String, p1: Calendar?): Time? = null
 
     override fun getTimestamp(columnIndex: Int): Timestamp? = answerTimestamp(columnIndex - 1)
 
@@ -257,24 +253,24 @@ class MockResultSet private constructor(
 
     override fun getTimestamp(columnLabel: String, p1: Calendar?): Timestamp? = answerTimestamp(index(columnLabel))
 
-    override fun getAsciiStream(columnIndex: Int): InputStream = TODO("Not yet implemented")
+    override fun getAsciiStream(columnIndex: Int): InputStream? = null
 
-    override fun getAsciiStream(columnLabel: String): InputStream = TODO("Not yet implemented")
+    override fun getAsciiStream(columnLabel: String): InputStream? = null
 
-    override fun getUnicodeStream(columnIndex: Int): InputStream = TODO("Not yet implemented")
+    override fun getUnicodeStream(columnIndex: Int): InputStream? = null
 
-    override fun getUnicodeStream(columnLabel: String): InputStream = TODO("Not yet implemented")
+    override fun getUnicodeStream(columnLabel: String): InputStream? = null
 
-    override fun getBinaryStream(columnIndex: Int): InputStream = TODO("Not yet implemented")
+    override fun getBinaryStream(columnIndex: Int): InputStream? = null
 
-    override fun getBinaryStream(columnLabel: String): InputStream = TODO("Not yet implemented")
+    override fun getBinaryStream(columnLabel: String): InputStream? = null
 
     override fun getWarnings(): SQLWarning? = null
 
     override fun clearWarnings() {
     }
 
-    override fun getCursorName(): String = TODO("Not yet implemented")
+    override fun getCursorName(): String = throw SQLFeatureNotSupportedException()
 
     override fun getMetaData(): ResultSetMetaData = MockResultSetMetaData(this.columnIndices)
 
@@ -282,13 +278,9 @@ class MockResultSet private constructor(
 
     override fun getObject(columnLabel: String): Any? = answerObject(index(columnLabel))
 
-    override fun getObject(columnIndex: Int, p1: MutableMap<String, Class<*>>?): Any? {
-        TODO("Not yet implemented")
-    }
+    override fun getObject(columnIndex: Int, p1: MutableMap<String, Class<*>>?): Any? = null
 
-    override fun getObject(columnLabel: String, p1: MutableMap<String, Class<*>>?): Any? {
-        TODO("Not yet implemented")
-    }
+    override fun getObject(columnLabel: String, p1: MutableMap<String, Class<*>>?): Any? = null
 
     override fun <T : Any?> getObject(columnIndex: Int, p1: Class<T>): T? {
         if (p1 == OffsetDateTime::class.java) {
@@ -312,13 +304,9 @@ class MockResultSet private constructor(
         return columnIndex + 1
     }
 
-    override fun getCharacterStream(columnIndex: Int): Reader? {
-        TODO("Not yet implemented")
-    }
+    override fun getCharacterStream(columnIndex: Int): Reader? = null
 
-    override fun getCharacterStream(columnLabel: String): Reader? {
-        TODO("Not yet implemented")
-    }
+    override fun getCharacterStream(columnLabel: String): Reader? = null
 
     override fun isBeforeFirst(): Boolean = rowId == 0
 
@@ -616,45 +604,25 @@ class MockResultSet private constructor(
 
     override fun getStatement(): Statement? = null
 
-    override fun getRef(columnIndex: Int): Ref {
-        TODO("Not yet implemented")
-    }
+    override fun getRef(columnIndex: Int): Ref? = null
 
-    override fun getRef(columnLabel: String): Ref {
-        throw SQLFeatureNotSupportedException()
-    }
+    override fun getRef(columnLabel: String): Ref? = null
 
-    override fun getBlob(columnIndex: Int): Blob {
-        throw SQLFeatureNotSupportedException()
-    }
+    override fun getBlob(columnIndex: Int): Blob? = null
 
-    override fun getBlob(columnLabel: String): Blob {
-        throw SQLFeatureNotSupportedException()
-    }
+    override fun getBlob(columnLabel: String): Blob? = null
 
-    override fun getClob(columnIndex: Int): Clob {
-        throw SQLFeatureNotSupportedException()
-    }
+    override fun getClob(columnIndex: Int): Clob? = null
 
-    override fun getClob(columnLabel: String): Clob {
-        throw SQLFeatureNotSupportedException()
-    }
+    override fun getClob(columnLabel: String): Clob? = null
 
-    override fun getArray(columnIndex: Int): SQLArray {
-        throw SQLFeatureNotSupportedException()
-    }
+    override fun getArray(columnIndex: Int): SQLArray? = null
 
-    override fun getArray(columnLabel: String): SQLArray {
-        throw SQLFeatureNotSupportedException()
-    }
+    override fun getArray(columnLabel: String): SQLArray? = null
 
-    override fun getURL(columnIndex: Int): URL {
-        throw SQLFeatureNotSupportedException()
-    }
+    override fun getURL(columnIndex: Int): URL? = null
 
-    override fun getURL(columnLabel: String): URL {
-        throw SQLFeatureNotSupportedException()
-    }
+    override fun getURL(columnLabel: String): URL? = null
 
     override fun updateRef(columnIndex: Int, p1: Ref?) {
         throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
@@ -720,13 +688,9 @@ class MockResultSet private constructor(
         throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
-    override fun getRowId(columnIndex: Int): RowId {
-        TODO("Not yet implemented")
-    }
+    override fun getRowId(columnIndex: Int): RowId? = null
 
-    override fun getRowId(columnLabel: String): RowId {
-        TODO("Not yet implemented")
-    }
+    override fun getRowId(columnLabel: String): RowId? = null
 
     override fun updateRowId(columnIndex: Int, p1: RowId?) {
         throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
@@ -772,21 +736,13 @@ class MockResultSet private constructor(
         throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
-    override fun getNClob(columnIndex: Int): NClob {
-        TODO("Not yet implemented")
-    }
+    override fun getNClob(columnIndex: Int): NClob? = null
 
-    override fun getNClob(columnLabel: String): NClob {
-        TODO("Not yet implemented")
-    }
+    override fun getNClob(columnLabel: String): NClob? = null
 
-    override fun getSQLXML(columnIndex: Int): SQLXML {
-        TODO("Not yet implemented")
-    }
+    override fun getSQLXML(columnIndex: Int): SQLXML? = null
 
-    override fun getSQLXML(columnLabel: String): SQLXML {
-        TODO("Not yet implemented")
-    }
+    override fun getSQLXML(columnLabel: String): SQLXML? = null
 
     override fun updateSQLXML(columnIndex: Int, p1: SQLXML?) {
         throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
@@ -800,16 +756,12 @@ class MockResultSet private constructor(
 
     override fun getNString(columnLabel: String): String? = answerString(index(columnLabel))
 
-    override fun getNCharacterStream(columnIndex: Int): Reader {
-        TODO("Not yet implemented")
-    }
+    override fun getNCharacterStream(columnIndex: Int): Reader? = null
 
-    override fun getNCharacterStream(columnLabel: String): Reader {
-        TODO("Not yet implemented")
-    }
+    override fun getNCharacterStream(columnLabel: String): Reader? = null
 
     override fun updateNCharacterStream(columnIndex: Int, p1: Reader?, p2: Long) {
-        TODO("Not yet implemented")
+        throw SQLException("The result set concurrency is CONCUR_READ_ONLY")
     }
 
     override fun updateNCharacterStream(columnLabel: String, p1: Reader?, p2: Long) {
