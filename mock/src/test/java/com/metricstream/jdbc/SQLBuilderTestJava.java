@@ -31,35 +31,19 @@ import java.util.stream.IntStream;
 import org.assertj.core.api.ThrowableTypeAssert;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 
+@ExtendWith(MockSQLBuilderExtension.class)
 class SQLBuilderTestJava {
 
     private static final Connection mockConnection = Mockito.mock(Connection.class);
     private final SQLBuilder sqlBuilder = new SQLBuilder("SELECT 42 FROM DUAL");
 
-    @BeforeAll
-    static void beforeAll() {
-        MockSQLBuilderProvider.enable();
-    }
-
-    @AfterAll
-    static void afterAll() {
-        MockSQLBuilderProvider.disable();
-    }
-
     private static ThrowableTypeAssert<SQLException> assertThatSQLException() {
         return assertThatExceptionOfType(SQLException.class);
-    }
-
-    @AfterEach
-    void afterEach() {
-        MockSQLBuilderProvider.reset();
     }
 
     @Test

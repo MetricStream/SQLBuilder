@@ -27,11 +27,9 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldEndWith
 import io.kotest.matchers.throwable.shouldHaveMessage
 import io.mockk.spyk
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.extension.ExtendWith
 import com.metricstream.jdbc.MockResultSet.Companion.add
 import com.metricstream.jdbc.MockResultSet.Companion.addBroken
 import com.metricstream.jdbc.MockResultSet.Companion.addEmpty
@@ -40,25 +38,11 @@ import com.metricstream.jdbc.MockSQLBuilderProvider.Companion.addResultSet
 import com.metricstream.jdbc.SQLBuilder.Companion.nameQuote
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ExtendWith(MockSQLBuilderExtension::class)
 internal class SQLBuilderTest {
     private val sqlBuilder = SQLBuilder("SELECT 42 FROM DUAL")
 
     private val mockConnection = spyk<Connection>()
-
-    @BeforeAll
-    fun beforeAll() {
-        MockSQLBuilderProvider.enable()
-    }
-
-    @AfterAll
-    fun afterAll() {
-        MockSQLBuilderProvider.disable()
-    }
-
-    @AfterEach
-    fun afterEach() {
-        MockSQLBuilderProvider.reset()
-    }
 
     @Test
     @Throws(SQLException::class)
