@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
 import com.metricstream.jdbc.MockResultSet.Companion.add
+import com.metricstream.jdbc.MockResultSet.Companion.addGenerated
 import com.metricstream.jdbc.MockResultSet.Companion.addBroken
 import com.metricstream.jdbc.MockResultSet.Companion.addEmpty
 import com.metricstream.jdbc.MockResultSet.Companion.create
@@ -1068,6 +1069,25 @@ internal class SQLBuilderTest {
         nameQuote("column;A A+B", noQuotes = false) shouldBe """"column;A" "A+B""""
     }
 
+    @Test
+    fun defaultNamedResultSet() {
+        addGenerated("")
+        sqlBuilder.getInt(mockConnection, 1, 11) shouldBe 42
+
+        addGenerated("")
+        sqlBuilder.getResultSet(mockConnection).use { rs ->
+            rs.next()
+            rs.getInt(1) shouldBe 42
+            rs.getInt(11) shouldBe 42
+            rs.getString(22) shouldBe "42"
+        }
+
+        addGenerated("", 10)
+        sqlBuilder.getResultSet(mockConnection).use { rs ->
+            repeat(10) { rs.next() shouldBe true }
+            rs.next() shouldBe false
+        }
+    }
 
     internal class QueryParamsImpl : QueryParams {
         // some arbitrary param values for testing

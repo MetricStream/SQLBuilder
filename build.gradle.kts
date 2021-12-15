@@ -5,9 +5,9 @@ plugins {
     `java-library`
     `maven-publish`
     signing
-    kotlin("jvm") version "1.5.31"
+    kotlin("jvm") version "1.6.10"
     id("org.jlleitschuh.gradle.ktlint") version "10.2.0"
-    id("io.gitlab.arturbosch.detekt") version "1.18.1"
+    id("io.gitlab.arturbosch.detekt") version "1.19.0"
 }
 
 // These are credentials required for the task `uploadArchives`. They are read either from gradle.properties or from the command
@@ -28,7 +28,7 @@ subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
 
     group = "com.metricstream.jdbc"
-    version = "3.3.0-alpha.3"
+    version = "3.4.0"
 
     repositories {
         mavenCentral()

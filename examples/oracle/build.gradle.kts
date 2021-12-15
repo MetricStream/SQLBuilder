@@ -6,13 +6,13 @@ plugins {
 dependencies {
     implementation(project(":core"))
     implementation("org.slf4j:slf4j-api:1.7.32")
-    implementation("ch.qos.logback:logback-classic:1.2.6")
+    implementation("ch.qos.logback:logback-classic:1.2.8")
     implementation("com.oracle.database.jdbc:ojdbc8:21.3.0.0")
     testImplementation(project(":mock"))
     testImplementation("org.mockito:mockito-core:4.0.0")
     testImplementation("org.mockito:mockito-junit-jupiter:4.0.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
 }
 
 application {

@@ -457,7 +457,7 @@ The usual mocking approach (using e.g. [Mockito]) is often very painful to use f
 -  coding of test data is labour intensive, especially for queries that fill complex pojos.
 
 `SQLBuilder` therefore offers `MockSQLBuilderProvider` as an optional native mocking solution which avoids these
-problems. After enabling `MockSQLBuilderprovdier` by calling `MockSQLBuilderProvider.enable()`, `SQLBuilder` internally
+problems. After enabling `MockSQLBuilderProvider` by calling `MockSQLBuilderProvider.enable()`, `SQLBuilder` internally
 delegates all calls to the mocking invoker instead of to the usual JDBC invoker. Unit tests should therefore instruct
 SQLBuilder to use the mocking invoker which then automatically mocks all database access code. This mocking invoker can
 be customized (more on that later), but the default behavior is to return a single row of made-up data for every
@@ -564,12 +564,12 @@ invoker will always return a single-element list of a `Person` with name `"42"` 
 handling of `maxAge`, we thus need to prepare test data:
 - Java
 ```java
-MockSQLBuilderProvider.addResultSet("getPersons", "name,age", "Peter,12", "Paul,11", "Mary,15");
+MockResultSet.add("getPersons", "name,age", "Peter,12", "Paul,11", "Mary,15");
 assertEquals(2, countChildren(con, 14));
 ```
 - Kotlin
 ```kotlin
-MockSQLBuilderProvider.addResultSet("getPersons", "name,age", "Peter,12", "Paul,11", "Mary,15")
+MockResultSet.add("getPersons", "name,age", "Peter,12", "Paul,11", "Mary,15")
 assertEquals(2, countChildren(con, 14))
 ```
 
@@ -596,6 +596,33 @@ assertEquals(2, countChildren(con, 14))
 MockSQLBuilderProvider.addResultSet(children)
 assertEquals(0, countChildren(con, 5))
 MockSQLBuilderProvider.addResultSet(children)
+assertEquals(3, countChildren(con, 18))
+```
+
+Another way is to instruct MockSQLBuilderProvider to use the data from a MockResultSet object multiple times by calling
+`MockResultSet.add` with a `usage` value:
+- Java
+```java
+MockResultSet.add(
+        "getPersons",
+        new String[] { "name", "age" },
+        new Object[][] { { "Peter", 12 }, { "Paul", 11 }, { "Mary", 15 } },
+        3
+);
+assertEquals(2, countChildren(con, 14));
+assertEquals(0, countChildren(con, 5));
+assertEquals(3, countChildren(con, 18));
+```
+- Kotlin
+```kotlin
+MockResultSet.add(
+        "getPersons",
+        arrayOf("name", "age"),
+        arrayOf(arrayOf("Peter", 12), arrayOf("Paul", 11), arrayOf("Mary", 15)),
+        3
+)
+assertEquals(2, countChildren(con, 14))
+assertEquals(0, countChildren(con, 5))
 assertEquals(3, countChildren(con, 18))
 ```
 
@@ -794,6 +821,25 @@ following steps (all examples are given for [Junit5], adapt for your test framew
      `when(rs.getLong("ID")).thenReturn(1L);`
 
 # Release Notes #
+- Version 3.4.0, released 2021-12-14
+  - upgraded Kotlin to 1.6.10
+  - upgraded external dependencies
+      - `ch.qos.logback:logback-classic` from `1.2.7` to `1.2.8`
+    
+- Version 3.3.0, released 2021-12-08
+  - added `MockResultSet#add` methods which combine `create` and `MockResultSetProvider#addResultSet`
+  - deprecated createXXX methods for `MockResultSet`
+  - added `addGenerated` method for `MockResultSet`
+  - reimplemented `MockResultSet` as standard derived class instead of as mocked `ResultSet`
+  - added `MockResultSet#addGenerated` to add generated ResultSet objects
+  - upgraded to Kotlin 1.6.0
+  - upgraded to Gradle 7.3.1
+  - upgraded external dependencies
+    - `ch.qos.logback:logback-classic` from `1.2.6` to `1.2.7`
+    - `org.slf4j:slf4j-api` from `1.7.31` to `1.7.32`
+    - `org.junit.jupiter:junit-jupiter-api` from `5.8.1` to `5.8.2`
+    - `org.junit.jupiter:junit-jupiter-engine` from `5.8.1` to `5.8.2`
+  
 - Version 3.2.2, released 2021-11-08
   - added `SQLBuilder.getDouble` and mocking support for `ResultSet.getDouble`
 

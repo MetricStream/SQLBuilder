@@ -251,12 +251,10 @@ interface SQLBuilderProvider {
         val map = mutableMapOf<K, V?>()
         while (rs.next()) {
             val entry = rowMapper.map(rs)
-            if (entry != null) {
-                val key: K = checkNotNull(entry.key) { "Null as map key is unsupported" }
-                val value: V? = entry.value
-                if (withNull || value != null) {
-                    check(map.put(key, value) == null) { "Duplicate map key '$key' is unsupported" }
-                }
+            val key: K = checkNotNull(entry.key) { "Null as map key is unsupported" }
+            val value: V? = entry.value
+            if (withNull || value != null) {
+                check(map.put(key, value) == null) { "Duplicate map key '$key' is unsupported" }
             }
         }
         return map
