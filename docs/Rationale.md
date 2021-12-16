@@ -821,8 +821,11 @@ following steps (all examples are given for [Junit5], adapt for your test framew
      `when(rs.getLong("ID")).thenReturn(1L);`
 
 # Release Notes #
+- Version 3.4.2, released 2021-12-15
+  - upgraded to Gradle 7.3.2
+
 - Version 3.4.0, released 2021-12-14
-  - upgraded Kotlin to 1.6.10
+  - upgraded to Kotlin 1.6.10
   - upgraded external dependencies
       - `ch.qos.logback:logback-classic` from `1.2.7` to `1.2.8`
     
