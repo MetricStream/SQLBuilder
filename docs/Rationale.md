@@ -821,6 +821,13 @@ following steps (all examples are given for [Junit5], adapt for your test framew
      `when(rs.getLong("ID")).thenReturn(1L);`
 
 # Release Notes #
+- Version 3.4.3, released 2022-01-05
+  - fixed bug in tag matching code
+  - upgraded to Gradle 7.3.3
+  - upgraded external dependencies
+    - `ch.qos.logback:logback-classic` from `1.2.8` to `1.2.9`
+    - `com.oracle.database.jdbc:ojdbc8` from `21.3.0.0` to `21.4.0.0.1` (only used for "examples" module)
+
 - Version 3.4.2, released 2021-12-15
   - upgraded to Gradle 7.3.2
 

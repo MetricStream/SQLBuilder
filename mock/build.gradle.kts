@@ -1,7 +1,7 @@
 dependencies {
     implementation(project(":core"))
     implementation("org.slf4j:slf4j-api:1.7.32")
-    implementation("ch.qos.logback:logback-classic:1.2.8")
+    implementation("ch.qos.logback:logback-classic:1.2.9")
     implementation("com.opencsv:opencsv:5.5.2")
     testImplementation("io.mockk:mockk:1.12.1")
     testImplementation("org.mockito:mockito-core:4.0.0")
