@@ -821,6 +821,9 @@ following steps (all examples are given for [Junit5], adapt for your test framew
      `when(rs.getLong("ID")).thenReturn(1L);`
 
 # Release Notes #
+- Version 3.4.4, released 2022-01-06
+  - ignore groovy runtime stack entries in tag matching code
+
 - Version 3.4.3, released 2022-01-05
   - fixed bug in tag matching code
   - upgraded to Gradle 7.3.3

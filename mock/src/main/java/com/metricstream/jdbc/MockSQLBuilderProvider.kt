@@ -418,12 +418,14 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             for (stackTraceElement in stackTrace) {
                 val declaringClass = stackTraceElement.className
                 val methodName = stackTraceElement.methodName
-                if (declaringClass != "com.metricstream.jdbc.SQLBuilder" &&
-                    declaringClass != "com.metricstream.jdbc.MockSQLBuilderProvider" &&
+                if (declaringClass != "com.metricstream.jdbc.MockSQLBuilderProvider" &&
+                    declaringClass != "com.metricstream.jdbc.SQLBuilder" &&
                     declaringClass != "com.metricstream.jdbc.SQLBuilderProvider" &&
+                    !declaringClass.startsWith("com.metricstream.jdbc.SQLBuilder$") &&
                     !declaringClass.startsWith("org.junit.") &&
                     !declaringClass.startsWith("jdk.internal.") &&
                     !declaringClass.startsWith("java.lang.") &&
+                    !declaringClass.startsWith("org.codehaus.groovy.") &&
                     methodName != "catchThrowable" &&
                     methodName != "isThrownBy" &&
                     !methodName.startsWith("lambda$") &&
