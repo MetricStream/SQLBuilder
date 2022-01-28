@@ -198,7 +198,7 @@ internal class SQLBuilderTest {
         shouldThrow<IllegalStateException> {
             MockSQLBuilderProvider.setExecute("abc", 1)
             updateFoo.execute(mockConnection) shouldBe 1
-        } shouldHaveMessage "Trying to use abc for method testMock"
+        } shouldHaveMessage "Trying to use mock data tagged with 'abc' in method 'testMock' of class com.metricstream.jdbc.SQLBuilderTest"
     }
 
     @Test

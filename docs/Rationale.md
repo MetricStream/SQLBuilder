@@ -821,6 +821,9 @@ following steps (all examples are given for [Junit5], adapt for your test framew
      `when(rs.getLong("ID")).thenReturn(1L);`
 
 # Release Notes #
+- Version 3.4.5, released 2022-01-28
+  - extract method name from generated class name for Groovy 2.4 closures in tag matching code
+
 - Version 3.4.4, released 2022-01-06
   - ignore groovy runtime stack entries in tag matching code
 

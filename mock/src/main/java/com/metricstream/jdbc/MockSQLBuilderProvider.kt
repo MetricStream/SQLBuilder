@@ -417,7 +417,11 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             val stackTrace = Throwable().stackTrace
             for (stackTraceElement in stackTrace) {
                 val declaringClass = stackTraceElement.className
-                val methodName = stackTraceElement.methodName
+                var methodName = stackTraceElement.methodName
+                if (methodName == "doCall") {
+                    // undo Groovy 2.4 closure method name mangling
+                    groovyClosure.matchEntire(declaringClass)?.groupValues?.get(1)?.let { methodName = it }
+                }
                 if (declaringClass != "com.metricstream.jdbc.MockSQLBuilderProvider" &&
                     declaringClass != "com.metricstream.jdbc.SQLBuilder" &&
                     declaringClass != "com.metricstream.jdbc.SQLBuilderProvider" &&
@@ -429,9 +433,9 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
                     methodName != "catchThrowable" &&
                     methodName != "isThrownBy" &&
                     !methodName.startsWith("lambda$") &&
-                    !methodName.contains(Regex("""\${"$"}lambda-\d+$"""))
+                    !methodName.contains(kotlinLambda)
                 ) {
-                    check(methodName == tag.split(":").first()) { "Trying to use $tag for method $methodName" }
+                    check(methodName == tag.split(":").first()) { "Trying to use mock data tagged with '$tag' in method '$methodName' of class $declaringClass" }
                     break
                 }
             }
@@ -456,6 +460,9 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         private var executeSupplier: Supplier<Int> = Supplier { THE_ANSWER_TO_THE_ULTIMATE_QUESTION }
         private var executeTag: String = ""
         lateinit var invocations: Invocations
+
+        private val groovyClosure = Regex(""".+\..+\${"$"}_(.+)_closure\d*""")
+        private val kotlinLambda = Regex("""\${"$"}lambda-\d+$""")
 
         @JvmStatic
         fun enable() {

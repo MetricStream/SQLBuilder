@@ -216,7 +216,7 @@ class SQLBuilderTestJava {
         assertThatIllegalStateException().isThrownBy(() -> {
             MockSQLBuilderProvider.setExecute("abc", 1);
             updateFoo.execute(mockConnection);
-        }).withMessage("Trying to use abc for method testMock");
+        }).withMessage("Trying to use mock data tagged with 'abc' in method 'testMock' of class com.metricstream.jdbc.SQLBuilderTestJava");
     }
 
     @Test
