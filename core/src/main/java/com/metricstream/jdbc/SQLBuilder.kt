@@ -22,7 +22,8 @@ import java.util.StringJoiner
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import org.apache.commons.codec.digest.DigestUtils
-import org.slf4j.LoggerFactory
+
+private val logger = mu.KotlinLogging.logger {}
 
 /**
  * Wrapper class around PreparedStatement
@@ -294,7 +295,7 @@ class SQLBuilder {
                 statement.setLength(0)
                 statement.append(sb)
                 sb.setLength(0)
-                logger.debug("{}; args={}", statement, expanded)
+                logger.debug { "$statement; args=$expanded" }
                 ""
             }
             Mode.EXPAND_AND_STRING -> {
@@ -787,7 +788,6 @@ class SQLBuilder {
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(SQLBuilder::class.java)
         private val jdbcProvider: SQLBuilderProvider = JdbcSQLBuilderProvider()
         private var delegate = jdbcProvider
 
@@ -914,7 +914,7 @@ class SQLBuilder {
                         resource.close()
                     } catch (e: Exception) {
                         allClosed = false
-                        logger.error("Can't close {}", resource.javaClass.name, e)
+                        logger.error(e) { "Can't close ${resource.javaClass.name}" }
                     }
                 }
             }

@@ -29,7 +29,8 @@ import java.util.concurrent.atomic.AtomicLong
 import java.sql.Array as SQLArray
 import com.opencsv.CSVReader
 import com.opencsv.exceptions.CsvException
-import org.slf4j.LoggerFactory
+
+private val logger = mu.KotlinLogging.logger {}
 
 class MockResultSet private constructor(
     tag: String,
@@ -779,7 +780,6 @@ class MockResultSet private constructor(
     override fun toString(): String = tag
 
     companion object {
-        private val logger = LoggerFactory.getLogger(MockResultSet::class.java)
         private val counter = AtomicLong(0)
         internal const val THE_ANSWER_TO_THE_ULTIMATE_QUESTION = 42
 
@@ -880,10 +880,10 @@ class MockResultSet private constructor(
                     }
                 }
             } catch (ex: IOException) {
-                logger.error("Cannot parse CSV {}", csv)
+                logger.error { "Cannot parse CSV $csv" }
                 throw SQLException("Invalid data")
             } catch (ex: CsvException) {
-                logger.error("Cannot parse CSV {}", csv)
+                logger.error { "Cannot parse CSV $csv" }
                 throw SQLException("Invalid data")
             }
         }
@@ -915,7 +915,7 @@ class MockResultSet private constructor(
                     return MockResultSet(tag, columnNames, data.toTypedArray() as Array<Array<Any?>>)
                 }
             } catch (ex: Exception) {
-                logger.error("Cannot parse CSV {}", csv)
+                logger.error { "Cannot parse CSV $csv" }
                 throw SQLException("Invalid data")
             }
         }
@@ -951,10 +951,10 @@ class MockResultSet private constructor(
                     return MockResultSet(tag, columnNames, data.toTypedArray() as Array<Array<Any?>>)
                 }
             } catch (ex: IOException) {
-                logger.error("Cannot parse CSV {}", listOf(*csvs))
+                logger.error { "Cannot parse CSV ${listOf(*csvs)}" }
                 throw SQLException("Invalid data")
             } catch (ex: CsvException) {
-                logger.error("Cannot parse CSV {}", listOf(*csvs))
+                logger.error { "Cannot parse CSV ${listOf(*csvs)}" }
                 throw SQLException("Invalid data")
             }
         }
