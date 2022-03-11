@@ -779,39 +779,68 @@ methods. Similar to the supplier approach for `SQLBuilder#execute`, you can forc
 
 ## Notes about Unit Testing ##
 
-First of all: you must correctly prepare your unit test code to use the mocking provider. This is done using the
-following steps (all examples are given for [Junit5], adapt for your test framework as required):
+### Prepare Test Framework ###
 
-1. Change `SQLBuilder` to use the mocking provider with "autogenerate resultsets" and "enforce tags" enabled using
+Test code preparation depends on the used test framework.  We only describe adoption for [Junit4] and [JUnit5] here.  For other frameworks, please extrapolate.
 
+#### JUnit5 ####
+
+For JUnit5, the recommended way to add `SQLBuilder` mocking is to annotate the test class with `MockSQLBuilderExtension`:
+- Java
+```kotlin
+@ExtendWith(MockSQLBuilderExtension::class)
+```
+- Kotlin
+```java
+@ExtendWith(MockSQLBuilderExtension.class)
+```
+
+This will enable the mocking provider for the whole class before all tests and disable it again after all tests. It will also reset the mocking provider after each test to flag unused mocked `ResultSet` objects.
+
+#### Junit4 ####
+
+[JUnit4] does not support extensions, and thus the steps performed by the [JUnit5] extension must be performed manually.
+
+- Java
    ```java
-    @BeforeAll
+    @BeforeClass
     static void beforeAll() {
         MockSQLBuilderProvider.enable();
     }
-   ```
 
-2. Make sure to restore the original `SQLBuilder` behavior once your test class is done
-
-   ```java
-    @AfterAll
+    @AfterClass
     static void afterAll() {
         MockSQLBuilderProvider.disable();
     }
-   ```
 
-3. Reset MockSQLBuilderProvider to clear the test data queue and ensure that "SQLBuilder#execute" returns 42 executing
-   tests to prevent spill-over from previous tests:
-
-   ```java
-    @BeforeEach
-    void setUp() {
+    @Before
+    void beforeEach() {
         MockSQLBuilderProvider.reset();
     }
    ```
+- Kotlin
+```kotlin
+    @Before
+    fun beforeEach() {
+        MockSQLBuilderProvider.reset()
+    }
+    
+    companion object {
+        @BeforeClass
+        fun beforeAll() {
+            MockSQLBuilderProvider.enable()
+        }
+        
+        @AfterClass
+        fun afterAll() {
+            MockSQLBuilderProvider.disable()
+        }
+    }
+```
 
-3. Remove all other mocking for `SQLBuilder`:
-   - remove all `SQLBuilder fields with their `@Mock` annotation
+### Cleanup Test Code ###
+1. Remove all existing mocking for `SQLBuilder`:
+   - remove all `SQLBuilder` fields with their `@Mock` annotation
    - remove `SQLBuilder.class` from `@PrepareForTest`
    - remove all `mockStatic(SQLBuilder.class)`
    - remove all `SQLBuilder` variables, especially when initialized using `mock(SQLBuilder.class)`
@@ -821,6 +850,20 @@ following steps (all examples are given for [Junit5], adapt for your test framew
      `when(rs.getLong("ID")).thenReturn(1L);`
 
 # Release Notes #
+- Version 3.4.6, released 2022-??-??
+  - use `io.github.microutils:kotlin-logging-jvm` as wrapper around SLF4J for Kotlin code
+  - added external dependencies
+    - `io.github.microutils:kotlin-logging-jvm` version `2.1.21`
+  - upgraded external dependencies
+    - `ch.qos.logback:logback-classic` from `1.2.9` to `1.2.11` 
+    - `org.slf4j:slf4j-api` from `1.7.32` to `1.7.36`
+    - `org.mockito:mockito-core` from `4.0.0` to `4.3.1`
+    - `org.mockito:mockito-junit-jupiter` from `4.0.0` to `4.3.1`
+    - `com.opencsv:opencsv` from `5.5.2` to `5.6`
+    - `io.mockk:mockk` from `1.12.1` to `1.12.3`
+    - `io.kotest:kotest-assertions-core` from `5.0.1` to `5.1.0`
+    - `org.assertj:assertj-core` from `3.21.0` to `3.22.0`
+
 - Version 3.4.5, released 2022-01-28
   - extract method name from generated class name for Groovy 2.4 closures in tag matching code
 
@@ -841,6 +884,7 @@ following steps (all examples are given for [Junit5], adapt for your test framew
   - upgraded to Kotlin 1.6.10
   - upgraded external dependencies
       - `ch.qos.logback:logback-classic` from `1.2.7` to `1.2.8`
+      - `io.mockk:mockk` from `1.12.0` to `1.12.1`
     
 - Version 3.3.0, released 2021-12-08
   - added `MockResultSet#add` methods which combine `create` and `MockResultSetProvider#addResultSet`
@@ -949,6 +993,7 @@ following steps (all examples are given for [Junit5], adapt for your test framew
 [iBATIS]: https://ibatis.apache.org/
 [the answer]: https://en.wikipedia.org/wiki/Phrases_from_The_Hitchhiker%27s_Guide_to_the_Galaxy#Answer_to_the_Ultimate_Question_of_Life,_the_Universe,_and_Everything_(42)
 [Junit5]: https://junit.org/junit5/
+[Junit4]: https://junit.org/junit4/
 [MetricStream]: https://www.metricstream.com/
 [Assert4J]: https://joel-costigliola.github.io/assertj/
 [Kotest]: https://kotest.io/
