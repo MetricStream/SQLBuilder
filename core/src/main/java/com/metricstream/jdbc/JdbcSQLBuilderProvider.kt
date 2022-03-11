@@ -12,8 +12,10 @@ import java.sql.PreparedStatement
 import java.sql.ResultSet
 import com.metricstream.jdbc.SQLBuilder.Masked
 import java.math.BigDecimal
+import java.sql.CallableStatement
 import java.sql.Connection
 import java.sql.Date
+import java.sql.JDBCType
 import java.sql.Timestamp
 import java.time.OffsetDateTime
 import java.time.Instant
@@ -66,6 +68,66 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
     }
 
     @Throws(SQLException::class)
+    private fun buildCall(
+        sqlBuilder: SQLBuilder,
+        connection: Connection
+    ): CallableStatement {
+        val expanded: MutableList<Any?> = mutableListOf()
+        sqlBuilder.interpolate(SQLBuilder.Mode.EXPAND_AND_APPLY, expanded)
+        val placeholders = Regex("""[?!&]""").findAll(sqlBuilder.statement.toString()).map { matchResult -> matchResult.groupValues[0][0] }.toList()
+        val cs: CallableStatement = connection.prepareCall(sqlBuilder.statement.toString().replace(Regex("""[!&]"""), "?"))
+        if (placeholders.isNotEmpty()) {
+            try {
+                placeholders.forEachIndexed { index, p ->
+                    val arg = expanded[index]
+                    when (p) {
+                        '!' -> {
+                            val type = when (arg) {
+                                is SQLBuilder.Out<*> -> arg.type.vendorTypeNumber
+                                is JDBCType -> arg.vendorTypeNumber
+                                is Int -> arg
+                                else -> throw IllegalArgumentException("Invalid value '$arg' for OUT or INOUT parameter ${index + 1}")
+                            }
+                            cs.registerOutParameter(index + 1, type)
+                        }
+                        '&' -> {
+                            val type = when(arg) {
+                                is SQLBuilder.InOut<*> -> arg.type
+                                is Int -> JDBCType.INTEGER
+                                is Long -> JDBCType.INTEGER
+                                is String -> JDBCType.VARCHAR
+                                is Double -> JDBCType.DOUBLE
+                                else -> JDBCType.OTHER
+                            }
+                            cs.registerOutParameter(index + 1, type.vendorTypeNumber)
+                        }
+                    }
+                    if (p != '!') {
+                        val value = when(arg) {
+                            is SQLBuilder.InOut<*> -> arg.data
+                            else -> arg
+                        }
+                        cs.setObject(index + 1, value)
+                    }
+                }
+        } catch (ex: SQLException) {
+            close(cs)
+            throw ex
+        }
+    }
+        return cs
+    }
+
+    private fun type(arg: Any?): Int {
+        return when (arg) {
+            is SQLBuilder.Out<*> -> arg.type.vendorTypeNumber
+            is JDBCType -> arg.vendorTypeNumber
+            is Int -> arg
+            else -> throw IllegalArgumentException("Invalid value '$arg' for OUT or INOUT parameter")
+        }
+    }
+
+    @Throws(SQLException::class)
     override fun getResultSet(
         sqlBuilder: SQLBuilder,
         connection: Connection,
@@ -79,6 +141,23 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
             }
         } catch (e: SQLException) {
             close(preparedStatement)
+            throw e
+        }
+    }
+
+    @Throws(SQLException::class)
+    override fun call(sqlBuilder: SQLBuilder, connection: Connection) : CallResult {
+        var callableStatement: CallableStatement? = null
+        return try {
+            callableStatement = buildCall(sqlBuilder, connection)
+            callableStatement.execute()
+            val mapIndex = Regex("""[?!&]""").findAll(sqlBuilder.toSQL())
+                .mapIndexedNotNull { index, matchResult -> if (matchResult.groupValues[0] != "?") index + 1 else null }
+                .mapIndexed { index, i -> index + 1 to i }
+                .toMap()
+            JDBCCallResult(callableStatement, mapIndex)
+        } catch (e: SQLException) {
+            close(callableStatement)
             throw e
         }
     }

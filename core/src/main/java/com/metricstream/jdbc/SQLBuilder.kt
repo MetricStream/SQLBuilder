@@ -8,8 +8,10 @@ import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import java.math.BigDecimal
+import java.sql.CallableStatement
 import java.sql.Connection
 import java.sql.Date
+import java.sql.JDBCType
 import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Statement
@@ -62,7 +64,7 @@ class SQLBuilder {
     @JvmField
     var maxRows: Int = -1
 
-    internal enum class Mode { APPLY_BINDINGS, EXPAND_AND_APPLY, EXPAND_AND_SQL, EXPAND_AND_STRING }
+    enum class Mode { APPLY_BINDINGS, EXPAND_AND_APPLY, EXPAND_AND_SQL, EXPAND_AND_STRING }
 
     /**
      * Simple wrapper class for "sensitive" data like full names, email addresses or SSNs.
@@ -82,6 +84,49 @@ class SQLBuilder {
                 else -> "__masked__:" + DigestUtils.md5Hex(data.toString())
             }
         }
+    }
+
+    sealed class Parameter(val type: JDBCType)
+
+    open class Out<T>(type: JDBCType) : Parameter(type) {
+        private var index: Int = 0
+        private lateinit var callableStatement: CallableStatement
+
+        open fun register(callableStatement: CallableStatement, index: Int) {
+            this.callableStatement = callableStatement
+            this.index = index
+            callableStatement.registerOutParameter(index + 1, type)
+        }
+
+        open fun get(): T = when(type) {
+            JDBCType.INTEGER -> callableStatement.getInt(index)
+            JDBCType.VARCHAR -> callableStatement.getString(index)
+            JDBCType.CHAR -> callableStatement.getString(index).getOrNull(0)
+            JDBCType.TIMESTAMP -> callableStatement.getTimestamp(index)
+            JDBCType.DATE -> callableStatement.getDate(index)
+            else -> callableStatement.getObject(index)
+        } as T
+
+        override fun toString() = "Out<$type>"
+    }
+
+    open class InOut<T>(type: JDBCType, val data: T?) : Out<T>(type) {
+        override fun toString() = "InOut<$type>($data)"
+    }
+
+    class OutInt : Out<Int>(JDBCType.INTEGER)
+    class OutLong : Out<Long>(JDBCType.INTEGER)
+    class OutString : Out<String>(JDBCType.VARCHAR)
+
+    class InOutInt(data: Int) : InOut<Int>(JDBCType.INTEGER, data)
+    class InOutLong(data: Long) : InOut<Long>(JDBCType.INTEGER, data)
+    class InOutString(data: String) : InOut<String>(JDBCType.VARCHAR, data)
+
+    class OutError {
+        val code = OutInt()
+        val message = OutString()
+
+        override fun toString() = "OutError"
     }
 
     /**
@@ -232,7 +277,7 @@ class SQLBuilder {
         require(names.add(name)) { """The binding name "$name" must be unique""" }
     }
 
-    internal fun interpolate(mode: Mode, expanded: MutableList<Any?> = mutableListOf()): String {
+    fun interpolate(mode: Mode, expanded: MutableList<Any?> = mutableListOf()): String {
         val expandedStatement = StringBuilder(statement)
         if (arguments.isNotEmpty() && mode != Mode.APPLY_BINDINGS) {
             // We must not expand in APPLY_BINDINGS mode because that can be called multiple times
@@ -374,6 +419,23 @@ class SQLBuilder {
     @JvmOverloads
     fun getResultSet(wrapConnection: Boolean = false): ResultSet {
         delegate.getConnection().use { return delegate.getResultSet(this, it, wrapConnection) }
+    }
+
+    /**
+     * Returns a ResultSet object created from a PreparedStatement object created using
+     * CallResult object created from a CallableStatement object created using
+     * the SQL statement and the parameters.  The CallableStatement object
+     * and the Connection object will be automatically closed when the CallResult object is closed.
+     * @param connection The Connection object from which the CallableStatement object is created
+     * @return The CallResult object
+     * @throws SQLException the exception thrown when generating the CallResult object
+     */
+    @Throws(SQLException::class)
+    fun call(connection: Connection): CallResult {
+        val sql = toSQL()
+        val call = if (sql.contains(Regex("""\Bcall\B"""))) this else wrap("{ call ", " }")
+        logger.debug { call }
+        return delegate.call(call, connection)
     }
 
     /**

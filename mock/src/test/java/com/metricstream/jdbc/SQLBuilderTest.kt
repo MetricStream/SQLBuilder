@@ -1136,6 +1136,26 @@ internal class SQLBuilderTest {
         }
     }
 
+    @Test
+    fun `call with one Out`() {
+        MockCallResult.add("", arrayOf(11))
+        val sb = SQLBuilder("foo(!)")
+        sb.call(mockConnection).use { cr ->
+            cr.getInt(1) shouldBe 11
+        }
+    }
+
+    @Test
+    fun `call with multiple In and Out and InOut`() {
+        MockCallResult.add("", arrayOf(11, 12L, "13"))
+        val sb = SQLBuilder("foo(?, ?, !, ?, &, !)", 1, 2, 3, 4)
+        sb.call(mockConnection).use { cr ->
+            cr.getInt(1) shouldBe 11
+            cr.getLong(2) shouldBe 12L
+            cr.getString(3) shouldBe "13"
+        }
+    }
+
     internal class QueryParamsImpl : QueryParams {
         // some arbitrary param values for testing
         private val values = arrayOf("a", "b", "c")

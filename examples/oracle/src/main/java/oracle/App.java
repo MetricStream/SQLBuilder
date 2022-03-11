@@ -4,6 +4,7 @@
 package oracle;
 
 import java.sql.Connection;
+import java.sql.JDBCType;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -23,7 +24,9 @@ public class App {
     public static void main(String[] args) throws SQLException {
         final App app = new App();
         System.out.println(app.getGreeting());
-        System.out.printf("Created user has id %d%n", app.create());
+        System.out.printf("Created user from insert has id %d%n", app.create());
+        System.out.printf("Created user from call has id %d%n", app.call());
+        System.out.println(app.getGreeting());
     }
 
     private Connection getConnection() throws SQLException {
@@ -31,8 +34,8 @@ public class App {
     }
 
     public List<String> invite() throws SQLException {
+        SQLBuilder sb = new SQLBuilder("select first_name from ${view} where last_name in (?)", Arrays.asList("Pan", "Stream")).bind("view", "si_users");
         try (Connection con = getConnection()) {
-            SQLBuilder sb = new SQLBuilder("select first_name from ${view} where last_name in (?)", Arrays.asList("Pan", "Stream")).bind("view", "si_users");
             return sb.getList(con, rs -> rs.getString(1));
         }
     }
@@ -49,6 +52,17 @@ public class App {
                     return -1;
                 }
             }
+        }
+    }
+
+    public int call() throws SQLException {
+        var firstName = "Paul";
+        var userId = new SQLBuilder.OutInt();
+        SQLBuilder sb = new SQLBuilder("{ call addUser(?, ?, ?) }", firstName, "Stream", userId);
+        try (Connection con = getConnection()) {
+            sb.call(con);
+            System.out.printf("first name: %s%n", firstName);
+            return userId.get();
         }
     }
 

@@ -24,6 +24,12 @@ interface SQLBuilderProvider {
     ): ResultSet
 
     @Throws(SQLException::class)
+    fun call(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+    ): CallResult
+
+    @Throws(SQLException::class)
     fun getInt(
         sqlBuilder: SQLBuilder,
         connection: Connection,

@@ -782,6 +782,7 @@ class MockResultSet private constructor(
     companion object {
         private val counter = AtomicLong(0)
         internal const val THE_ANSWER_TO_THE_ULTIMATE_QUESTION = 42
+        internal const val tagPrefix = "MockResultSet#"
 
         /**
          * Creates the mock ResultSet.
@@ -1004,7 +1005,7 @@ class MockResultSet private constructor(
     }
 
     init {
-        this.tag = tag.ifEmpty { "MockResultSet#${counter.incrementAndGet()}" }
+        this.tag = tag.ifEmpty { "$tagPrefix${counter.incrementAndGet()}" }
         val columnNames: Array<String> = if (names.isNullOrEmpty()) {
             Array(data.getOrNull(0)?.size ?: 0) { i: Int -> "COLUMN${i + 1}" }
         } else {

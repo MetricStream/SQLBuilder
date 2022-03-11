@@ -13,12 +13,12 @@ import org.slf4j.LoggerFactory;
 
 public class DBConnection {
     private static final Logger logger = LoggerFactory.getLogger(DBConnection.class);
-    private static final String userName = System.getenv("DBUSER");
-    private static final String password = System.getenv("DBPASS");
+    private static final String userName = "METRICSTREAM";//System.getenv("DBUSER");
+    private static final String password = "password"; //System.getenv("DBPASS");
 
     public Connection getConnection() throws SQLException {
         try {
-            return DriverManager.getConnection("jdbc:oracle:thin:@172.17.0.2:1521/pdb", userName, password);
+            return DriverManager.getConnection("jdbc:oracle:thin:@rndawsk8sorsw2.metricstream.com:30017/pdb", userName, password);
         } catch (SQLException e) {
             logger.error("Could not create database connection for user {}", userName, e);
             throw e;

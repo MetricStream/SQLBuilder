@@ -10,6 +10,6 @@ import java.sql.SQLException;
 public class DBConnection {
 
     public Connection getConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:postgresql://localhost:5434/nkiesel", "nkiesel", "nk");
+        return DriverManager.getConnection("jdbc:postgresql://localhost:5432/nkiesel", "nkiesel", "nk");
     }
 }

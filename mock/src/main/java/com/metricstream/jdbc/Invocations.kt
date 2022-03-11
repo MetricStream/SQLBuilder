@@ -33,6 +33,8 @@ class Invocations {
 
     @get:JvmName("getRs") var getRs: Int = 0
 
+    @get:JvmName("getCr") var getCr: Int = 0
+
     @get:JvmName("next") var next: Int = 0
 
     @get:JvmName("getRsInt") var getRsInt: Int = 0
