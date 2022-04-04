@@ -444,7 +444,6 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(MockSQLBuilderProvider::class.java)
         private val mockResultSets: Queue<ResultSet> = ConcurrentLinkedQueue()
         private var intByColumnIndex: BiFunction<Int, Int, Int>? = null
         private var intByColumnLabel: BiFunction<String, Int, Int>? = null
