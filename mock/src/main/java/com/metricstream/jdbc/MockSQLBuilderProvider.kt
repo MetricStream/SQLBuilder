@@ -372,7 +372,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         return getMap(getRs(), rowMapper, withNull)
     }
 
-    override fun <T> getSingle(
+    override fun <T : Any> getSingle(
         sqlBuilder: SQLBuilder,
         connection: Connection,
         rowMapper: SQLBuilder.RowMapper<T?>

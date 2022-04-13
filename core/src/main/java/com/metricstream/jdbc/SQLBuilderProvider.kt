@@ -196,7 +196,7 @@ interface SQLBuilderProvider {
     ): Map<K, V?>
 
     @Throws(SQLException::class)
-    fun <T> getSingle(
+    fun <T : Any> getSingle(
         sqlBuilder: SQLBuilder,
         connection: Connection,
         rowMapper: SQLBuilder.RowMapper<T?>

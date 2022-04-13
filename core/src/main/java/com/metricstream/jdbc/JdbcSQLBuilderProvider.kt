@@ -625,7 +625,7 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
     }
 
     @Throws(SQLException::class)
-    override fun <T> getSingle(
+    override fun <T : Any> getSingle(
         sqlBuilder: SQLBuilder,
         connection: Connection,
         rowMapper: SQLBuilder.RowMapper<T?>
