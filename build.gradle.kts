@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     base
     `java-library`
@@ -34,8 +32,10 @@ subprojects {
         mavenCentral()
     }
 
-    tasks.withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "11"
+    kotlin {
+        jvmToolchain {
+            (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(11))
+        }
     }
 
     tasks.withType<AbstractArchiveTask> {
