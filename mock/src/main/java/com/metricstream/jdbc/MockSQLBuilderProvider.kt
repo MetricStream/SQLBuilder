@@ -436,7 +436,12 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
                     !methodName.startsWith("lambda$") &&
                     !methodName.contains(kotlinLambda)
                 ) {
-                    check(methodName == tag.split(":").first()) { "Trying to use mock data tagged with '$tag' in method '$methodName' of class $declaringClass" }
+                    // We should accept all possible Java or Kotlin method names here, but this is tricky esp. for
+                    // Kotlin which e.g. allows whitespace in identifiers if they are enclosed in ``. We thus simply
+                    // use anything before the first : or #.
+                    check(methodName == tag.split(":", "#").first()) {
+                        "Trying to use mock data tagged with '$tag' in method '$methodName' of class $declaringClass"
+                    }
                     break
                 }
             }

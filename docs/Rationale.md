@@ -686,9 +686,9 @@ However, creating `MockSQLBuilderProvider` using `SQLBuilder.setDelegate(new Moc
 turn on the `enforceTags` option (using the 2nd `true`; the first one is used to control whether to synthesize ResultSet
 objects if none were explicitly added and is `true` by default). In this mode, the tag values of `MockResultSet` objects
 are checked against the names of the methods in which they are consumed. More precisely: the method name must be equal
-to the part of the tag name before the first `:` in the tag name. If this fails, an `IllegalStateException` is thrown.
-The `:` rule allows adding more information about the tagged `MockResultSet` object and is especially useful if a method
-contains multiple SQL queries.
+to the part of the tag name before the first `:` or `#` in the tag name. If this fails, an `IllegalStateException` is thrown.
+The "`:` or `#` rule" allows adding more information about the tagged `MockResultSet` object and is especially useful if
+a method contains multiple SQL queries.
 
 As a concrete example, consider the following code:
 - Java
@@ -851,6 +851,7 @@ This will enable the mocking provider for the whole class before all tests and d
 
 # Release Notes #
 - Version 3.5.0, released 2022-??-??
+  - allow both `:` and `#` as start for tag suffixes
   - use `io.github.microutils:kotlin-logging-jvm` as wrapper around SLF4J for Kotlin code
   - added external dependencies
     - `io.github.microutils:kotlin-logging-jvm` version `2.1.21`
