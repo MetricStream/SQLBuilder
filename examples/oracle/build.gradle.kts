@@ -5,14 +5,14 @@ plugins {
 
 dependencies {
     implementation(project(":core"))
-    implementation("org.slf4j:slf4j-api:1.7.36")
-    implementation("ch.qos.logback:logback-classic:1.2.11")
-    implementation("com.oracle.database.jdbc:ojdbc8:21.5.0.0")
+    implementation(libs.slf4j.api)
+    implementation(libs.logback.classic)
+    implementation(libs.ojdbc8)
     testImplementation(project(":mock"))
-    testImplementation("org.mockito:mockito-core:4.5.1")
-    testImplementation("org.mockito:mockito-junit-jupiter:4.5.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.junit.jupiter)
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 application {

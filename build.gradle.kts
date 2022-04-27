@@ -4,8 +4,8 @@ plugins {
     `maven-publish`
     signing
     kotlin("jvm") version "1.6.21"
-    id("org.jlleitschuh.gradle.ktlint") version "10.2.1"
-    id("io.gitlab.arturbosch.detekt") version "1.19.0"
+    alias(libs.plugins.ktlint)
+    alias(libs.plugins.detekt)
 }
 
 // These are credentials required for the task `uploadArchives`. They are read either from gradle.properties or from the command
