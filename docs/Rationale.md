@@ -851,17 +851,17 @@ This will enable the mocking provider for the whole class before all tests and d
 
 # Release Notes #
 - Version 3.5.0, released 2022-??-??
-  - allow both `:` and `#` as start for tag suffixes
-  - use `io.github.microutils:kotlin-logging-jvm` as wrapper around SLF4J for Kotlin code
+  - allow both `:` and `#` as start for `MockResultSet` tag suffixes
+  - use `io.github.microutils:kotlin-logging-jvm` as wrapper around `SLF4J` for Kotlin code
   - added external dependencies
     - `io.github.microutils:kotlin-logging-jvm` version `2.1.21`
-  - upgraded to Kotlin 1.6.20
-  - upgraded to Gradle 7.4.2
+  - upgraded to Kotlin `1.6.21`
+  - upgraded to Gradle `7.4.2`
   - upgraded external dependencies
-    - `ch.qos.logback:logback-classic` from `1.2.9` to `1.2.11` 
+    - `ch.qos.logback:logback-classic` from `1.2.9` to `1.2.11`
     - `org.slf4j:slf4j-api` from `1.7.32` to `1.7.36`
-    - `org.mockito:mockito-core` from `4.0.0` to `4.4.0`
-    - `org.mockito:mockito-junit-jupiter` from `4.0.0` to `4.4.0`
+    - `org.mockito:mockito-core` from `4.0.0` to `4.5.1`
+    - `org.mockito:mockito-junit-jupiter` from `4.0.0` to `4.5.1`
     - `com.opencsv:opencsv` from `5.5.2` to `5.6`
     - `io.mockk:mockk` from `1.12.1` to `1.12.3`
     - `io.kotest:kotest-assertions-core` from `5.0.1` to `5.2.2`
