@@ -850,7 +850,7 @@ This will enable the mocking provider for the whole class before all tests and d
      `when(rs.getLong("ID")).thenReturn(1L);`
 
 # Release Notes #
-- Version 3.5.0, released 2022-??-??
+- Version 3.5.0, released 2022-04-26
   - allow both `:` and `#` as start for `MockResultSet` tag suffixes
   - use `io.github.microutils:kotlin-logging-jvm` as wrapper around `SLF4J` for Kotlin code
   - added external dependencies
