@@ -207,7 +207,7 @@ internal class SQLBuilderTest {
         SQLBuilder("select a from foo where a in (?)", listOf(3)).toSQL() shouldEndWith "a in (?)"
         SQLBuilder("select a from foo where a in (?)", listOf(3, 1, 4)).toSQL() shouldEndWith "a in (?,?,?)"
         SQLBuilder("select a from foo where a in (?) and b in (?)", listOf(3, 1, 4), listOf(2, 1)).toSQL() shouldEndWith
-                "a in (?,?,?) and b in (?,?)"
+            "a in (?,?,?) and b in (?,?)"
         shouldThrow<SQLException> {
             SQLBuilder("select a from foo where a in (?)", emptyList<Int>()).toSQL()
         } shouldHaveMessage "Collection parameters must contain at least one element"
@@ -946,19 +946,19 @@ internal class SQLBuilderTest {
     fun testFromNumberedParams() {
         val params: QueryParams = QueryParamsImpl()
         SQLBuilder.fromNumberedParameters("select n from t where i=:1)", params).toString() shouldBe
-                "select n from t where i=?); args=[a]"
+            "select n from t where i=?); args=[a]"
         SQLBuilder.fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString() shouldBe
-                "select n from t where i=? or i=?); args=[a, b]"
+            "select n from t where i=? or i=?); args=[a, b]"
         SQLBuilder.fromNumberedParameters("select n from t where i=:2 or i=:1)", params).toString() shouldBe
-                "select n from t where i=? or i=?); args=[b, a]"
+            "select n from t where i=? or i=?); args=[b, a]"
         SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString() shouldBe
-                "select n from t where i=? or k=?); args=[b, b]"
+            "select n from t where i=? or k=?); args=[b, b]"
         SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString() shouldBe
-                "select n from t where i=? or k=':4'); args=[b]"
+            "select n from t where i=? or k=':4'); args=[b]"
         SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString() shouldBe
-                "select n from t where i=? or k=':2'); args=[b]"
+            "select n from t where i=? or k=':2'); args=[b]"
         SQLBuilder.fromNumberedParameters("select n from t where i=:11 or i=:2)", params).toString() shouldBe
-                "select n from t where i=:11 or i=?); args=[b]"
+            "select n from t where i=:11 or i=?); args=[b]"
     }
 
     @Test
@@ -972,31 +972,31 @@ internal class SQLBuilderTest {
     @Test
     fun maskData() {
         SQLBuilder("select name from user where secret=?", SQLBuilder.mask("oops!")).toString() shouldBe
-                "select name from user where secret=?; args=[__masked__:982c0381c279d139fd221fce974916e7]"
+            "select name from user where secret=?; args=[__masked__:982c0381c279d139fd221fce974916e7]"
     }
 
     @Test
     fun maskDataNull() {
         SQLBuilder("select name from user where secret=?", SQLBuilder.mask(null)).toString() shouldBe
-                "select name from user where secret=?; args=[null]"
+            "select name from user where secret=?; args=[null]"
     }
 
     @Test
     fun maskDataEmpty() {
         SQLBuilder("select name from user where secret=?", SQLBuilder.mask("")).toString() shouldBe
-                "select name from user where secret=?; args=[]"
+            "select name from user where secret=?; args=[]"
     }
 
     @Test
     fun maskDataLong() {
         SQLBuilder("select name from user where secret=?", SQLBuilder.mask(42L)).toString() shouldBe
-                "select name from user where secret=?; args=[__masked__:a1d0c6e83f027327d8461063f4ac58a6]"
+            "select name from user where secret=?; args=[__masked__:a1d0c6e83f027327d8461063f4ac58a6]"
     }
 
     @Test
     fun maskDataMixed() {
         SQLBuilder("select name from user where secret=? and public=?", SQLBuilder.mask("oops!"), "ok").toString() shouldBe
-                "select name from user where secret=? and public=?; args=[__masked__:982c0381c279d139fd221fce974916e7, ok]"
+            "select name from user where secret=? and public=?; args=[__masked__:982c0381c279d139fd221fce974916e7, ok]"
     }
 
     private fun masked(value: Any): String {
