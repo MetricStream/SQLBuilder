@@ -413,34 +413,42 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
         return rs
     }
 
+    private fun candidate(stackTraceElement: StackTraceElement): String? {
+        val declaringClass = stackTraceElement.className
+        if (declaringClass.startsWith("com.metricstream.jdbc.") ||
+            declaringClass.startsWith("org.junit.") ||
+            declaringClass.startsWith("jdk.internal.") ||
+            declaringClass.startsWith("java.lang.") ||
+            declaringClass.startsWith("org.codehaus.groovy.")) {
+            return null
+        }
+
+        var methodName = stackTraceElement.methodName
+        if (methodName == "doCall") {
+            // undo Groovy 2.4 closure method name mangling
+            groovyClosure.matchEntire(declaringClass)?.groupValues?.get(1)?.let { methodName = it }
+        }
+        if (methodName == "catchThrowable" ||
+            methodName == "isThrownBy" ||
+            methodName.startsWith("lambda$") ||
+            methodName.contains(kotlinLambda)) {
+            return null
+        }
+
+        return methodName
+    }
+
     private fun checkTag(tag: String) {
         if (enforceTags && tag.isNotEmpty() && !tag.startsWith("MockResultSet#")) {
             val stackTrace = Throwable().stackTrace
             for (stackTraceElement in stackTrace) {
-                val declaringClass = stackTraceElement.className
-                var methodName = stackTraceElement.methodName
-                if (methodName == "doCall") {
-                    // undo Groovy 2.4 closure method name mangling
-                    groovyClosure.matchEntire(declaringClass)?.groupValues?.get(1)?.let { methodName = it }
-                }
-                if (declaringClass != "com.metricstream.jdbc.MockSQLBuilderProvider" &&
-                    declaringClass != "com.metricstream.jdbc.SQLBuilder" &&
-                    declaringClass != "com.metricstream.jdbc.SQLBuilderProvider" &&
-                    !declaringClass.startsWith("com.metricstream.jdbc.SQLBuilder$") &&
-                    !declaringClass.startsWith("org.junit.") &&
-                    !declaringClass.startsWith("jdk.internal.") &&
-                    !declaringClass.startsWith("java.lang.") &&
-                    !declaringClass.startsWith("org.codehaus.groovy.") &&
-                    methodName != "catchThrowable" &&
-                    methodName != "isThrownBy" &&
-                    !methodName.startsWith("lambda$") &&
-                    !methodName.contains(kotlinLambda)
-                ) {
+                val methodName = candidate(stackTraceElement)
+                if (methodName != null) {
                     // We should accept all possible Java or Kotlin method names here, but this is tricky esp. for
                     // Kotlin which e.g. allows whitespace in identifiers if they are enclosed in ``. We thus simply
                     // use anything before the first : or #.
                     check(methodName == tag.split(":", "#").first()) {
-                        "Trying to use mock data tagged with '$tag' in method '$methodName' of class $declaringClass"
+                        "Trying to use mock data tagged with '$tag' in method '$methodName' of class ${stackTraceElement.className}"
                     }
                     break
                 }

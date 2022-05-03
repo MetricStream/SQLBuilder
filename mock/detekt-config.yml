@@ -1,7 +1,13 @@
-formatting:
-  MaximumLineLength:
-    maxLineLength: 140
-
 style:
   MaxLineLength:
     maxLineLength: 140
+  ReturnCount:
+    max: 6
+
+empty-blocks:
+  EmptyFunctionBlock:
+    ignoreOverridden: true
+
+complexity:
+  ComplexCondition:
+    threshold: 6

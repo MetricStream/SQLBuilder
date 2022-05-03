@@ -2,6 +2,7 @@ package com.metricstream.jdbc
 
 import java.sql.ResultSetMetaData
 
+@Suppress("TooManyFunctions")
 class MockResultSetMetaData internal constructor(private val columnIndices: Map<String, Int>) : ResultSetMetaData {
     override fun <T : Any?> unwrap(p0: Class<T>?): T {
         TODO("Not yet implemented")

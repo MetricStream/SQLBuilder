@@ -703,7 +703,7 @@ class SQLBuilder {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     @Throws(SQLException::class)
-    fun <T: Any> getSingle(connection: Connection, rowMapper: RowMapper<T?>): Optional<T> {
+    fun <T : Any> getSingle(connection: Connection, rowMapper: RowMapper<T?>): Optional<T> {
         return delegate.getSingle(this, connection, rowMapper)
     }
 

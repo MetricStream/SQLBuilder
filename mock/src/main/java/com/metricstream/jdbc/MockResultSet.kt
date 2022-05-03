@@ -32,6 +32,7 @@ import com.opencsv.exceptions.CsvException
 
 private val logger = mu.KotlinLogging.logger {}
 
+@Suppress("TooManyFunctions")
 class MockResultSet private constructor(
     tag: String,
     names: Array<String>?,
@@ -268,8 +269,7 @@ class MockResultSet private constructor(
 
     override fun getWarnings(): SQLWarning? = null
 
-    override fun clearWarnings() {
-    }
+    override fun clearWarnings() {}
 
     override fun getCursorName(): String = throw SQLFeatureNotSupportedException()
 
@@ -880,10 +880,10 @@ class MockResultSet private constructor(
                     }
                 }
             } catch (ex: IOException) {
-                logger.error { "Cannot parse CSV $csv" }
+                logger.error(ex) { "Cannot parse CSV $csv" }
                 throw SQLException("Invalid data")
             } catch (ex: CsvException) {
-                logger.error { "Cannot parse CSV $csv" }
+                logger.error(ex) { "Cannot parse CSV $csv" }
                 throw SQLException("Invalid data")
             }
         }
@@ -915,7 +915,7 @@ class MockResultSet private constructor(
                     return MockResultSet(tag, columnNames, data.toTypedArray() as Array<Array<Any?>>)
                 }
             } catch (ex: Exception) {
-                logger.error { "Cannot parse CSV $csv" }
+                logger.error(ex) { "Cannot parse CSV $csv" }
                 throw SQLException("Invalid data")
             }
         }
@@ -951,10 +951,10 @@ class MockResultSet private constructor(
                     return MockResultSet(tag, columnNames, data.toTypedArray() as Array<Array<Any?>>)
                 }
             } catch (ex: IOException) {
-                logger.error { "Cannot parse CSV ${listOf(*csvs)}" }
+                logger.error(ex) { "Cannot parse CSV ${listOf(*csvs)}" }
                 throw SQLException("Invalid data")
             } catch (ex: CsvException) {
-                logger.error { "Cannot parse CSV ${listOf(*csvs)}" }
+                logger.error(ex) { "Cannot parse CSV ${listOf(*csvs)}" }
                 throw SQLException("Invalid data")
             }
         }

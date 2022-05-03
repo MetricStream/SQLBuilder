@@ -542,7 +542,9 @@ internal class SQLBuilderTest {
     @Test
     fun list_test10() {
         add("", arrayOf(arrayOf("a", 1), arrayOf("b", 2), arrayOf("c", 3)))
-        val actual = sqlBuilder.getList(mockConnection) { rs -> rs.getInt(2).let { i -> if (i == 1) null else ListSample(rs.getString(1), i) } }
+        val actual = sqlBuilder.getList(mockConnection) { rs ->
+            rs.getInt(2).let { i -> if (i == 1) null else ListSample(rs.getString(1), i) }
+        }
         actual shouldNotBe emptyList<ListSample>()
         actual.sumOf { it?.age ?: 0 } shouldBe 5
     }

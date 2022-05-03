@@ -55,13 +55,13 @@ class Invocations {
 
     val getAnyColumn: Int
         @JvmName("getAnyColumn") get() = getInt +
-                getLong +
-                getDouble +
-                getString +
-                getBigDecimal +
-                getObject +
-                getDateTime +
-                getInstant +
-                getTimestamp +
-                getDate
+            getLong +
+            getDouble +
+            getString +
+            getBigDecimal +
+            getObject +
+            getDateTime +
+            getInstant +
+            getTimestamp +
+            getDate
 }
