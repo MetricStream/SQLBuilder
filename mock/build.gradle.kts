@@ -2,7 +2,7 @@ dependencies {
     implementation(project(":core"))
     implementation(libs.slf4j.api)
     implementation(libs.logback.classic)
-    implementation(libs.kotlin.logging)
+    implementation(libs.kotlin.logging.jvm)
     implementation(libs.opencsv)
     testImplementation(libs.mockk)
     testImplementation(libs.mockito.core)

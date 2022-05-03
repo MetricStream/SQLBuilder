@@ -6,7 +6,7 @@ dependencyResolutionManagement {
             val assert4j = version("assert4j", "3.22.0")
             val codec = version("codec", "1.15")
             val junit5 = version("junit5", "5.8.2")
-            val kotest = version("kotest", "5.2.3")
+            val kotest = version("kotest", "5.3.0")
             val logback = version("logback", "1.2.11")
             val logging = version("logging", "2.1.21")
             val mockito = version("mockito", "4.5.1")
@@ -16,26 +16,30 @@ dependencyResolutionManagement {
             val postgresql = version("postgresql", "42.3.3")
             val slf4j = version("slf4j", "1.7.36")
 
-            library("assertj-core", "org.assertj", "assertj-core").versionRef(assert4j)
-            library("commons-codec", "commons-codec", "commons-codec").versionRef(codec)
-            library("junit-jupiter-api", "org.junit.jupiter", "junit-jupiter-api").versionRef(junit5)
-            library("junit-jupiter-engine", "org.junit.jupiter", "junit-jupiter-engine").versionRef(junit5)
-            library("kotest-assertions-core", "io.kotest", "kotest-assertions-core").versionRef(kotest)
-            library("kotlin-logging", "io.github.microutils", "kotlin-logging-jvm").versionRef(logging)
-            library("logback-classic", "ch.qos.logback", "logback-classic").versionRef(logback)
-            library("mockito-core", "org.mockito", "mockito-core").versionRef(mockito)
-            library("mockito-junit-jupiter", "org.mockito", "mockito-junit-jupiter").versionRef(mockito)
-            library("mockk", "io.mockk", "mockk").versionRef(mockk)
-            library("ojdbc8", "com.oracle.database.jdbc", "ojdbc8").versionRef(ojdbc8)
-            library("opencsv", "com.opencsv", "opencsv").versionRef(opencsv)
-            library("postgresql", "org.postgresql", "postgresql").versionRef(postgresql)
-            library("slf4j-api", "org.slf4j", "slf4j-api").versionRef(slf4j)
+            fun lib(name: String, group: String) = library(name, group, name)
+            infix fun VersionCatalogBuilder.LibraryAliasBuilder.ver(version: String) = versionRef(version)
 
-            val ktlint = version("ktlint", "10.2.1")
-            val detekt = version("detekt", "1.19.0")
+            lib("assertj-core", "org.assertj") ver assert4j
+            lib("commons-codec", "commons-codec") ver codec
+            lib("junit-jupiter-api", "org.junit.jupiter") ver junit5
+            lib("junit-jupiter-engine", "org.junit.jupiter") ver junit5
+            lib("kotest-assertions-core", "io.kotest") ver kotest
+            lib("kotlin-logging-jvm", "io.github.microutils") ver logging
+            lib("logback-classic", "ch.qos.logback") ver logback
+            lib("mockito-core", "org.mockito") ver mockito
+            lib("mockito-junit-jupiter", "org.mockito") ver mockito
+            lib("mockk", "io.mockk") ver mockk
+            lib("ojdbc8", "com.oracle.database.jdbc") ver ojdbc8
+            lib("opencsv", "com.opencsv") ver opencsv
+            lib("postgresql", "org.postgresql") ver postgresql
+            lib("slf4j-api", "org.slf4j") ver slf4j
 
-            plugin("ktlint", "org.jlleitschuh.gradle.ktlint").versionRef(ktlint)
-            plugin("detekt", "io.gitlab.arturbosch.detekt").versionRef(detekt)
+            val ktlint = version("ktlint", "10.3.0")
+            val detekt = version("detekt", "1.20.0")
+
+            infix fun VersionCatalogBuilder.PluginAliasBuilder.ver(version: String) = versionRef(version)
+            plugin("ktlint", "org.jlleitschuh.gradle.ktlint") ver ktlint
+            plugin("detekt", "io.gitlab.arturbosch.detekt") ver detekt
         }
     }
 }
