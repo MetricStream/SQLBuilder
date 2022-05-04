@@ -415,8 +415,10 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
 
     private fun candidate(stackTraceElement: StackTraceElement): String? {
         val declaringClass = stackTraceElement.className
-        if (declaringClass.startsWith("com.metricstream.jdbc.") ||
-            declaringClass.startsWith("org.junit.") ||
+        if (declaringClass in internalClasses) {
+            return null
+        }
+        if (declaringClass.startsWith("org.junit.") ||
             declaringClass.startsWith("jdk.internal.") ||
             declaringClass.startsWith("java.lang.") ||
             declaringClass.startsWith("org.codehaus.groovy.")) {
@@ -476,6 +478,19 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
 
         private val groovyClosure = Regex(""".+\..+\${"$"}_(.+)_closure\d*""")
         private val kotlinLambda = Regex("""\${"$"}lambda-\d+$""")
+
+        private val internalClasses = setOf(
+            "com.metricstream.jdbc.JdbcSQLBuilderProvider",
+            "com.metricstream.jdbc.LongString",
+            "com.metricstream.jdbc.QueryParams",
+            "com.metricstream.jdbc.SQLBuilder",
+            "com.metricstream.jdbc.SQLBuilderProvider",
+            "com.metricstream.jdbc.Invocations",
+            "com.metricstream.jdbc.MockResultSet",
+            "com.metricstream.jdbc.MockResultSetMetaData",
+            "com.metricstream.jdbc.MockSQLBuilderExtension",
+            "com.metricstream.jdbc.MockSQLBuilderProvider",
+        )
 
         @JvmStatic
         fun enable() {
