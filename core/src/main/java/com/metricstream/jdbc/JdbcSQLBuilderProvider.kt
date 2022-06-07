@@ -19,13 +19,31 @@ import java.time.OffsetDateTime
 import java.time.Instant
 import java.util.Optional
 import java.util.ServiceLoader
+import java.util.stream.Stream
+import kotlin.reflect.KProperty1
+import kotlin.streams.asSequence
 
 internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
-
-    @Throws(SQLException::class)
     private fun build(
         sqlBuilder: SQLBuilder,
         connection: Connection,
+    ): PreparedStatement {
+        return build(sqlBuilder, connection, null, Int.MAX_VALUE)
+    }
+
+    private fun build(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        vararg columns: String
+    ): PreparedStatement {
+        return build(sqlBuilder, connection, null, Int.MAX_VALUE, *columns)
+    }
+
+    private fun build(
+        sqlBuilder: SQLBuilder,
+        connection: Connection,
+        limit: Int?,
+        batchSize: Int,
         vararg columns: String
     ): PreparedStatement {
         val expanded: MutableList<Any?> = mutableListOf()
@@ -49,12 +67,44 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
             if (sqlBuilder.maxRows >= 0) {
                 ps.maxRows = sqlBuilder.maxRows
             }
+
             if (expanded.isNotEmpty()) {
-                expanded.forEachIndexed { index, arg ->
-                    when (arg) {
-                        is LongString -> ps.setCharacterStream(index + 1, arg.reader)
-                        is Masked -> ps.setObject(index + 1, arg.data)
-                        else -> ps.setObject(index + 1, arg)
+                fun List<Any?>.processRow() {
+                    forEachIndexed { index, arg ->
+                        when (arg) {
+                            is LongString -> ps.setCharacterStream(index + 1, arg.reader)
+                            is Masked -> ps.setObject(index + 1, arg.data)
+                            else -> ps.setObject(index + 1, arg)
+                        }
+                    }
+                }
+
+                if (expanded.none { it is Batch }) {
+                    expanded.processRow()
+                } else {
+                    val iterators = expanded.map { arg ->
+                        if (arg is Batch) {
+                            arg.sequence
+                        } else {
+                            generateSequence(arg) { it }
+                        }
+                    }.map { it.iterator() }
+
+                    var row = 0
+                    var finalExecute = false
+                    while ((limit == null || ++row <= limit) && iterators.all { it.hasNext() }) {
+                        iterators.map { it.next() }.processRow()
+                        ps.addBatch()
+                        finalExecute = if (row % batchSize != 0) {
+                            true
+                        } else {
+                            ps.executeBatch()
+                            false
+                        }
+                    }
+
+                    if (finalExecute) {
+                        ps.executeBatch()
                     }
                 }
             }
@@ -563,8 +613,8 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
      * @throws SQLException the exception thrown when executing the query
      */
     @Throws(SQLException::class)
-    override fun execute(sqlBuilder: SQLBuilder, connection: Connection): Int {
-        build(sqlBuilder, connection).use { ps -> return ps.executeUpdate() }
+    override fun execute(sqlBuilder: SQLBuilder, connection: Connection, limit: Int?, batchSize: Int): Int {
+        build(sqlBuilder, connection, limit, batchSize).use { ps -> return ps.executeUpdate() }
     }
 
     /**
@@ -645,6 +695,7 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
         connection: Connection,
         rowMapper: SQLBuilder.RowMapper<T?>,
         defaultValue: T?
+
     ): T? {
         return get(sqlBuilder, connection, { rowMapper.map(it) }, defaultValue)
     }
@@ -659,5 +710,49 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
             val service = ConnectionProvider::class.java
             ServiceLoader.load(service).firstOrNull() ?: throw IllegalStateException("Could not find an implementation of $service")
         }
+    }
+}
+
+sealed class Batch(val sequence: Sequence<Any?>) {
+    class Constant(private val value: Any?) : Batch(generateSequence(value) { it }) {
+        override fun toString() = "Constant($value)"
+    }
+    class Func(private val f: (i: Int) -> Any?) : Batch(sequence { for (row in 1..Int.MAX_VALUE) yield(f(row))} ) {
+        override fun toString() = "Func($f)"
+    }
+    class Seq(s: Sequence<Any?>) : Batch(s) {
+        override fun toString() = "Seq()"
+    }
+    class Increment(private val i: Int) : Batch(generateSequence(i) { it + 1 }) {
+        override fun toString() = "Increment($i)"
+    }
+    class Fixed(private val list: List<Any?>) : Batch(list.asSequence()) {
+        override fun toString() = "Fixed(${list.joinToString(limit = 5)})"
+    }
+
+    companion object {
+        @JvmStatic
+        fun constant(a: Any?) = Constant(a)
+
+        @JvmStatic
+        fun list(values: List<Any?>) = Fixed(values)
+
+        @JvmStatic
+        fun increment(start: Int) = Increment(start)
+
+        @JvmStatic
+        fun call(f: (row: Int) -> Any?) = Func(f)
+
+        @JvmStatic
+        fun sequence(s: Sequence<Any?>) = Seq(s)
+
+        @JvmStatic
+        fun <T> sequence(l: List<T>, p: KProperty1<T, Any?>) = Seq(l.asSequence().map { p.get(it) })
+
+        @JvmStatic
+        fun stream(s: Stream<Any?>) = Seq(s.asSequence())
+
+        @JvmStatic
+        fun range(r: IntRange) = Fixed(r.toList())
     }
 }

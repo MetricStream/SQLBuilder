@@ -67,10 +67,24 @@ data class BatchItem(val id: String, var value: Any?)
 val sb = SQLBuilder("insert into foo (a, b, c) values (?,?,?)", va, BatchItem("b", vb[0]), BatchItem("c", vc)).addBatch()
 // sb.addBatch() The first one would be done implicitly?!?
 for (i in 1..num) {
-	sb.set("b", vb[i]).set("c", vc + 1).addBatch()
+    sb.set("b", vb[i]).set("c", vc + 1).addBatch()
 }
 sb.executeBatch()
+```
 
+```kotlin
+sealed class BatchItem(sequence: Sequence<Any?>)
+class Constant(a: Any?) : BatchItem(generateSequence(a) { it })
+class Fixed(list: List<Any?>) : BatchItem(list.toSequence())
+class Increment(i: Int) : BtachItem(generateSequence(i) { i + 1 })
+
+SQLBuilder("insert into foo (a, b, c) values (?,?,?)", Constant(va), Fixed(vb), Increment(vc)).execute(con)
+```
+
+Another idea could be to pass a list/stream of grouped values.
+```kotlin
+val data = listOf(listOf("a", 1, 2L), listOf("b", 1, 3L), listOf("c", 2, 4L))
+val sb = SQLBuilder("insert into foo (a, b, c) values (?,?,?)").executeBatch(data)
 ```
 
 # SQL Validators

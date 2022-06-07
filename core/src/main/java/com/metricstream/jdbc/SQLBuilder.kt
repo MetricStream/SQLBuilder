@@ -276,7 +276,7 @@ class SQLBuilder {
             regexp.add(key)
         }
 
-        val sb = StringBuffer()
+        val sb = StringBuilder()
         if (quoted.isNotEmpty()) {
             val p = Pattern.compile(regexp.toString())
             val m = p.matcher(expandedStatement.toString())
@@ -894,6 +894,18 @@ class SQLBuilder {
     @Throws(SQLException::class)
     fun execute(): Int {
         delegate.getConnection().use { return delegate.execute(this, it) }
+    }
+
+    /**
+     * Executes the SQL statement.
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @return The result of executeUpdate of that statement
+     * @throws SQLException the exception thrown when executing the query
+     */
+    @Throws(SQLException::class)
+    @JvmOverloads
+    fun executeBatch(connection: Connection, limit: Int? = null, batchSize: Int = Int.MAX_VALUE): Int {
+        return delegate.execute(this, connection, limit, batchSize)
     }
 
     /**

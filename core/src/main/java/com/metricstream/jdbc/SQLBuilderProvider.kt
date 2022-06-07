@@ -168,7 +168,7 @@ interface SQLBuilderProvider {
     ): Date?
 
     @Throws(SQLException::class)
-    fun execute(sqlBuilder: SQLBuilder, connection: Connection): Int
+    fun execute(sqlBuilder: SQLBuilder, connection: Connection, limit: Int? = null, batchSize: Int = Int.MAX_VALUE): Int
 
     @Throws(SQLException::class)
     fun execute(sqlBuilder: SQLBuilder, connection: Connection, vararg keyColumns: String): ResultSet

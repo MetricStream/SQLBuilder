@@ -353,6 +353,13 @@ internal class SQLBuilderTest {
     }
 
     @Test
+    fun executeBatchTest() {
+        MockSQLBuilderProvider.setExecute("executeBatchTest", 5)
+        val sb = SQLBuilder("insert into foo values(foo_s.nextval, ?)", Batch.list(listOf("p1", "p2", "p3")))
+        sb.executeBatch(mockConnection) shouldBe 5
+    }
+
+    @Test
     fun unusedMockResultSet() {
         add("unusedMockResultSet:first", "1", false)
         add("unusedMockResultSet:second", "2", false)

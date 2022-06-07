@@ -352,7 +352,9 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
 
     override fun execute(
         sqlBuilder: SQLBuilder,
-        connection: Connection
+        connection: Connection,
+        limit: Int?,
+        batchSize: Int
     ): Int {
         invocations.execute++
         validate(sqlBuilder)
@@ -516,6 +518,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             "com.metricstream.jdbc.QueryParams",
             "com.metricstream.jdbc.SQLBuilder",
             "com.metricstream.jdbc.SQLBuilderProvider",
+            "com.metricstream.jdbc.SQLBuilderProvider\$DefaultImpls",
             "com.metricstream.jdbc.Invocations",
             "com.metricstream.jdbc.MockResultSet",
             "com.metricstream.jdbc.MockResultSetMetaData",
