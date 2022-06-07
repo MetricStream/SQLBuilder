@@ -11,7 +11,7 @@ for production usage and
 [com.metricstream.jdbc:sqlbuilder-mock:3.4.5](https://search.maven.org/artifact/com.metricstream.jdbc/sqlbuilder-mock/3.4.5/jar)
 for unit testing.
 
-Read the [documentation](docs/Rationale.md) for details on why and how to use SQLBuilder and the changes between releases.
+Read the [documentation](docs/Rationale.md) for details on why and how to use SQLBuilder and the [release notes](docs/ReleaseNotes.md) for changes between releases.
 
 [MetricStream]: https://www.metricstream.com/
 [MavenCentral]: https://mvnrepository.com/
