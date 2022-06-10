@@ -690,8 +690,38 @@ class SQLBuilder {
      * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
     @Throws(SQLException::class, IllegalStateException::class)
-    @JvmOverloads
-    fun <K, V> getMap(connection: Connection, rowMapper: RowMapper<Map.Entry<K, V?>>, withNull: Boolean = false): Map<K, V?> {
+    fun <K, V> getMap(connection: Connection, rowMapper: RowMapper<Map.Entry<K, V?>>): Map<K, V?> {
+        return delegate.getMap(this, connection, rowMapper, false)
+    }
+
+    /**
+     * Returns a list of objects generated from the ResultSet
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @param rowMapper The lambda called per row to produce a map entry. Null values returned from the mapper
+     * lambda are ignored. Duplicate keys result in overwriting the previous value
+     * @param withNull If false, null values returned from the lambda are ignored.  Otherwise they
+     * are added to the returned map
+     * @return The list of generated items
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Deprecated(message = "Use correct parameter order", replaceWith = ReplaceWith("getMap(connection, withNull, rowMapper)"))
+    @Throws(SQLException::class, IllegalStateException::class)
+    fun <K, V> getMap(connection: Connection, rowMapper: RowMapper<Map.Entry<K, V?>>, withNull: Boolean): Map<K, V?> {
+        return delegate.getMap(this, connection, rowMapper, withNull)
+    }
+
+    /**
+     * Returns a list of objects generated from the ResultSet
+     * @param connection The Connection object from which the PreparedStatement object is created
+     * @param rowMapper The lambda called per row to produce a map entry. Null values returned from the mapper
+     * lambda are ignored. Duplicate keys result in overwriting the previous value
+     * @param withNull If false, null values returned from the lambda are ignored.  Otherwise they
+     * are added to the returned map
+     * @return The list of generated items
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class, IllegalStateException::class)
+    fun <K, V> getMap(connection: Connection, withNull: Boolean, rowMapper: RowMapper<Map.Entry<K, V?>>): Map<K, V?> {
         return delegate.getMap(this, connection, rowMapper, withNull)
     }
 

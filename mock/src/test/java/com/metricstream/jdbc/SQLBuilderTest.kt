@@ -584,8 +584,19 @@ internal class SQLBuilderTest {
         // with 3 ints in column 2
         // then expect to get a list with 3 elements in the correct order
         add("", "3,Three\n1,One\n4,Four", false)
-        val m = sqlBuilder.getMap(mockConnection, { rs: ResultSet -> SQLBuilder.entry(rs.getInt(1), rs.getString(2)) })
+        val m = sqlBuilder.getMap(mockConnection) { rs: ResultSet -> SQLBuilder.entry(rs.getInt(1), rs.getString(2)) }
         m.keys.shouldContainExactlyInAnyOrder(3, 1, 4)
+        m.containsValue("Three") shouldBe true
+    }
+
+    @Test
+    fun map_test2() {
+        // when query returns 3 rows
+        // with 3 ints in column 2
+        // then expect to get a list with 3 elements in the correct order
+        add("", "3,Three\n1,One\n4,Four", false)
+        val m = sqlBuilder.getMap(mockConnection) { rs: ResultSet -> SQLBuilder.entry(rs.getString(1), rs.getString(2)) }
+        m.keys.shouldContainExactlyInAnyOrder("3", "1", "4")
         m.containsValue("Three") shouldBe true
     }
 
@@ -595,7 +606,7 @@ internal class SQLBuilderTest {
         // then expect to get an IllegalStateException
         add("", "3,Three\n1,One\n3,Four", false)
         shouldThrow<IllegalStateException> {
-            sqlBuilder.getMap(mockConnection, { rs: ResultSet -> SQLBuilder.entry(rs.getInt(1), rs.getString(2)) })
+            sqlBuilder.getMap(mockConnection) { rs: ResultSet -> SQLBuilder.entry(rs.getInt(1), rs.getString(2)) }
         }
     }
 
@@ -607,7 +618,7 @@ internal class SQLBuilderTest {
         // Note: we cannot use `getInt` for the key here because that would automatically convert `null` to `0`
         // and thus not throw the expected exception
         val exp = shouldThrow<IllegalStateException> {
-            sqlBuilder.getMap(mockConnection, { rs: ResultSet -> SQLBuilder.entry(rs.getObject(1), rs.getString(2)) })
+            sqlBuilder.getMap(mockConnection) { rs: ResultSet -> SQLBuilder.entry(rs.getObject(1), rs.getString(2)) }
         }
         exp.message shouldContain "unsupported"
     }
@@ -618,18 +629,28 @@ internal class SQLBuilderTest {
         // with 3 ints in column 2
         // then expect to get a list with 3 elements in the correct order
         add("", arrayOf(arrayOf("1", 1), arrayOf("2", null), arrayOf("3", 3)))
-        val m: Map<String, Int?> = sqlBuilder.getMap(mockConnection, { rs: ResultSet -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)) })
+        val m: Map<String, Int?> = sqlBuilder.getMap(mockConnection) { rs: ResultSet -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)) }
         // size is 3 and not 2 although 2 is mapped to null because we use getInt which will automatically convert null to 0
         m.keys.shouldContainExactlyInAnyOrder("1", "2", "3")
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun map_test4() {
         // when query returns 3 rows
         // with 3 ints in column 2
         // then expect to get a list with 3 elements in the correct order
         add("", arrayOf(arrayOf("1", 1), arrayOf("2", null), arrayOf("3", 3)))
         val m = sqlBuilder.getMap(mockConnection, { rs: ResultSet -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)) }, false)
+        m.keys.shouldContainExactlyInAnyOrder("1", "2", "3")
+    }
+    @Test
+    fun map_test5() {
+        // when query returns 3 rows
+        // with 3 ints in column 2
+        // then expect to get a list with 3 elements in the correct order
+        add("", arrayOf(arrayOf("1", 1), arrayOf("2", null), arrayOf("3", 3)))
+        val m = sqlBuilder.getMap(mockConnection, false) { rs: ResultSet -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)) }
         m.keys.shouldContainExactlyInAnyOrder("1", "2", "3")
     }
 

@@ -3,7 +3,7 @@ plugins {
     `java-library`
     `maven-publish`
     signing
-    kotlin("jvm") version "1.6.21"
+    kotlin("jvm") version "1.7.0"
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
 }
@@ -26,7 +26,7 @@ subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
 
     group = "com.metricstream.jdbc"
-    version = "3.6.1"
+    version = "3.7.0"
 
     repositories {
         mavenCentral()

@@ -1,5 +1,9 @@
 [![MetricStream](MetricStream_Logo.png)][MetricStream] SQLBuilder Release Notes
 
+- Version 3.7.0, released 2022-06-10
+    - fixes a regression around `getMap` introduced in version `3.1.0` which prevented to place the `rowMapper` lambda 
+      parameter for `getMap` outside the `()`
+    - upgraded to Kotlin `1.7.0`
 - Version 3.6.1, released 2022-06-06
     - improved the code to skip over non-application stack frames during tag matching
     - minor code cleanup to pass "detekt"

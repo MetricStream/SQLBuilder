@@ -571,6 +571,17 @@ class SQLBuilderTestJava {
     }
 
     @Test
+    void getMap_test2() throws SQLException {
+        // when query returns 3 rows
+        // with 3 ints in column 2
+        // then expect to get a list with 3 elements in the correct order
+        MockResultSet.add("", "3,Three\n1,One\n4,Four", false);
+        Map<String, String> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getString(1), rs.getString(2)));
+        assertThat(m.keySet()).containsExactlyInAnyOrder("3", "1", "4");
+        assertThat(m).containsValue("Three");
+    }
+
+    @Test
     void getMap_testDuplicateKeys() {
         // when query returns 3 rows with duplicate keys
         // then expect to get an IllegalStateException
@@ -599,12 +610,23 @@ class SQLBuilderTestJava {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     void getMap_test4() throws SQLException {
         // when query returns 3 rows
         // with 3 ints in column 2
         // then expect to get a list with 3 elements in the correct order
         MockResultSet.add("", new Object[][] { { "1", 1 }, { "2", null }, { "3", 3 } });
         Map<String, Integer> m = sqlBuilder.getMap(mockConnection, rs -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)), false);
+        assertThat(m.keySet()).containsExactlyInAnyOrder("1", "2", "3");
+    }
+
+    @Test
+    void getMap_test5() throws SQLException {
+        // when query returns 3 rows
+        // with 3 ints in column 2
+        // then expect to get a list with 3 elements in the correct order
+        MockResultSet.add("", new Object[][] { { "1", 1 }, { "2", null }, { "3", 3 } });
+        Map<String, Integer> m = sqlBuilder.getMap(mockConnection, false, rs -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)));
         assertThat(m.keySet()).containsExactlyInAnyOrder("1", "2", "3");
     }
 
