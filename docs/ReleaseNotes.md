@@ -1,12 +1,22 @@
 [![MetricStream](MetricStream_Logo.png)][MetricStream] SQLBuilder Release Notes
 
+- Version 3.7.1, released 2022-06-27
+    - switch to TOML version of Gradle versions catalog
+    - add versions-update plugin and dependent plugins
+    - upgraded external dependencies
+        - `io.kotest:kotest-assertions-core` from `5.3.0` to `5.3.2`
+        - `com.oracle.database.jdbc:ojdbc11` from `21.5.0.0` to `21.6.0.0.1`
+        - `org.postgresql:postgresql` from `42.3.6` to `42.4.0`
+
 - Version 3.7.0, released 2022-06-10
-    - fixes a regression around `getMap` introduced in version `3.1.0` which prevented to place the `rowMapper` lambda 
-      parameter for `getMap` outside the `()`
+    - fixes a regression around `getMap` introduced in version `3.1.0` which prevented to place
+      the `rowMapper` lambda parameter for `getMap` outside the `()`
     - upgraded to Kotlin `1.7.0`
+
 - Version 3.6.1, released 2022-06-06
     - improved the code to skip over non-application stack frames during tag matching
     - minor code cleanup to pass "detekt"
+    - use gradle version catalog
     - upgraded external dependencies
         - `io.kotest:kotest-assertions-core` from `5.2.2` to `5.3.0`
         - `org.assertj:assertj-core` from `3.21.0` to `3.23.1`

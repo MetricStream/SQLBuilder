@@ -6,6 +6,9 @@ plugins {
     kotlin("jvm") version "1.7.0"
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.versions)
+    alias(libs.plugins.versions.filter)
+    alias(libs.plugins.versions.update)
 }
 
 // These are credentials required for the task `uploadArchives`. They are read either from gradle.properties or from the command
@@ -26,7 +29,7 @@ subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
 
     group = "com.metricstream.jdbc"
-    version = "3.7.0"
+    version = "3.7.1"
 
     repositories {
         mavenCentral()

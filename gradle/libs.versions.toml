@@ -1,0 +1,41 @@
+[versions]
+assertj = "3.23.1"
+codec = "1.15"
+junit5 = "5.8.2"
+kotest = "5.3.2"
+logback = "1.2.11"
+logging = "2.1.23"
+mockito = "4.6.1"
+mockk = "1.12.4"
+ojdbc11 = "21.6.0.0.1"
+opencsv = "5.6"
+plugin-detekt = "1.20.0"
+plugin-ktlint = "10.3.0"
+plugin-versions = "0.42.0"
+plugin-versionsFilter = "0.1.16"
+plugin-versionsUpdate = "0.5.1"
+postgresql = "42.4.0"
+slf4j = "1.7.36"
+
+[libraries]
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+commons-codec = { module = "commons-codec:commons-codec", version.ref = "codec" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit5" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotlin-logging-jvm = { module = "io.github.microutils:kotlin-logging-jvm", version.ref = "logging" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+ojdbc11 = { module = "com.oracle.database.jdbc:ojdbc11", version.ref = "ojdbc11" }
+opencsv = { module = "com.opencsv:opencsv", version.ref = "opencsv" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+
+[plugins]
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "plugin-detekt" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "plugin-ktlint" }
+versions = { id = "com.github.ben-manes.versions", version.ref = "plugin-versions" }
+versions-filter = { id = "se.ascp.gradle.gradle-versions-filter", version.ref = "plugin-versionsFilter" }
+versions-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "plugin-versionsUpdate" }
