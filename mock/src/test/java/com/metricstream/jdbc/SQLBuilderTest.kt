@@ -966,6 +966,13 @@ internal class SQLBuilderTest {
     }
 
     @Test
+    internal fun testBindFunctionCalls() {
+        shouldThrow<IllegalArgumentException> {
+            SQLBuilder("select :{typeFunction} from dual").bind("typeFunction", "si_foo.getType()").applyBindings()
+        }
+    }
+
+    @Test
     fun testFromNumberedParams() {
         val params: QueryParams = QueryParamsImpl()
         SQLBuilder.fromNumberedParameters("select n from t where i=:1)", params).toString() shouldBe

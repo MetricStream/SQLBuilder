@@ -955,6 +955,15 @@ class SQLBuilderTestJava {
     }
 
     @Test
+    void testBindFunctionCalls() {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+            new SQLBuilder("select :{typeFunction} from dual")
+                .bind("typeFunction", "si_foo.getType()")
+                .applyBindings()
+        );
+    }
+
+    @Test
     void testFromNumberedParams() {
         QueryParams params = new QueryParamsImpl();
         assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:1)", params).toString())
