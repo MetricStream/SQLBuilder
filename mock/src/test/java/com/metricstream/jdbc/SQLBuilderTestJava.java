@@ -966,20 +966,20 @@ class SQLBuilderTestJava {
     @Test
     void testFromNumberedParams() {
         QueryParams params = new QueryParamsImpl();
-        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:1)", params).toString())
-                .isEqualTo("select n from t where i=?); args=[a]");
-        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:1 or i=:2)", params).toString())
-                .isEqualTo("select n from t where i=? or i=?); args=[a, b]");
-        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or i=:1)", params).toString())
-                .isEqualTo("select n from t where i=? or i=?); args=[b, a]");
-        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=:2)", params).toString())
-                .isEqualTo("select n from t where i=? or k=?); args=[b, b]");
-        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':4')", params).toString())
-                .isEqualTo("select n from t where i=? or k=':4'); args=[b]");
-        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':2')", params).toString())
-                .isEqualTo("select n from t where i=? or k=':2'); args=[b]");
-        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:11 or i=:2)", params).toString())
-                .isEqualTo("select n from t where i=:11 or i=?); args=[b]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:1", params).toString())
+                .isEqualTo("select n from t where i=?; args=[a]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:1 or i=:2", params).toString())
+                .isEqualTo("select n from t where i=? or i=?; args=[a, b]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or i=:1", params).toString())
+                .isEqualTo("select n from t where i=? or i=?; args=[b, a]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=:2", params).toString())
+                .isEqualTo("select n from t where i=? or k=?; args=[b, b]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':4'", params).toString())
+                .isEqualTo("select n from t where i=? or k=':4'; args=[b]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':2'", params).toString())
+                .isEqualTo("select n from t where i=? or k=':2'; args=[b]");
+        assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:11 or i=:2", params).toString())
+                .isEqualTo("select n from t where i=:11 or i=?; args=[b]");
     }
 
     @Test
