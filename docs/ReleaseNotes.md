@@ -1,5 +1,8 @@
 [![MetricStream](MetricStream_Logo.png)][MetricStream] SQLBuilder Release Notes
 
+- Version 3.7.2, released 2022-07-14
+    - upgraded to Kotlin `1.7.10`
+
 - Version 3.7.1, released 2022-06-27
     - switch to TOML version of Gradle versions catalog
     - add versions-update plugin and dependent plugins
