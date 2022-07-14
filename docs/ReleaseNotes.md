@@ -1,6 +1,6 @@
 [![MetricStream](MetricStream_Logo.png)][MetricStream] SQLBuilder Release Notes
 
-- Version 3.7.2, released 2022-07-14
+- Version 3.7.4, released 2022-07-14
     - upgraded to Kotlin `1.7.10`
 
 - Version 3.7.1, released 2022-06-27
