@@ -238,6 +238,14 @@ class SQLBuilderTestJava {
             assertThat(rs.getString(2)).isEqualTo("b");
             assertThat(rs.next()).isFalse();
         }
+
+        try (var connection = SQLBuilder.getConnection()) {
+            final SQLBuilder sb4 = new SQLBuilder("select count(*) from lookup");
+            assertThat(sb4.getInt(connection, 1, 0)).isEqualTo(42);
+            MockResultSet.add("providedConnectionTest:sb5", new Object[][] { { 15 } });
+            final SQLBuilder sb5 = new SQLBuilder("select count(*) from lookup");
+            assertThat(sb5.getInt(connection, 1, 0)).isEqualTo(15);
+        }
     }
 
     @Test

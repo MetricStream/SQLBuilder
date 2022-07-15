@@ -649,9 +649,15 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
         return get(sqlBuilder, connection, { rowMapper.map(it) }, defaultValue)
     }
 
+    // Lazy loading to avoid instantiating the connectionProviderImpl when a JdbcSQLBuilderProvider object is created.
+    // This will change if and when a caller uses the connection-less access methods.
     override val connectionProvider: ConnectionProvider by lazy { connectionProviderImpl }
 
     companion object {
-        private val connectionProviderImpl: ConnectionProvider by lazy { ServiceLoader.load(ConnectionProvider::class.java).first() }
+        // Defer searching for a provider implementation until the first usage of connectionProvider.
+        private val connectionProviderImpl: ConnectionProvider by lazy {
+            val service = ConnectionProvider::class.java
+            ServiceLoader.load(service).firstOrNull() ?: throw IllegalStateException("Could not find an implementation of $service")
+        }
     }
 }

@@ -1170,6 +1170,17 @@ class SQLBuilder {
             delegate = jdbcProvider
         }
 
+        /**
+         * Returns a Connection object created from a configured ConnectionProvider.
+         * @return The Connection object
+         * @throws SQLException the exception thrown when generating the Connection object
+         */
+        @JvmStatic
+        @Throws(SQLException::class)
+        fun getConnection(): Connection {
+            return delegate.getConnection()
+        }
+
         @JvmStatic
         fun mask(data: Any?): Masked {
             return Masked(data)

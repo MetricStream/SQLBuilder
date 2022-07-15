@@ -437,6 +437,57 @@ name from passports where num=?; args = __masked__:a323g3f`. The `mask` method c
 function over the value. Thus, the same value will result in the same logged value which allows to trace usages across
 multiple log messages.
 
+## Connection Provider ##
+
+As seen above, all the SQLBuilder methods which are accessing data need a connection object.  However, sometimes it
+would be more convenient if SQLBuilder could implicitly create and use a Connection object. An example would be
+simple counting query:
+- Java
+```java
+public int getCount() throws SQLException {
+    try (Connection con = getAutoCommittedConnection()) {
+        return new SQLBuilder("select count(*) from passports where num like ?", "DE#%").getInt(con, 1, 0);
+    }
+}
+```
+- Kotlin
+```kotlin
+fun getCount(): Int {
+    getAutoCommittedConnection().use { con ->
+        return SQLBuilder("select count(*) from passports where num like ?", "DE#%").getInt(con, 1, 0)
+    }
+}
+```
+When using a configured connection provider, the code can be simplified to:
+- Java
+```java
+public int getCount() throws SQLException {
+    return new SQLBuilder("select count(*) from passports where num like ?", "DE#%").getInt(1, 0);
+}
+```
+- Kotlin
+```kotlin
+fun getCount(): Int {
+    return SQLBuilder("select count(*) from passports where num like ?", "DE#%").getInt(1, 0)
+}
+```
+Not only does this reduce the amount of code that must be written, but it also ensures that the connection is
+correctly closed after being used.  However, it brings up the question of how the SQLBuilder implementation knows how 
+to acquire the connection. The answer is that the containing environment must provide this knowledge: for
+connectionless data access methods, SQLBuilder will use a ServiceLoader to find the connection provider. Therefore,
+callers using these methods must perform 2 steps:
+ 1. Provide an implementation of `com.metricstream.jdbc.ConnectionProvider` in the classpath
+ 2. Register that implementation by adding a file named `META-INF/services/com.metricstream.jdbc.ConnectionProvider`
+    which contains the fully qualified name of the implementation.
+
+SQLBuilder will not commit or rollback the connection.  Therefore, the implementation should either return
+auto-committed connections or only use read-only connection-less SQLBuilder methods.
+
+The API offers connection-less variants for all the methods which are accessing data.  In addition, you can also use 
+`SQLBuilder.getConnection()` to get a Connection object from the configured connection provider.  However, then the 
+caller is responsible for closing the connection. 
+
+
 # Unit Testing #
 
 When it comes to unit testing database access code, then the best advise often is: "Don't!". In most cases it is much

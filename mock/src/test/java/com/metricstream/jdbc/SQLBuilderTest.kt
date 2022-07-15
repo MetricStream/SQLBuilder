@@ -215,6 +215,14 @@ internal class SQLBuilderTest {
             rs.getString(2) shouldBe "b"
             rs.next() shouldBe false
         }
+
+        SQLBuilder.getConnection().use { connection ->
+            val sb4 = SQLBuilder("select count(*) from lookup")
+            sb4.getInt(connection, 1, 0) shouldBe 42
+            add("providedConnectionTest:sb5", arrayOf(arrayOf(15)))
+            val sb5 = SQLBuilder("select count(*) from lookup")
+            sb5.getInt(connection, 1, 0) shouldBe 15
+        }
     }
 
     @Test

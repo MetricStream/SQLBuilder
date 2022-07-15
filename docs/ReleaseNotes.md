@@ -1,6 +1,6 @@
 [![MetricStream](MetricStream_Logo.png)][MetricStream] SQLBuilder Release Notes
 
-- Version 3.8.0, released 2022-
+- Version 3.8.1, released 2022-07-15
     - added SQLBuilder method variants which use the connection from an implicit ConnectionProvider
 
 - Version 3.7.4, released 2022-07-14
