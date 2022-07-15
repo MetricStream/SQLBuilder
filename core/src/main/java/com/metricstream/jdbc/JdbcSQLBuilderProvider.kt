@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020-2021, MetricStream, Inc. All rights reserved.
+ * Copyright © 2020-2022, MetricStream, Inc. All rights reserved.
  */
 package com.metricstream.jdbc
 
@@ -18,8 +18,10 @@ import java.sql.Timestamp
 import java.time.OffsetDateTime
 import java.time.Instant
 import java.util.Optional
+import java.util.ServiceLoader
 
 internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
+
     @Throws(SQLException::class)
     private fun build(
         sqlBuilder: SQLBuilder,
@@ -645,5 +647,11 @@ internal class JdbcSQLBuilderProvider : SQLBuilderProvider {
         defaultValue: T?
     ): T? {
         return get(sqlBuilder, connection, { rowMapper.map(it) }, defaultValue)
+    }
+
+    override val connectionProvider: ConnectionProvider by lazy { connectionProviderImpl }
+
+    companion object {
+        private val connectionProviderImpl: ConnectionProvider by lazy { ServiceLoader.load(ConnectionProvider::class.java).first() }
     }
 }

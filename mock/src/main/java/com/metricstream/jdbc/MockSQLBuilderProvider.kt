@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020-2021, MetricStream, Inc. All rights reserved.
+ * Copyright © 2020-2022, MetricStream, Inc. All rights reserved.
  */
 package com.metricstream.jdbc
 
@@ -425,7 +425,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             return null
         }
 
-        var methodName = stackTraceElement.methodName
+        var methodName = stackTraceElement.methodName.removeSuffix("\$mock")
         if (methodName == "doCall") {
             // undo Groovy 2.4 closure method name mangling
             groovyClosure.matchEntire(declaringClass)?.groupValues?.get(1)?.let { methodName = it }
@@ -457,6 +457,8 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             }
         }
     }
+
+    override val connectionProvider: ConnectionProvider = connectionProviderImpl
 
     companion object {
         private val mockResultSets: Queue<ResultSet> = ConcurrentLinkedQueue()
@@ -636,6 +638,14 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             objectByColumnLabel = null
             setExecute("", THE_ANSWER_TO_THE_ULTIMATE_QUESTION)
             invocations = Invocations()
+        }
+
+        private val connectionImpl = MockConnection()
+
+        private val connectionProviderImpl = object : ConnectionProvider {
+            override fun getConnection(): Connection {
+                return connectionImpl
+            }
         }
     }
 }

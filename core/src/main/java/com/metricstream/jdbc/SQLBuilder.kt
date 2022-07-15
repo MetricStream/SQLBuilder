@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018-2021, MetricStream, Inc. All rights reserved.
+ * Copyright © 2018-2022, MetricStream, Inc. All rights reserved.
  */
 package com.metricstream.jdbc
 
@@ -45,6 +45,7 @@ private val logger = mu.KotlinLogging.logger {}
  * int a = sb.getInt(connection, 1, -1);
  * </pre>
  */
+@Suppress("unused")
 class SQLBuilder {
     internal val statement = StringBuilder()
     private val arguments: MutableList<Any?> = mutableListOf()
@@ -204,7 +205,7 @@ class SQLBuilder {
      * @return the SQLBuilder object
      */
     fun wrap(before: String): SQLBuilder {
-        return wrap("$before (", ")")
+        return wrap("$before(", ")")
     }
 
     /**
@@ -227,8 +228,8 @@ class SQLBuilder {
     }
 
     private fun addName(name: String) {
-        require(name.matches(Regex("""\w+"""))) { "The binding name \"$name\" must only consist of word characters [a-zA-Z_0-9]" }
-        require(names.add(name)) { "The binding name \"$name\" must be unique" }
+        require(name.matches(Regex("""\w+"""))) { """The binding name "$name" must only consist of word characters [a-zA-Z_0-9]""" }
+        require(names.add(name)) { """The binding name "$name" must be unique""" }
     }
 
     internal fun interpolate(mode: Mode, expanded: MutableList<Any?> = mutableListOf()): String {
@@ -363,6 +364,19 @@ class SQLBuilder {
     }
 
     /**
+     * Returns a ResultSet object created from a PreparedStatement object created using
+     * the SQL statement and the parameters.  The PreparedStatement object
+     * and the Connection object will be automatically closed when the ResultSet object is closed.
+     * @return The ResultSet object
+     * @throws SQLException the exception thrown when generating the ResultSet object
+     */
+    @Throws(SQLException::class)
+    @JvmOverloads
+    fun getResultSet(wrapConnection: Boolean = false): ResultSet {
+        delegate.getConnection().use { return delegate.getResultSet(this, it, wrapConnection) }
+    }
+
+    /**
      * Returns a value from the first row returned when executing the query.
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
@@ -373,6 +387,18 @@ class SQLBuilder {
     @Throws(SQLException::class)
     fun getInt(connection: Connection, columnNumber: Int, defaultValue: Int): Int {
         return delegate.getInt(this, connection, columnNumber, defaultValue)
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getInt(columnNumber: Int, defaultValue: Int): Int {
+        delegate.getConnection().use { return delegate.getInt(this, it, columnNumber, defaultValue) }
     }
 
     /**
@@ -390,6 +416,18 @@ class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getInt(columnName: String, defaultValue: Int): Int {
+        delegate.getConnection().use { return delegate.getInt(this, it, columnName, defaultValue) }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
@@ -399,6 +437,18 @@ class SQLBuilder {
     @Throws(SQLException::class)
     fun getLong(connection: Connection, columnNumber: Int, defaultValue: Long): Long {
         return delegate.getLong(this, connection, columnNumber, defaultValue)
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getLong(columnNumber: Int, defaultValue: Long): Long {
+        delegate.getConnection().use { return delegate.getLong(this, it, columnNumber, defaultValue) }
     }
 
     /**
@@ -416,6 +466,18 @@ class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getLong(columnName: String, defaultValue: Long): Long {
+        delegate.getConnection().use { return delegate.getLong(this, it, columnName, defaultValue) }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
@@ -425,6 +487,18 @@ class SQLBuilder {
     @Throws(SQLException::class)
     fun getDouble(connection: Connection, columnNumber: Int, defaultValue: Double): Double {
         return delegate.getDouble(this, connection, columnNumber, defaultValue)
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getDouble(columnNumber: Int, defaultValue: Double): Double {
+        delegate.getConnection().use { return delegate.getDouble(this, it, columnNumber, defaultValue) }
     }
 
     /**
@@ -442,6 +516,17 @@ class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getDouble(columnName: String, defaultValue: Double): Double {
+        delegate.getConnection().use { return delegate.getDouble(this, it, columnName, defaultValue) }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
@@ -451,6 +536,18 @@ class SQLBuilder {
     @Throws(SQLException::class)
     fun getString(connection: Connection, columnNumber: Int, defaultValue: String?): String? {
         return delegate.getString(this, connection, columnNumber, defaultValue)
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getString(columnNumber: Int, defaultValue: String?): String? {
+        delegate.getConnection().use { return delegate.getString(this, it, columnNumber, defaultValue) }
     }
 
     /**
@@ -468,6 +565,18 @@ class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getString(columnName: String, defaultValue: String?): String? {
+        delegate.getConnection().use { return delegate.getString(this, it, columnName, defaultValue) }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
@@ -477,6 +586,18 @@ class SQLBuilder {
     @Throws(SQLException::class)
     fun getBigDecimal(connection: Connection, columnNumber: Int, defaultValue: BigDecimal?): BigDecimal? {
         return delegate.getBigDecimal(this, connection, columnNumber, defaultValue)
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getBigDecimal(columnNumber: Int, defaultValue: BigDecimal?): BigDecimal? {
+        delegate.getConnection().use { return delegate.getBigDecimal(this, it, columnNumber, defaultValue) }
     }
 
     /**
@@ -494,6 +615,18 @@ class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getBigDecimal(columnName: String, defaultValue: BigDecimal?): BigDecimal? {
+        delegate.getConnection().use { return delegate.getBigDecimal(this, it, columnName, defaultValue) }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
@@ -503,6 +636,18 @@ class SQLBuilder {
     @Throws(SQLException::class)
     fun getObject(connection: Connection, columnNumber: Int, defaultValue: Any?): Any? {
         return delegate.getObject(this, connection, columnNumber, defaultValue)
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getObject(columnNumber: Int, defaultValue: Any?): Any? {
+        delegate.getConnection().use { return delegate.getObject(this, it, columnNumber, defaultValue) }
     }
 
     /**
@@ -520,6 +665,18 @@ class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getObject(columnName: String, defaultValue: Any?): Any? {
+        delegate.getConnection().use { return delegate.getObject(this, it, columnName, defaultValue) }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
@@ -529,6 +686,18 @@ class SQLBuilder {
     @Throws(SQLException::class)
     fun getDateTime(connection: Connection, columnNumber: Int, defaultValue: OffsetDateTime?): OffsetDateTime? {
         return delegate.getDateTime(this, connection, columnNumber, defaultValue)
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getDateTime(columnNumber: Int, defaultValue: OffsetDateTime?): OffsetDateTime? {
+        delegate.getConnection().use { return delegate.getDateTime(this, it, columnNumber, defaultValue) }
     }
 
     /**
@@ -546,6 +715,18 @@ class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getDateTime(columnName: String, defaultValue: OffsetDateTime?): OffsetDateTime? {
+        delegate.getConnection().use { return delegate.getDateTime(this, it, columnName, defaultValue) }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
@@ -555,6 +736,18 @@ class SQLBuilder {
     @Throws(SQLException::class)
     fun getInstant(connection: Connection, columnNumber: Int, defaultValue: Instant?): Instant? {
         return delegate.getInstant(this, connection, columnNumber, defaultValue)
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getInstant(columnNumber: Int, defaultValue: Instant?): Instant? {
+        delegate.getConnection().use { return delegate.getInstant(this, it, columnNumber, defaultValue) }
     }
 
     /**
@@ -572,6 +765,18 @@ class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getInstant(columnName: String, defaultValue: Instant?): Instant? {
+        delegate.getConnection().use { return delegate.getInstant(this, it, columnName, defaultValue) }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
@@ -581,6 +786,18 @@ class SQLBuilder {
     @Throws(SQLException::class)
     fun getTimestamp(connection: Connection, columnNumber: Int, defaultValue: Timestamp?): Timestamp? {
         return delegate.getTimestamp(this, connection, columnNumber, defaultValue)
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getTimestamp(columnNumber: Int, defaultValue: Timestamp?): Timestamp? {
+        delegate.getConnection().use { return delegate.getTimestamp(this, it, columnNumber, defaultValue) }
     }
 
     /**
@@ -598,6 +815,18 @@ class SQLBuilder {
 
     /**
      * Returns a value from the first row returned when executing the query.
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getTimestamp(columnName: String, defaultValue: Timestamp?): Timestamp? {
+        delegate.getConnection().use { return delegate.getTimestamp(this, it, columnName, defaultValue) }
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param columnNumber The index of the column (starting with 1) from which to return the value
      * @param defaultValue The default value that is returned if the query did not return any rows
@@ -607,6 +836,18 @@ class SQLBuilder {
     @Throws(SQLException::class)
     fun getDate(connection: Connection, columnNumber: Int, defaultValue: Date?): Date? {
         return delegate.getDate(this, connection, columnNumber, defaultValue)
+    }
+
+    /**
+     * Returns a value from the first row returned when executing the query.
+     * @param columnNumber The index of the column (starting with 1) from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getDate(columnNumber: Int, defaultValue: Date?): Date? {
+        delegate.getConnection().use { return delegate.getDate(this, it, columnNumber, defaultValue) }
     }
 
     /**
@@ -623,6 +864,18 @@ class SQLBuilder {
     }
 
     /**
+     * Returns a value from the first row returned when executing the query.
+     * @param columnName The name of the column from which to return the value
+     * @param defaultValue The default value that is returned if the query did not return any rows
+     * @return the value from the query
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun getDate(columnName: String, defaultValue: Date?): Date? {
+        delegate.getConnection().use { return delegate.getDate(this, it, columnName, defaultValue) }
+    }
+
+    /**
      * Executes the SQL statement.
      * @param connection The Connection object from which the PreparedStatement object is created
      * @return The result of executeUpdate of that statement
@@ -631,6 +884,16 @@ class SQLBuilder {
     @Throws(SQLException::class)
     fun execute(connection: Connection): Int {
         return delegate.execute(this, connection)
+    }
+
+    /**
+     * Executes the SQL statement.
+     * @return The result of executeUpdate of that statement
+     * @throws SQLException the exception thrown when executing the query
+     */
+    @Throws(SQLException::class)
+    fun execute(): Int {
+        delegate.getConnection().use { return delegate.execute(this, it) }
     }
 
     /**
@@ -646,6 +909,18 @@ class SQLBuilder {
         return delegate.execute(this, connection, *keyColumns)
     }
 
+    /**
+     * Executes the SQL statement.
+     * @param keyColumns column names from the underlying table for which the inserted values will be returned.  Note that these names
+     * not necessarily have to be part of the columns into which the builder explicitly inserts values.
+     * @return The result of executeUpdate of that statement
+     * @throws SQLException the exception thrown when executing the query
+     */
+    @Throws(SQLException::class)
+    fun execute(vararg keyColumns: String): ResultSet {
+        delegate.getConnection().use { return delegate.execute(this, it, *keyColumns) }
+    }
+
     fun interface RowMapper<T> {
         @Throws(SQLException::class)
         fun map(rs: ResultSet): T
@@ -655,8 +930,6 @@ class SQLBuilder {
      * Returns a list of objects generated from the ResultSet
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param rowMapper The lambda called per row to produce a matching list item.
-     * @param withNull If false, null values returned from the lambda are ignored.  Otherwise they
-     * are added to the returned list
      * @return The list of generated items
      * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
@@ -667,10 +940,19 @@ class SQLBuilder {
 
     /**
      * Returns a list of objects generated from the ResultSet
+     * @param rowMapper The lambda called per row to produce a matching list item.
+     * @return The list of generated items
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun <T> getList(rowMapper: RowMapper<T>): List<T> {
+        delegate.getConnection().use { return delegate.getList(this, it, rowMapper) }
+    }
+
+    /**
+     * Returns a list of objects generated from the ResultSet
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param rowMapper The lambda called per row to produce a matching list item.
-     * @param withNull If false, null values returned from the lambda are ignored.  Otherwise they
-     * are added to the returned list
      * @return The list of generated items
      * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
@@ -681,11 +963,20 @@ class SQLBuilder {
 
     /**
      * Returns a list of objects generated from the ResultSet
+     * @param rowMapper The lambda called per row to produce a matching list item.
+     * @return The list of generated items
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun <T> getListWithNull(rowMapper: RowMapper<T?>): List<T?> {
+        delegate.getConnection().use { return delegate.getListWithNull(this, it, rowMapper) }
+    }
+
+    /**
+     * Returns a list of objects generated from the ResultSet
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param rowMapper The lambda called per row to produce a map entry. Null values returned from the mapper
      * lambda are ignored. Duplicate keys result in overwriting the previous value
-     * @param withNull If false, null values returned from the lambda are ignored.  Otherwise they
-     * are added to the returned map
      * @return The list of generated items
      * @throws SQLException the exception thrown when generating or accessing the ResultSet object
      */
@@ -696,10 +987,22 @@ class SQLBuilder {
 
     /**
      * Returns a list of objects generated from the ResultSet
+     * @param rowMapper The lambda called per row to produce a map entry. Null values returned from the mapper
+     * lambda are ignored. Duplicate keys result in overwriting the previous value
+     * @return The list of generated items
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class, IllegalStateException::class)
+    fun <K, V> getMap(rowMapper: RowMapper<Map.Entry<K, V?>>): Map<K, V?> {
+        delegate.getConnection().use { return delegate.getMap(this, it, rowMapper, false) }
+    }
+
+    /**
+     * Returns a list of objects generated from the ResultSet
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param rowMapper The lambda called per row to produce a map entry. Null values returned from the mapper
      * lambda are ignored. Duplicate keys result in overwriting the previous value
-     * @param withNull If false, null values returned from the lambda are ignored.  Otherwise they
+     * @param withNull If false, null values returned from the lambda are ignored.  Otherwise, they
      * are added to the returned map
      * @return The list of generated items
      * @throws SQLException the exception thrown when generating or accessing the ResultSet object
@@ -715,7 +1018,7 @@ class SQLBuilder {
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param rowMapper The lambda called per row to produce a map entry. Null values returned from the mapper
      * lambda are ignored. Duplicate keys result in overwriting the previous value
-     * @param withNull If false, null values returned from the lambda are ignored.  Otherwise they
+     * @param withNull If false, null values returned from the lambda are ignored.  Otherwise, they
      * are added to the returned map
      * @return The list of generated items
      * @throws SQLException the exception thrown when generating or accessing the ResultSet object
@@ -723,6 +1026,20 @@ class SQLBuilder {
     @Throws(SQLException::class, IllegalStateException::class)
     fun <K, V> getMap(connection: Connection, withNull: Boolean, rowMapper: RowMapper<Map.Entry<K, V?>>): Map<K, V?> {
         return delegate.getMap(this, connection, rowMapper, withNull)
+    }
+
+    /**
+     * Returns a list of objects generated from the ResultSet
+     * @param rowMapper The lambda called per row to produce a map entry. Null values returned from the mapper
+     * lambda are ignored. Duplicate keys result in overwriting the previous value
+     * @param withNull If false, null values returned from the lambda are ignored.  Otherwise, they
+     * are added to the returned map
+     * @return The list of generated items
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class, IllegalStateException::class)
+    fun <K, V> getMap(withNull: Boolean, rowMapper: RowMapper<Map.Entry<K, V?>>): Map<K, V?> {
+        delegate.getConnection().use { return delegate.getMap(this, it, rowMapper, withNull) }
     }
 
     /**
@@ -739,6 +1056,17 @@ class SQLBuilder {
 
     /**
      * Returns a list of objects generated from the ResultSet
+     * @param rowMapper The lambda called one the first row to produce a matching item.
+     * @return the Optional containing the item returned from the mapping lambda, if any
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun <T : Any> getSingle(rowMapper: RowMapper<T?>): Optional<T> {
+        delegate.getConnection().use { return delegate.getSingle(this, it, rowMapper) }
+    }
+
+    /**
+     * Returns a list of objects generated from the ResultSet
      * @param connection The Connection object from which the PreparedStatement object is created
      * @param rowMapper The lambda called one the first row to produce a matching item.
      * @return the item returned from the mapping lambda, or the defaultValue if no row was returned
@@ -747,6 +1075,17 @@ class SQLBuilder {
     @Throws(SQLException::class)
     fun <T> getSingle(connection: Connection, rowMapper: RowMapper<T?>, defaultValue: T?): T? {
         return delegate.getSingle(this, connection, rowMapper, defaultValue)
+    }
+
+    /**
+     * Returns a list of objects generated from the ResultSet
+     * @param rowMapper The lambda called one the first row to produce a matching item.
+     * @return the item returned from the mapping lambda, or the defaultValue if no row was returned
+     * @throws SQLException the exception thrown when generating or accessing the ResultSet object
+     */
+    @Throws(SQLException::class)
+    fun <T> getSingle(rowMapper: RowMapper<T?>, defaultValue: T?): T? {
+        delegate.getConnection().use { return delegate.getSingle(this, it, rowMapper, defaultValue) }
     }
 
     // We need to close the implicitly created Statement from the getResultSet
@@ -908,7 +1247,7 @@ class SQLBuilder {
          * Quotes a system object name (e.g. table, column).
          *
          * @param name The table, view, or column name
-         * @param noQuotes If true, don't quote.  Instead throw an exception if quoting would be necessary
+         * @param noQuotes If true, don't quote.  Instead, throw an exception if quoting would be necessary
          * @return string with "" around if necessary
          * @throws IllegalArgumentException if the name cannot be properly quoted or quoting would be required
          */
@@ -917,7 +1256,7 @@ class SQLBuilder {
         @Throws(IllegalArgumentException::class)
         fun nameQuote(name: String?, noQuotes: Boolean = true): String {
             requireNotNull(name) { "Object name is null" }
-            if (name.matches(Regex("""[A-Za-z][A-Za-z0-9_.]*|"[^"]+""""))) {
+            if (name.matches(Regex("""[A-Za-z][A-Za-z\d_.]*|"[^"]+""""))) {
                 return name
             }
             // allow table and column aliases.  Both real name and alias must be quoted
@@ -927,8 +1266,8 @@ class SQLBuilder {
                 // Therefore, we do not include the " as " so that we don't have to distinguish the 2 cases.
                 return nameQuote(alias[0], noQuotes) + " " + nameQuote(alias[1], noQuotes)
             }
-            require(!(noQuotes || name.indexOf('"') != -1)) { "Object name \"$name\" contains invalid characters" }
-            return "\"" + name + "\""
+            require(!(noQuotes || name.indexOf('"') != -1)) { """Object name "$name" contains invalid characters""" }
+            return """"$name""""
         }
 
         /**

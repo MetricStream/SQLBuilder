@@ -29,7 +29,7 @@ subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
 
     group = "com.metricstream.jdbc"
-    version = "3.7.4"
+    version = "3.8.0"
 
     repositories {
         mavenCentral()

@@ -1,5 +1,8 @@
 [![MetricStream](MetricStream_Logo.png)][MetricStream] SQLBuilder Release Notes
 
+- Version 3.8.0, released 2022-
+    - added SQLBuilder method variants which use the connection from an implicit ConnectionProvider
+
 - Version 3.7.4, released 2022-07-14
     - upgraded to Kotlin `1.7.10`
 

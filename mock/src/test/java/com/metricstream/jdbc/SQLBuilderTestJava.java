@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020-2021, MetricStream, Inc. All rights reserved.
+ * Copyright © 2020-2022, MetricStream, Inc. All rights reserved.
  */
 package com.metricstream.jdbc;
 
@@ -49,13 +49,13 @@ class SQLBuilderTestJava {
     @Test
     void testMock() throws SQLException {
         MockResultSet.add(
-                "testMock:sb1",
-                new String[] { "name", "age" },
-                new Object[][] {
-                        { "Alice", 20 },
-                        { "Bob", 35 },
-                        { "Charles", 50 }
-                }
+            "testMock:sb1",
+            new String[] { "name", "age" },
+            new Object[][] {
+                { "Alice", 20 },
+                { "Bob", 35 },
+                { "Charles", 50 }
+            }
         );
         MockResultSet.add("testMock:sb2", new String[] { "key", "value" }, new Object[][] {});
         MockResultSet.addEmpty("testMock:sb3");
@@ -131,11 +131,11 @@ class SQLBuilderTestJava {
         }
 
         MockResultSet.add(
-                "testMock:sb10",
-                "name,age",
-                "Alice,20",
-                "Bob,35",
-                "Charles,50"
+            "testMock:sb10",
+            "name,age",
+            "Alice,20",
+            "Bob,35",
+            "Charles,50"
         );
         SQLBuilder sb10 = new SQLBuilder("select age, name from friends where age > 18");
         try (ResultSet rs = sb10.getResultSet(mockConnection)) {
@@ -150,7 +150,7 @@ class SQLBuilderTestJava {
         SQLBuilder sb11 = new SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t");
         int rsCount1 = MockSQLBuilderProvider.invocations.next();
         assertThat(sb11.getList(mockConnection, rs -> rs.getLong("USER_ID"))
-                .toString()).isEqualTo("[100000, 100001, 100002, 100003]");
+            .toString()).isEqualTo("[100000, 100001, 100002, 100003]");
         int rsCount2 = MockSQLBuilderProvider.invocations.next();
         assertThat(rsCount2 - rsCount1).isEqualTo(5);
 
@@ -158,7 +158,7 @@ class SQLBuilderTestJava {
         MockResultSet.add("testMock:read from sqldeveloper export file", getClass().getResourceAsStream("SI_USERS_T.csv"));
         SQLBuilder sb12 = new SQLBuilder("select USER_ID, FIRST_NAME, LAST_NAME, DEPARTMENT from si_users_t");
         assertThat(sb12.getList(mockConnection, rs -> rs.getLong("USER_ID"))
-                .toString()).isEqualTo("[100000, 100001, 100002, 100003]");
+            .toString()).isEqualTo("[100000, 100001, 100002, 100003]");
 
         Timestamp ts = Timestamp.from(Instant.now());
         MockResultSet.add("testMock:sb13", new Object[][] { { ts } });
@@ -214,9 +214,30 @@ class SQLBuilderTestJava {
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(2);
 
         assertThatIllegalStateException().isThrownBy(() -> {
-            MockSQLBuilderProvider.setExecute("abc", 1);
-            updateFoo.execute(mockConnection);
-        }).withMessage("Trying to use mock data tagged with 'abc' in method 'testMock' of class com.metricstream.jdbc.SQLBuilderTestJava");
+                MockSQLBuilderProvider.setExecute("abc", 1);
+                updateFoo.execute(mockConnection);
+            })
+            .withMessage("Trying to use mock data tagged with 'abc' in method 'testMock' of class com.metricstream.jdbc.SQLBuilderTestJava");
+    }
+
+    @Test
+    void providedConnectionTest() throws SQLException {
+        final SQLBuilder sb1 = new SQLBuilder("select count(*) from lookup");
+        assertThat(sb1.getInt(1, 0)).isEqualTo(42);
+        MockResultSet.add("providedConnectionTest:sb2", new Object[][] { { 15 } });
+        final SQLBuilder sb2 = new SQLBuilder("select count(*) from lookup");
+        assertThat(sb2.getInt(1, 0)).isEqualTo(15);
+        MockResultSet.add("providedConnectionTest:sb3", new Object[][] { { 15, "a" }, { 16, "b" } });
+        final SQLBuilder sb3 = new SQLBuilder("select i, s from lookup");
+        try (var rs = sb3.getResultSet()) {
+            assertThat(rs.next()).isTrue();
+            assertThat(rs.getInt(1)).isEqualTo(15);
+            assertThat(rs.getString(2)).isEqualTo("a");
+            assertThat(rs.next()).isTrue();
+            assertThat(rs.getInt(1)).isEqualTo(16);
+            assertThat(rs.getString(2)).isEqualTo("b");
+            assertThat(rs.next()).isFalse();
+        }
     }
 
     @Test
@@ -226,8 +247,8 @@ class SQLBuilderTestJava {
         assertThat(new SQLBuilder("select a from foo where a in (?)", List.of(3, 1, 4)).toSQL()).endsWith("a in (?,?,?)");
         assertThat(new SQLBuilder("select a from foo where a in (?) and b in (?)", List.of(3, 1, 4), List.of(2, 1)).toSQL()).endsWith("a in (?,?,?) and b in (?,?)");
         assertThatSQLException()
-                .isThrownBy(() -> new SQLBuilder("select a from foo where a in (?)", Collections.emptyList()).toSQL())
-                .withMessage("Collection parameters must contain at least one element");
+            .isThrownBy(() -> new SQLBuilder("select a from foo where a in (?)", Collections.emptyList()).toSQL())
+            .withMessage("Collection parameters must contain at least one element");
     }
 
     @Test
@@ -248,12 +269,12 @@ class SQLBuilderTestJava {
     @Test
     void reuseResultSetData1() throws SQLException {
         MockResultSet.add(
-                "reuseResultSetData1",
-                new String[] { "A", "B" },
-                new Object[][] {
-                        { 1, "hello" }
-                },
-                3
+            "reuseResultSetData1",
+            new String[] { "A", "B" },
+            new Object[][] {
+                { 1, "hello" }
+            },
+            3
         );
 
         assertThat(sqlBuilder.getList(mockConnection, rs -> rs.getInt(1))).isEqualTo(List.of(1, 1, 1));
@@ -263,12 +284,12 @@ class SQLBuilderTestJava {
     @Test
     void reuseResultSetData2() throws SQLException {
         MockResultSet.add(
-                "reuseResultSetData2",
-                new String[] { "A", "B" },
-                new Object[][] {
-                        { 1, "hello" }
-                },
-                1
+            "reuseResultSetData2",
+            new String[] { "A", "B" },
+            new Object[][] {
+                { 1, "hello" }
+            },
+            1
         );
 
         assertThat(sqlBuilder.getList(mockConnection, rs -> rs.getInt(1))).isEqualTo(List.of(1));
@@ -278,11 +299,11 @@ class SQLBuilderTestJava {
     @Test
     void reuseResultSetData3() throws SQLException {
         MockResultSet.add(
-                "reuseResultSetData3",
-                new String[] { "A", "B" },
-                new Object[][] {
-                        { 1, "hello" }
-                }
+            "reuseResultSetData3",
+            new String[] { "A", "B" },
+            new Object[][] {
+                { 1, "hello" }
+            }
         );
 
         assertThat(sqlBuilder.getList(mockConnection, rs -> rs.getInt(1))).isEqualTo(List.of(1));
@@ -292,17 +313,25 @@ class SQLBuilderTestJava {
     @Test
     void reuseResultSetData4() throws SQLException {
         MockResultSet.add(
-                "reuseResultSetData4",
-                new String[] { "A", "B" },
-                new Object[][] {
-                        { 1, "hello" },
-                        { 2, "world" }
-                },
-                3
+            "reuseResultSetData4",
+            new String[] { "A", "B" },
+            new Object[][] {
+                { 1, "hello" },
+                { 2, "world" }
+            },
+            3
         );
 
         assertThat(sqlBuilder.getList(mockConnection, rs -> rs.getInt(1))).isEqualTo(List.of(1, 2, 1, 2, 1, 2));
         assertThat(MockSQLBuilderProvider.invocations.next()).isEqualTo(7);
+    }
+
+    @Test
+    void wrapTest() {
+        assertThat(new SQLBuilder("a").wrap("b").toSQL()).isEqualTo("b(a)");
+        assertThat(new SQLBuilder("a").wrap("b").wrap("c").toSQL()).isEqualTo("c(b(a))");
+        assertThat(new SQLBuilder("a").wrap("count(", ")").toSQL()).isEqualTo("count(a)");
+        assertThat(new SQLBuilder("a").wrap("count(", ") as count").toSQL()).isEqualTo("count(a) as count");
     }
 
     @Test
@@ -544,7 +573,7 @@ class SQLBuilderTestJava {
         // calling `getInt` here because that automatically converts null to 0.
         MockResultSet.add("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
         List<Integer> actual = sqlBuilder.getList(mockConnection, (rs) -> rs.getObject(2))
-                .stream().map(i -> (Integer) i).collect(Collectors.toList());
+            .stream().map(i -> (Integer) i).collect(Collectors.toList());
         assertThat(actual).containsExactly(1, 3);
     }
 
@@ -555,7 +584,7 @@ class SQLBuilderTestJava {
         // then expect to get 3 elements with null mapped to null
         MockResultSet.add("", new Object[][] { { "", 1 }, { "", null }, { "", 3 } });
         List<Integer> actual = sqlBuilder.getListWithNull(mockConnection, (rs) -> rs.getObject(2))
-                .stream().map(i -> (Integer) i).collect(Collectors.toList());
+            .stream().map(i -> (Integer) i).collect(Collectors.toList());
         assertThat(actual).containsExactly(1, null, 3);
     }
 
@@ -949,9 +978,9 @@ class SQLBuilderTestJava {
         SQLBuilder sb1 = new SQLBuilder("select a, ${b} from ${t} where x > ?", 5);
         sb1.bind("b", List.of("BCOL", "CCOL")).applyBindings();
         assertThat(new SQLBuilder(sb1).bind("t", "table1").toString())
-                .isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
+            .isEqualTo("select a, BCOL, CCOL from table1 where x > ?; args=[5]");
         assertThat(new SQLBuilder(sb1).bind("t", "table2").toString())
-                .isEqualTo("select a, BCOL, CCOL from table2 where x > ?; args=[5]");
+            .isEqualTo("select a, BCOL, CCOL from table2 where x > ?; args=[5]");
     }
 
     @Test
@@ -967,49 +996,49 @@ class SQLBuilderTestJava {
     void testFromNumberedParams() {
         QueryParams params = new QueryParamsImpl();
         assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:1", params).toString())
-                .isEqualTo("select n from t where i=?; args=[a]");
+            .isEqualTo("select n from t where i=?; args=[a]");
         assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:1 or i=:2", params).toString())
-                .isEqualTo("select n from t where i=? or i=?; args=[a, b]");
+            .isEqualTo("select n from t where i=? or i=?; args=[a, b]");
         assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or i=:1", params).toString())
-                .isEqualTo("select n from t where i=? or i=?; args=[b, a]");
+            .isEqualTo("select n from t where i=? or i=?; args=[b, a]");
         assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=:2", params).toString())
-                .isEqualTo("select n from t where i=? or k=?; args=[b, b]");
+            .isEqualTo("select n from t where i=? or k=?; args=[b, b]");
         assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':4'", params).toString())
-                .isEqualTo("select n from t where i=? or k=':4'; args=[b]");
+            .isEqualTo("select n from t where i=? or k=':4'; args=[b]");
         assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:2 or k=':2'", params).toString())
-                .isEqualTo("select n from t where i=? or k=':2'; args=[b]");
+            .isEqualTo("select n from t where i=? or k=':2'; args=[b]");
         assertThat(SQLBuilder.fromNumberedParameters("select n from t where i=:11 or i=:2", params).toString())
-                .isEqualTo("select n from t where i=:11 or i=?; args=[b]");
+            .isEqualTo("select n from t where i=:11 or i=?; args=[b]");
     }
 
     @Test
     void maskData() {
         assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask("oops!")).toString())
-                .isEqualTo("select name from user where secret=?; args=[__masked__:982c0381c279d139fd221fce974916e7]");
+            .isEqualTo("select name from user where secret=?; args=[__masked__:982c0381c279d139fd221fce974916e7]");
     }
 
     @Test
     void maskDataNull() {
         assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(null)).toString())
-                .isEqualTo("select name from user where secret=?; args=[null]");
+            .isEqualTo("select name from user where secret=?; args=[null]");
     }
 
     @Test
     void maskDataEmpty() {
         assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask("")).toString())
-                .isEqualTo("select name from user where secret=?; args=[]");
+            .isEqualTo("select name from user where secret=?; args=[]");
     }
 
     @Test
     void maskDataLong() {
         assertThat(new SQLBuilder("select name from user where secret=?", SQLBuilder.mask(42L)).toString())
-                .isEqualTo("select name from user where secret=?; args=[__masked__:a1d0c6e83f027327d8461063f4ac58a6]");
+            .isEqualTo("select name from user where secret=?; args=[__masked__:a1d0c6e83f027327d8461063f4ac58a6]");
     }
 
     @Test
     void maskDataMixed() {
         assertThat(new SQLBuilder("select name from user where secret=? and public=?", SQLBuilder.mask("oops!"), "ok").toString())
-                .isEqualTo("select name from user where secret=? and public=?; args=[__masked__:982c0381c279d139fd221fce974916e7, ok]");
+            .isEqualTo("select name from user where secret=? and public=?; args=[__masked__:982c0381c279d139fd221fce974916e7, ok]");
     }
 
     private String masked(Object value) {
@@ -1086,8 +1115,8 @@ class SQLBuilderTestJava {
         // some arbitrary param values for testing
         final String[] values = { "a", "b", "c" };
         final List<String> names = IntStream.rangeClosed(1, values.length)
-                .mapToObj(String::valueOf)
-                .collect(Collectors.toList());
+            .mapToObj(String::valueOf)
+            .collect(Collectors.toList());
 
         @Nullable
         @Override

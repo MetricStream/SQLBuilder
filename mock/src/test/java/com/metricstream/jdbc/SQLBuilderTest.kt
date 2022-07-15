@@ -1,8 +1,5 @@
 /*
- * Copyright © 2020-2021, MetricStream, Inc. All rights reserved.
- */
-/*
- * Copyright © 2020-2021, MetricStream, Inc. All rights reserved.
+ * Copyright © 2020-2022, MetricStream, Inc. All rights reserved.
  */
 package com.metricstream.jdbc
 
@@ -31,9 +28,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
 import com.metricstream.jdbc.MockResultSet.Companion.add
-import com.metricstream.jdbc.MockResultSet.Companion.addGenerated
 import com.metricstream.jdbc.MockResultSet.Companion.addBroken
 import com.metricstream.jdbc.MockResultSet.Companion.addEmpty
+import com.metricstream.jdbc.MockResultSet.Companion.addGenerated
 import com.metricstream.jdbc.MockResultSet.Companion.create
 import com.metricstream.jdbc.MockSQLBuilderProvider.Companion.addResultSet
 import com.metricstream.jdbc.SQLBuilder.Companion.nameQuote
@@ -46,7 +43,6 @@ internal class SQLBuilderTest {
     private val mockConnection = spyk<Connection>()
 
     @Test
-    @Throws(SQLException::class)
     fun testMock() {
         add(
             "testMock:sb1",
@@ -202,6 +198,27 @@ internal class SQLBuilderTest {
     }
 
     @Test
+    internal fun providedConnectionTest() {
+        val sb1 = SQLBuilder("select count(*) from lookup")
+        sb1.getInt(1, 0) shouldBe 42
+        add("providedConnectionTest:sb2", arrayOf(arrayOf(15)))
+        val sb2 = SQLBuilder("select count(*) from lookup")
+        sb2.getInt(1, 0) shouldBe 15
+        add("providedConnectionTest:sb3", arrayOf(arrayOf(15, "a"), arrayOf(16, "b")))
+        val sb3 = SQLBuilder("select i, s from lookup")
+        sb3.getResultSet().use { rs ->
+            rs.next() shouldBe true
+            rs.getInt(1) shouldBe 15
+            rs.getString(2) shouldBe "a"
+            rs.next() shouldBe true
+            rs.getInt(1) shouldBe 16
+            rs.getString(2) shouldBe "b"
+            rs.next() shouldBe false
+        }
+    }
+
+    @Test
+    // use "internal" to make sure the tag matching works with internal functions as well
     internal fun expandTest() {
         SQLBuilder("select a from foo where a in (?)", 3).toSQL() shouldEndWith "a in (?)"
         SQLBuilder("select a from foo where a in (?)", listOf(3)).toSQL() shouldEndWith "a in (?)"
@@ -283,7 +300,14 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
+    fun wrapTest() {
+        SQLBuilder("a").wrap("b").toSQL() shouldBe "b(a)"
+        SQLBuilder("a").wrap("b").wrap("c").toSQL() shouldBe "c(b(a))"
+        SQLBuilder("a").wrap("count(", ")").toSQL() shouldBe "count(a)"
+        SQLBuilder("a").wrap("count(", ") as count").toSQL() shouldBe "count(a) as count"
+    }
+
+    @Test
     fun copyTest1() {
         // A resultset is consumed by a SQLBuilder `getResultSet` (or higher level callers like `getInt`). Therefore,
         // adding it once but trying to use it twice will not work.  Instead, the next usage will create a new
@@ -295,7 +319,6 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun copyTest2() {
         // A resultset has an internal state which keeps track of the consumed rows.  Therefore, adding the same
         // resultset twice will not produce the same result.
@@ -307,14 +330,12 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun brokenTest() {
         addBroken("brokenTest")
         shouldThrow<SQLException> { SQLBuilder("select A from T").getInt(mockConnection, 1, -1) }
     }
 
     @Test
-    @Throws(SQLException::class)
     fun executeReturningTest() {
         add("executeReturningTest:id", "43", false)
         val sb = SQLBuilder("insert into foo(foo_s.nextval, ?", "fooValue")
@@ -324,7 +345,6 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun unusedMockResultSet() {
         add("unusedMockResultSet:first", "1", false)
         add("unusedMockResultSet:second", "2", false)
@@ -333,7 +353,6 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun testDateTime() {
         val now = OffsetDateTime.now()
         add("testDateTime", arrayOf(arrayOf(now)))
@@ -352,7 +371,6 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun testInstant() {
         val now = Clock.systemUTC().instant()
         val oNow = now.atOffset(ZoneOffset.UTC)
@@ -372,7 +390,6 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun yesForever() {
         SQLBuilder.setDelegate(MockSQLBuilderProvider(generateSingleRowResultSet = true, enforceTags = true))
         val sb1 = SQLBuilder("select count(*) from lookup")
@@ -387,7 +404,6 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun noForever() {
         try {
             SQLBuilder.setDelegate(MockSQLBuilderProvider(generateSingleRowResultSet = false, enforceTags = true))
@@ -400,7 +416,6 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun emptyForever() {
         SQLBuilder.setDelegate(MockSQLBuilderProvider(generateSingleRowResultSet = true, enforceTags = true))
         addEmpty("")
@@ -413,7 +428,6 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun getDouble1() {
         add("getDouble1", "A", "123")
         sqlBuilder.getResultSet(mockConnection).use { rs ->
@@ -423,7 +437,6 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun getDouble2() {
         add("getDouble2", "A", "123.456")
         sqlBuilder.getResultSet(mockConnection).use { rs ->
@@ -433,7 +446,6 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun getDouble3() {
         add("getDouble3", arrayOf("A"), arrayOf(arrayOf(123.456)))
         sqlBuilder.getResultSet(mockConnection).use { rs ->
@@ -443,7 +455,6 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun getDouble4() {
         add("getDouble4", arrayOf("A"), arrayOf(arrayOf(123.456)))
         sqlBuilder.getDouble(mockConnection, 1, -1.0) shouldBe 123.456
@@ -644,6 +655,7 @@ internal class SQLBuilderTest {
         val m = sqlBuilder.getMap(mockConnection, { rs: ResultSet -> SQLBuilder.entry(rs.getString(1), rs.getInt(2)) }, false)
         m.keys.shouldContainExactlyInAnyOrder("1", "2", "3")
     }
+
     @Test
     fun map_test5() {
         // when query returns 3 rows
@@ -1041,7 +1053,6 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun mockInt() {
         val sb = SQLBuilder("select count(*) from foo")
         MockSQLBuilderProvider.setIntByColumnIndex { c: Int, d: Int ->
@@ -1054,7 +1065,6 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun maxRows() {
         add("", "_,3\n_,1\n_,4", false)
         // TODO: this just tests that `withMaxRows` is accepted, but not the actual implementation.
@@ -1063,7 +1073,6 @@ internal class SQLBuilderTest {
     }
 
     @Test
-    @Throws(SQLException::class)
     fun nameToIndexMapping() {
         add("", "columnA,columnB", "A,B")
         val rs = sqlBuilder.getResultSet(mockConnection)

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020-2021, MetricStream, Inc. All rights reserved.
+ * Copyright © 2020-2022, MetricStream, Inc. All rights reserved.
  */
 package com.metricstream.jdbc
 
@@ -259,4 +259,8 @@ interface SQLBuilderProvider {
         }
         return map
     }
+
+    val connectionProvider: ConnectionProvider
+
+    fun getConnection() = connectionProvider.getConnection()
 }
