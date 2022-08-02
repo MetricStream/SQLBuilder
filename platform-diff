@@ -1,7 +1,0 @@
-#! /bin/zsh
-setopt extended_glob null_glob no_ksh_arrays
-
-for j in (core|mock)/**/*.java ; do
-    p=(~/work/Platform/modules/**/sql/${j##*/})
-    [[ ${#p} == 1 ]] && diff -w -u $p[1] $j
-done
