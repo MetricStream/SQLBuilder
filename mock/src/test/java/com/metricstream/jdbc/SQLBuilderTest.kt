@@ -168,7 +168,7 @@ internal class SQLBuilderTest {
         val sb16 = SQLBuilder("select value from lookup where key = ?", 42)
         sb16.getDate(mockConnection, 1, null) shouldBe date
 
-        val updateFoo = SQLBuilder("update foo")
+        val updateFoo = SQLBuilder("update foo set bar = 1")
         updateFoo.execute(mockConnection) shouldBe 42
 
         MockSQLBuilderProvider.setExecute("testMock", 1)
@@ -346,7 +346,7 @@ internal class SQLBuilderTest {
     @Test
     fun executeReturningTest() {
         add("executeReturningTest:id", "43", false)
-        val sb = SQLBuilder("insert into foo(foo_s.nextval, ?", "fooValue")
+        val sb = SQLBuilder("insert into foo values(foo_s.nextval, ?)", "fooValue")
         val rs = sb.execute(mockConnection, "id")
         rs.next() shouldBe true
         rs.getInt(1) shouldBe 43

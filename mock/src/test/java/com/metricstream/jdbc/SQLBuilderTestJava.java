@@ -190,7 +190,7 @@ class SQLBuilderTestJava {
         SQLBuilder sb16 = new SQLBuilder("select value from lookup where key = ?", 42);
         assertThat(sb16.getDate(mockConnection, 1, null)).isEqualTo(date);
 
-        final SQLBuilder updateFoo = new SQLBuilder("update foo");
+        final SQLBuilder updateFoo = new SQLBuilder("update foo set bar = 1");
         assertThat(updateFoo.execute(mockConnection)).isEqualTo(42);
 
         MockSQLBuilderProvider.setExecute("testMock", 1);
@@ -373,7 +373,7 @@ class SQLBuilderTestJava {
     @Test
     void executeReturningTest() throws SQLException {
         MockResultSet.add("executeReturningTest:id", "43", false);
-        SQLBuilder sb = new SQLBuilder("insert into foo(foo_s.nextval, ?", "fooValue");
+        SQLBuilder sb = new SQLBuilder("insert into foo values(foo_s.nextval, ?)", "fooValue");
         ResultSet rs = sb.execute(mockConnection, "id");
         assertThat(rs.next()).isTrue();
         assertThat(rs.getInt(1)).isEqualTo(43);
