@@ -27,21 +27,36 @@ private val logger = mu.KotlinLogging.logger {}
 
 class MockSQLBuilderProvider @JvmOverloads constructor(
     private val generateSingleRowResultSet: Boolean = true,
-    private val enforceTags: Boolean = true,
-    private val parseSql: Boolean = true,
+    private var enforceTags: Boolean = true,
+    private var parseSql: Boolean = true,
 ) : SQLBuilderProvider {
 
     init {
         reset()
     }
 
+    fun enableSqlParsing() {
+        parseSql = true
+    }
+
+    fun disableSqlParsing() {
+        parseSql = false
+    }
+
+    fun enableTagEnforcement() {
+        enforceTags = true
+    }
+
+    fun disableTagEnforcement() {
+        enforceTags = false
+    }
+
     private fun validate(sqlBuilder: SQLBuilder) {
         if (parseSql) {
             val parser = SQLParser(sqlBuilder.toSQL())
             if (parser.isInvalid()) {
-                val issues = parser.showIssues(prefix = "\n")
-                logger.error { issues }
-                throw SQLException("Invalid SQL")
+                val issues = parser.showIssues()
+                throw SQLException("Invalid SQL:\n$issues")
             }
         }
         logger.debug { sqlBuilder }

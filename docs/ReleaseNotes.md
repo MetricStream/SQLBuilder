@@ -1,5 +1,19 @@
 [![MetricStream](MetricStream_Logo.png)][MetricStream] SQLBuilder Release Notes
 
+- Version 3.9.0, released 2022-07-15
+    - added support for validating SQL statements when executing them using MockSQLBuilder
+    - added methods to MockSQLBuilder for enabling/disabling tag enforcement and SQL parsing
+  - upgraded external dependencies
+      - `io.kotest:kotest-assertions-core` from `5.3.2` to `5.4.2`
+      - `org.junit.jupiter:junit-jupiter-api` from `5.8.2` to `5.9.0`
+      - `org.junit.jupiter:junit-jupiter-engine` from `5.8.2` to `5.9.0`
+      - `org.mockito:mockito-core` from `4.6.1` to `4.7.0`
+      - `org.mockito:mockito-junit-jupiter` from `4.6.1` to `4.7.0`
+      - `io.mockk:mockk` from `1.12.4` to `1.12.5`
+      - `org.postgresql:postgresql` from `42.4.0` to `42.4.1`
+  - upgraded to Gradle `7.5.1`
+ 
+
 - Version 3.8.1, released 2022-07-15
     - added SQLBuilder method variants which use the connection from an implicit ConnectionProvider
 
@@ -9,10 +23,10 @@
 - Version 3.7.1, released 2022-06-27
     - switch to TOML version of Gradle versions catalog
     - add versions-update plugin and dependent plugins
-    - upgraded external dependencies
-        - `io.kotest:kotest-assertions-core` from `5.3.0` to `5.3.2`
-        - `com.oracle.database.jdbc:ojdbc11` from `21.5.0.0` to `21.6.0.0.1`
-        - `org.postgresql:postgresql` from `42.3.6` to `42.4.0`
+  - upgraded external dependencies
+      - `io.kotest:kotest-assertions-core` from `5.3.0` to `5.3.2`
+      - `com.oracle.database.jdbc:ojdbc11` from `21.5.0.0` to `21.6.0.0.1`
+      - `org.postgresql:postgresql` from `42.3.6` to `42.4.0`
 
 - Version 3.7.0, released 2022-06-10
     - fixes a regression around `getMap` introduced in version `3.1.0` which prevented to place

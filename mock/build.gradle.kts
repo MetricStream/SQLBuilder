@@ -24,7 +24,7 @@ tasks.generateGrammarSource {
 
 
 kotlin {
-    sourceSets.main.get().kotlin.srcDirs += tasks.generateGrammarSource.get().outputDirectory
+    sourceSets.main.get().kotlin.srcDir(tasks.generateGrammarSource)
 }
 
 tasks.compileKotlin {

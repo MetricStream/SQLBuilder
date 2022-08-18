@@ -29,7 +29,7 @@ subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
 
     group = "com.metricstream.jdbc"
-    version = "3.8.1"
+    version = "3.9.0"
 
     repositories {
         mavenCentral()
@@ -37,7 +37,7 @@ subprojects {
 
     kotlin {
         jvmToolchain {
-            (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(11))
+            languageVersion.set(JavaLanguageVersion.of(11))
         }
     }
 
