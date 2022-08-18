@@ -6675,6 +6675,7 @@ non_reserved_keywords_pre12c
     | TIMEOUT
     | TIMES
     | TIMESTAMP
+    | TIMEZONE
     | TIMEZONE_ABBR
     | TIMEZONE_HOUR
     | TIMEZONE_MINUTE
