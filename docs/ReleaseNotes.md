@@ -1,5 +1,37 @@
 [![MetricStream](MetricStream_Logo.png)][MetricStream] SQLBuilder Release Notes
 
+- Version 4.0.0, released 2026-04-08
+    - **Platform modernisation release — no new features or API changes**
+    - This major version marks a deliberate technology shift: the public API is identical to 3.9.x,
+      but the platform baseline has been raised to keep the library current, secure, and aligned with
+      the modern JVM and Kotlin ecosystems. Consumers upgrading from 3.9.x should require no code changes.
+    - **Java 21 is now the minimum required JVM version** (previously JVM 11)
+    - upgraded to Kotlin `2.3.0`
+    - migrated `kotlin-logging` from the deprecated `io.github.microutils:kotlin-logging-jvm` to
+      `io.github.oshai:kotlin-logging-jvm` (package renamed from `mu` to `io.github.oshai.kotlinlogging`)
+    - fixed tag matching compatibility with JUnit 6's updated internal method naming convention
+    - upgraded build tooling
+        - `io.gitlab.arturbosch.detekt` replaced by `dev.detekt` `2.0.0-alpha.2` (Kotlin 2.x compatible)
+        - `org.jlleitschuh.gradle.ktlint` from `11.0.0` to `14.2.0`
+        - migrated ktlint rule configuration from Gradle DSL to `.editorconfig`
+        - `com.github.ben-manes.versions` from `0.42.0` to `0.53.0`
+        - `nl.littlerobots.version-catalog-update` from `0.6.1` to `1.1.0`
+    - upgraded external dependencies to latest secure versions
+        - `org.antlr:antlr4` from `4.11.1` to `4.13.2`
+        - `org.assertj:assertj-core` from `3.23.1` to `3.27.3`
+        - `commons-codec:commons-codec` from `1.15` to `1.21.0`
+        - `org.junit.jupiter` from `5.9.1` to `6.0.3`
+        - `io.kotest:kotest-assertions-core` from `5.5.0` to `6.0.0.M4`
+        - `ch.qos.logback:logback-classic` from `1.4.3` to `1.5.18`
+        - `io.github.oshai:kotlin-logging-jvm` from `3.0.0` to `7.0.7`
+        - `org.mockito:mockito-core` from `4.8.0` to `5.18.0`
+        - `org.mockito:mockito-junit-jupiter` from `4.8.0` to `5.18.0`
+        - `io.mockk:mockk-jvm` from `1.13.2` to `1.14.3`
+        - `com.oracle.database.jdbc:ojdbc11` from `21.7.0.0` to `21.18.0.0`
+        - `com.opencsv:opencsv` from `5.7.0` to `5.10`
+        - `org.postgresql:postgresql` from `42.5.0` to `42.7.7`
+        - `org.slf4j:slf4j-api` from `2.0.3` to `2.0.17`
+
 - Version 3.9.1, released 2022-08-17
     - fixed release date for 3.9.0, no code changes
 

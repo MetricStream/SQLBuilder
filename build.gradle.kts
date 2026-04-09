@@ -3,7 +3,7 @@ plugins {
     `java-library`
     `maven-publish`
     signing
-    kotlin("jvm") version "1.7.20"
+    kotlin("jvm") version "2.3.0"
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
     alias(libs.plugins.versions)
@@ -26,10 +26,10 @@ subprojects {
     apply(plugin = "kotlin")
     apply(plugin = "signing")
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
-    apply(plugin = "io.gitlab.arturbosch.detekt")
+    apply(plugin = "dev.detekt")
 
     group = "com.metricstream.jdbc"
-    version = "3.9.0"
+    version = "4.0.0"
 
     repositories {
         mavenCentral()
@@ -37,7 +37,7 @@ subprojects {
 
     kotlin {
         jvmToolchain {
-            languageVersion.set(JavaLanguageVersion.of(11))
+            languageVersion.set(JavaLanguageVersion.of(21))
         }
     }
 
@@ -79,8 +79,8 @@ subprojects {
                     }
                     developers {
                         developer {
-                            name.set("Norbert Kiesel")
-                            email.set("nkiesel@metricstream.com")
+                            name.set("Prasadu Babu Dandu")
+                            email.set("prasadbabu@metricstream.com")
                             organization.set("MetricStream, Inc.")
                             organizationUrl.set("https://metricstream.com")
                         }
@@ -109,11 +109,6 @@ subprojects {
     signing {
         useGpgCmd()
         sign(publishing.publications["maven${project.name}"])
-    }
-
-    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-        // See https://github.com/pinterest/ktlint/issues/527
-        disabledRules.set(setOf("import-ordering"))
     }
 
     detekt {

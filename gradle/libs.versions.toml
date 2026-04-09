@@ -1,31 +1,33 @@
 [versions]
-antlr = "4.11.1"
-assertj = "3.23.1"
-codec = "1.15"
-junit5 = "5.9.1"
-kotest = "5.5.0"
-logback = "1.4.3"
-logging = "3.0.0"
-mockito = "4.8.0"
-mockk = "1.13.2"
-ojdbc11 = "21.7.0.0"
-opencsv = "5.7.0"
-plugin-detekt = "1.21.0"
-plugin-ktlint = "11.0.0"
-plugin-versions = "0.42.0"
+antlr = "4.13.2"
+assertj = "3.27.3"
+codec = "1.21.0"
+junit6 = "6.0.3"
+kotest = "6.0.0.M4"
+logback = "1.5.32"
+logging = "7.0.7"
+mockito = "5.18.0"
+mockk = "1.14.3"
+ojdbc11 = "21.18.0.0"
+opencsv = "5.10"
+plugin-detekt = "2.0.0-alpha.2"
+plugin-ktlint = "14.2.0"
+plugin-versions = "0.53.0"
 plugin-versionsFilter = "0.1.16"
-plugin-versionsUpdate = "0.6.1"
-postgresql = "42.5.0"
-slf4j = "2.0.3"
+plugin-versionsUpdate = "1.1.0"
+postgresql = "42.7.7"
+slf4j = "2.0.17"
 
 [libraries]
 antlr = { module = "org.antlr:antlr4", version.ref = "antlr" }
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "codec" }
-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit5" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit6" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit6" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit6" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit6" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
-kotlin-logging-jvm = { module = "io.github.microutils:kotlin-logging-jvm", version.ref = "logging" }
+kotlin-logging-jvm = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "logging" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
@@ -36,7 +38,7 @@ postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" 
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 
 [plugins]
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "plugin-detekt" }
+detekt = { id = "dev.detekt", version.ref = "plugin-detekt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "plugin-ktlint" }
 versions = { id = "com.github.ben-manes.versions", version.ref = "plugin-versions" }
 versions-filter = { id = "se.ascp.gradle.gradle-versions-filter", version.ref = "plugin-versionsFilter" }

@@ -1,3 +1,20 @@
 style:
   MaxLineLength:
     maxLineLength: 140
+  ForbiddenComment:
+    active: false
+  ReturnCount:
+    max: 3
+
+complexity:
+  TooManyFunctions:
+    allowedFunctionsPerClass: 77
+    allowedFunctionsPerInterface: 32
+  CyclomaticComplexMethod:
+    allowedComplexity: 15
+  LongMethod:
+    allowedLines: 65
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false

@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    testImplementation(platform(libs.junit.bom))
     implementation(project(":core"))
     implementation(libs.postgresql)
 
@@ -12,6 +13,7 @@ dependencies {
     testImplementation(libs.mockito.junit.jupiter)
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 application {
