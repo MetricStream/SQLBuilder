@@ -11,7 +11,7 @@ plugins {
     alias(libs.plugins.versions.update)
 }
 
-// These are credentials required for the task `uploadArchives`. They are read either from gradle.properties or from the command
+// These are credentials required for publishing. They are read either from gradle.properties or from the command
 // line using -PsonatypeUsername=abc
 val sonatypeUsername: String by project
 val sonatypePassword: String by project
@@ -27,7 +27,6 @@ subprojects {
     apply(plugin = "signing")
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
     apply(plugin = "dev.detekt")
-
     group = "com.metricstream.jdbc"
     version = "4.0.0"
 
@@ -94,20 +93,16 @@ subprojects {
             }
         }
 
-        repositories {
-            maven {
-                name = "staging"
-                url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
-                credentials {
-                    username = sonatypeUsername
-                    password = sonatypePassword
-                }
-            }
-        }
+        repositories { }
     }
 
     signing {
-        useGpgCmd()
+        val signingKeyFile: String? by project
+        val signingPassword: String? by project
+        if (signingKeyFile != null) {
+            val keyContent = file(signingKeyFile!!).readText()
+            useInMemoryPgpKeys(keyContent, signingPassword)
+        }
         sign(publishing.publications["maven${project.name}"])
     }
 
