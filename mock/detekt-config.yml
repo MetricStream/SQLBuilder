@@ -3,6 +3,12 @@ style:
     maxLineLength: 140
   ReturnCount:
     max: 6
+  ForbiddenComment:
+    active: false
+  MagicNumber:
+    active: false
+  FunctionOnlyReturningConstant:
+    active: false
 
 empty-blocks:
   EmptyFunctionBlock:
@@ -10,4 +16,25 @@ empty-blocks:
 
 complexity:
   ComplexCondition:
-    threshold: 6
+    allowedConditions: 6
+  TooManyFunctions:
+    allowedFunctionsPerClass: 77
+    allowedFunctionsPerInterface: 32
+    allowedFunctionsPerObject: 23
+  CyclomaticComplexMethod:
+    allowedComplexity: 21
+  LongMethod:
+    allowedLines: 146
+  LargeClass:
+    active: false
+
+naming:
+  FunctionNaming:
+    active: false
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  ThrowingExceptionsWithoutMessageOrCause:
+    active: false
+

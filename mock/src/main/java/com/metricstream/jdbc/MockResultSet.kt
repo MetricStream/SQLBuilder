@@ -30,7 +30,7 @@ import java.sql.Array as SQLArray
 import com.opencsv.CSVReader
 import com.opencsv.exceptions.CsvException
 
-private val logger = mu.KotlinLogging.logger {}
+private val logger = io.github.oshai.kotlinlogging.KotlinLogging.logger {}
 
 @Suppress("TooManyFunctions")
 class MockResultSet private constructor(

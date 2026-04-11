@@ -23,7 +23,7 @@ import com.metricstream.jdbc.SQLBuilder.Companion.resetDelegate
 import com.metricstream.jdbc.SQLBuilder.Companion.setDelegate
 import com.metricstream.jdbc.parser.SQLParser
 
-private val logger = mu.KotlinLogging.logger {}
+private val logger = io.github.oshai.kotlinlogging.KotlinLogging.logger {}
 
 class MockSQLBuilderProvider @JvmOverloads constructor(
     private val generateSingleRowResultSet: Boolean = true,
@@ -454,7 +454,7 @@ class MockSQLBuilderProvider @JvmOverloads constructor(
             return null
         }
 
-        var methodName = stackTraceElement.methodName.removeSuffix("\$mock")
+        var methodName = stackTraceElement.methodName.replace(Regex("\\\$mock.*$"), "")
         if (methodName == "doCall") {
             // undo Groovy 2.4 closure method name mangling
             groovyClosure.matchEntire(declaringClass)?.groupValues?.get(1)?.let { methodName = it }

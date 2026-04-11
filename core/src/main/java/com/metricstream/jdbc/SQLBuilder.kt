@@ -23,7 +23,7 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 import org.apache.commons.codec.digest.DigestUtils
 
-private val logger = mu.KotlinLogging.logger {}
+private val logger = io.github.oshai.kotlinlogging.KotlinLogging.logger {}
 
 /**
  * Wrapper class around PreparedStatement
