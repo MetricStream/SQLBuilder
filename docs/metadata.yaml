@@ -1,7 +1,9 @@
 
 ---
 title: 'SQLBuilder: A PreparedStatement Done Right'
-author: 'Prasadu Babu Dandu <prasadbabu@metricstream.com>'
+author:
+  - 'Norbert Kiesel <nk@iname.com>'
+  - 'Prasadu Babu Dandu <prasadbabu@metricstream.com>'
 date: 2021-03
 ---
 

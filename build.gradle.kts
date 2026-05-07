@@ -78,6 +78,10 @@ subprojects {
                     }
                     developers {
                         developer {
+                            name.set("Norbert Kiesel")
+                            email.set("nk@iname.com")
+                        }
+                        developer {
                             name.set("Prasadu Babu Dandu")
                             email.set("prasadbabu@metricstream.com")
                             organization.set("MetricStream, Inc.")
